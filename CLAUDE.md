@@ -152,13 +152,17 @@ Biome writes tab indentation. Run `npm run fix` after you add a file. Biome does
 examine `.claude/`, because that directory belongs to the harness. Biome does not examine
 `drizzle/`, because drizzle-kit writes those files.
 
-Run these commands for the database:
+Run these commands for the database and for the server:
 
 ```bash
 npm run db:generate # drizzle-kit generate, after a change to schema.ts
 npm run db:migrate  # drizzle-kit migrate, it applies the migrations
 npm run db:seed     # it writes the catalogue in the database
+npm run dev:server  # Hono on the port 3000
 ```
+
+The three commands of the database use `DATABASE_URL`. The default value is
+`./data/yume.db`.
 
 The hooks have commands. Run each test suite after a change to a hook:
 
