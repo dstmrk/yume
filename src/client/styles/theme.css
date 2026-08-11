@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/**
+ * The tokens of the theme. This file is the only place that holds a colour.
+ * The theme is an airport departure board with split-flap displays. The palette
+ * is dark only: Yume has no light theme.
+ */
+@theme {
+	--color-board-bg: #0b0c0e;
+	--color-board-panel: #16181c;
+	--color-board-line: #24272c;
+	--color-board-text: #e8e6e1;
+	--color-board-muted: #8b8f96;
+
+	/* The amber of a departure board. It marks a value that is a calculation. */
+	--color-board-amber: #f5a623;
+
+	/* The two faces of a flap. The edge is the line between the two halves. */
+	--color-flap-face: #1f2226;
+	--color-flap-edge: #0b0c0e;
+
+	/* Departure Mono is the font of the decision. The repository does not hold
+	   that file now, thus the digits use the monospace font of the system.
+	   Refer to paragraph 5.3 of docs/architecture.md. */
+	--font-board:
+		ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+	/* The width of the content on a large screen. Yume is mobile first and has
+	   no separate design for a desktop. Refer to paragraph 5.4. */
+	--container-board: 32rem;
+}
+
+@layer base {
+	:root {
+		color-scheme: dark;
+	}
+
+	body {
+		background-color: var(--color-board-bg);
+		color: var(--color-board-text);
+	}
+}
+
+/** The space of the telephone below the screen, on iOS. */
+@utility pb-safe {
+	padding-bottom: calc(env(safe-area-inset-bottom) + --spacing(6));
+}
