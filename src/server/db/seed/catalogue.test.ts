@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { currencies, programs, transferRules } from "./catalogue.js";
+import { currencies, programs, transferRules } from "./catalogue.ts";
 
 /**
  * These tests examine the catalogue, not the logic. A defect in this data gives

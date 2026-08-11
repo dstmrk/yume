@@ -5,7 +5,7 @@
  * The caller gives the rules and the date as parameters.
  */
 
-import type { IsoDate, TransferRule } from "./catalogue.js";
+import type { IsoDate, TransferRule } from "./catalogue.ts";
 
 /**
  * Calculates the target points for a balance of source points.

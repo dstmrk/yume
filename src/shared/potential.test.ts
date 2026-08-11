@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { AccountBalance, Program, TransferRule } from "./catalogue.js";
-import { potentialMiles } from "./potential.js";
+import type { AccountBalance, Program, TransferRule } from "./catalogue.ts";
+import { potentialMiles } from "./potential.ts";
 
 const AMEX_SOURCE = "https://www.americanexpress.com/it-it/rewards/";
 const REVOLUT_SOURCE = "https://help.revolut.com/it-IT/help/revpoints/";

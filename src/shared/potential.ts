@@ -10,8 +10,8 @@ import type {
 	IsoDate,
 	Program,
 	TransferRule,
-} from "./catalogue.js";
-import { convert, findRule } from "./conversion.js";
+} from "./catalogue.ts";
+import { convert, findRule } from "./conversion.ts";
 
 /** The best route from one source account to the target currency. */
 export type BestRoute = {

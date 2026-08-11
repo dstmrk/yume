@@ -20,7 +20,7 @@ import type {
 	Currency,
 	Program,
 	TransferRule,
-} from "../../../shared/catalogue.js";
+} from "../../../shared/catalogue.ts";
 
 /** The date of the examination of each page of this file. */
 const VERIFIED_ON = "2026-08-11";

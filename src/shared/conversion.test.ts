@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { TransferRule } from "./catalogue.js";
-import { convert, findRule } from "./conversion.js";
+import type { TransferRule } from "./catalogue.ts";
+import { convert, findRule } from "./conversion.ts";
 
 /**
  * The rule of Amex Membership Rewards to The British Airways Club.

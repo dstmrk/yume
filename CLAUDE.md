@@ -48,6 +48,11 @@ server code.
 
 The project has one `package.json`. Do not add a monorepo tool.
 
+Write the extension `.ts` in a relative import: `import { x } from "./x.ts"`. Node removes
+the types at runtime with `--experimental-strip-types`, and it resolves the path exactly
+as you write it. An import of `./x.js` gives the error `ERR_MODULE_NOT_FOUND`, because
+that file does not exist. The server needs no build step with this rule.
+
 ## Rules for the work
 
 These rules apply to each task. The section Hooks gives the rules that a hook makes
