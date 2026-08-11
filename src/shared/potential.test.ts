@@ -96,6 +96,7 @@ describe("potentialMiles", () => {
 			current: 0,
 			fromTransfers: 0,
 			total: 0,
+			routes: [],
 		});
 	});
 
@@ -172,7 +173,24 @@ describe("potentialMiles", () => {
 			current: 0,
 			fromTransfers: 0,
 			total: 0,
+			routes: [],
 		});
+	});
+
+	it("names the programme of the best route of each source", () => {
+		const result = avios([
+			{ programId: "ba-club", points: 1000 },
+			{ programId: "amex-mr", points: 700 },
+			{ programId: "revolut", points: 250 },
+		]);
+		expect(result.routes).toEqual([
+			{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 400 },
+			{ fromProgramId: "revolut", toProgramId: "ba-club", points: 250 },
+		]);
+	});
+
+	it("does not name a route that gives 0", () => {
+		expect(avios([{ programId: "amex-mr", points: 400 }]).routes).toEqual([]);
 	});
 
 	it("gives 0 for a currency that no programme uses", () => {

@@ -246,6 +246,26 @@ product.
 | Palette | Dark only. There is no light theme. |
 | Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
 
+### 5.0 One card for each currency
+
+The dashboard shows one card for each currency. The card does not show one value for
+each programme.
+
+The reason is the Avios family. A member moves Avios between the six programmes at no
+cost, at a ratio of 1 : 1. Therefore the potential in The British Airways Club and the
+potential in Iberia Club are the same number. Six cards with the same number invite the
+user to add them. That sum is not possible.
+
+Each card holds three parts:
+
+1. The total potential of the currency. This is the large number.
+2. The balance of each account of the currency. Example: British Airways 1 000 and
+   Iberia 500.
+3. The best route for each source. Example: Amex MR, through Iberia Club, gives 400.
+
+The card shows the balance and the potential as two different values. Refer to paragraph
+3.5.
+
 ### 5.1 Two layers of components
 
 The directory `src/client/components/ui/` holds the shadcn/ui components. Do not change

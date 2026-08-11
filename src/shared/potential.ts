@@ -13,6 +13,15 @@ import type {
 } from "./catalogue.js";
 import { convert, findRule } from "./conversion.js";
 
+/** The best route from one source account to the target currency. */
+export type BestRoute = {
+	readonly fromProgramId: string;
+	/** The programme of the target currency that gives the largest result. */
+	readonly toProgramId: string;
+	/** The points that arrive in the target currency. It is more than 0. */
+	readonly points: number;
+};
+
 export type PotentialMiles = {
 	readonly currencyId: string;
 	/** The sum of the balances of the currency now. */
@@ -21,6 +30,11 @@ export type PotentialMiles = {
 	readonly fromTransfers: number;
 	/** The sum of the two values above. */
 	readonly total: number;
+	/**
+	 * The route of each source that gives more than 0. The card of the currency
+	 * shows this list. Refer to paragraph 5.0 of `docs/architecture.md`.
+	 */
+	readonly routes: readonly BestRoute[];
 };
 
 /**
@@ -55,6 +69,7 @@ export function potentialMiles(input: {
 
 	let current = 0;
 	let fromTransfers = 0;
+	const routes: BestRoute[] = [];
 
 	for (const balance of balances) {
 		const source = programById.get(balance.programId);
@@ -65,27 +80,46 @@ export function potentialMiles(input: {
 			current += balance.points;
 			continue;
 		}
-		fromTransfers += bestRoute(balance.points, source.id, targets, rules, at);
+		const route = bestRoute(balance.points, source.id, targets, rules, at);
+		if (route === undefined) {
+			continue;
+		}
+		fromTransfers += route.points;
+		routes.push(route);
 	}
 
-	return { currencyId, current, fromTransfers, total: current + fromTransfers };
+	return {
+		currencyId,
+		current,
+		fromTransfers,
+		total: current + fromTransfers,
+		routes,
+	};
 }
 
-/** Gives the largest quantity of points that one account can send to a currency. */
+/**
+ * Gives the route that sends the largest quantity of points to the currency.
+ *
+ * The result is undefined when no route gives more than 0. Two routes with the
+ * same result keep the first programme of the catalogue.
+ */
 function bestRoute(
 	points: number,
 	fromProgramId: string,
 	targets: readonly Program[],
 	rules: readonly TransferRule[],
 	at: IsoDate,
-): number {
-	let best = 0;
+): BestRoute | undefined {
+	let best: BestRoute | undefined;
 	for (const target of targets) {
 		const rule = findRule(rules, fromProgramId, target.id, at);
 		if (rule === undefined) {
 			continue;
 		}
-		best = Math.max(best, convert(points, rule));
+		const converted = convert(points, rule);
+		if (converted > 0 && (best === undefined || converted > best.points)) {
+			best = { fromProgramId, toProgramId: target.id, points: converted };
+		}
 	}
 	return best;
 }
