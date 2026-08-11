@@ -141,3 +141,14 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Yume — the private data of the user (CLAUDE.md, section Git)
+# The mounted volume holds the SQLite database and the backups. This data never
+# goes into git: git keeps a file in the history after a later delete.
+# The hook .claude/hooks/block-private-data-commit.sh gives the second defence.
+data/
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

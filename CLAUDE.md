@@ -48,6 +48,36 @@ server code.
 
 The project has one `package.json`. Do not add a monorepo tool.
 
+## Rules for the work
+
+These rules apply to each task. The section Hooks gives the rules that a hook makes
+mechanical.
+
+1. **Ask when a requirement is not clear.** Do not write code with an assumption. The
+   section Questions gives the operations that always need a question.
+2. **Write the test first.** Write the test before the implementation. Each file with
+   logic has a test file.
+3. **Examine the edge cases after each implementation.** Make a list of the edge cases.
+   Add a test for each one. Do these operations before the commit.
+4. **Divide a large task.** If a task changes more than 3 files, stop. Then divide the
+   task into sub-tasks.
+5. **Find the cause of a correction.** If the user corrects you, find the reason for the
+   error. Then prevent the same error.
+6. **Keep this file and the skills correct.** If you solve a difficult problem, write the
+   lesson here or in the correct skill. Do this operation without a request from the
+   user.
+7. **Remove an internal path that is obsolete.** Remove the call sites, the tests and the
+   dead columns. Do not write a compatibility layer. Do not write an `if (legacy)`
+   branch. If the removal changes more than 3 files, obey the rule 4. These three items
+   are not compatibility layers:
+   - A migration in `drizzle/` that ran one time. A migration is immutable. Add a new
+     migration.
+   - A transfer rule with a `validTo` that is not null. A closed rule is historical data.
+     Keep it. Refer to the rule 4 of the data.
+   - A fallback for an error at runtime.
+8. **Use the packages that the project has.** Read the documents and the types of an
+   installed package first. Do not assume that a package cannot do the operation.
+
 ## Rules for the data
 
 These rules prevent the most dangerous defects in this application:
@@ -94,8 +124,16 @@ only. Obey these rules:
 
 ## Commands
 
-The project is in the design stage. There is no application code and there are no
-commands. Add the commands to this file with the first code.
+The application is in the design stage. There is no application code and there are no
+commands for it. Add the commands to this file with the first code.
+
+The hooks have commands. Run each test suite after a change to a hook:
+
+```bash
+bash .claude/hooks/test-block-commit-on-main.sh
+bash .claude/hooks/test-block-push-to-main.sh
+bash .claude/hooks/test-block-private-data-commit.sh
+```
 
 ## Git
 
@@ -103,6 +141,39 @@ commands. Add the commands to this file with the first code.
 - Write a commit message in the imperative form. Give the reason for the change.
 - Commit the generated migrations in `drizzle/`.
 - Do not commit the database file, the `data/` directory or a `.env` file.
+
+## Hooks
+
+The directory `.claude/hooks/` holds the hooks. The file `.claude/settings.json` starts
+them. A hook makes a rule of this file mechanical. Thus the rule stays active when the
+context of a session becomes long.
+
+| Hook | Effect |
+|---|---|
+| `block-commit-on-main.sh` | It blocks a commit on `main`. Refer to the section Git. |
+| `block-push-to-main.sh` | It blocks a push to `main`. Refer to the section Git. |
+| `block-private-data-commit.sh` | It blocks `git add` of the database file, of `data/` and of a `.env` file. Refer to the section Git. |
+
+`.gitignore` is the first defence for the private files. The hook
+`block-private-data-commit.sh` is the second defence. That hook also blocks
+`git add --force`, because the force option makes `.gitignore` inactive.
+
+A hook is code. Each hook has a test suite in the same directory. A hook that stops the
+block must make a test fail. The section Commands gives the commands for the suites.
+
+## Skills
+
+The directory `.claude/skills/` holds the skills. A skill is **prescriptive**: it gives
+the method for a task. `docs/architecture.md` is **descriptive**: it gives the decisions
+and the catalogue.
+
+| Skill | Subject |
+|---|---|
+| `conversion-math` | The calculation of the potential miles. The sequence of the steps with integers, the difference between a currency and a programme, and the selection of a versioned rule. |
+
+The harness reads the field `description` of a skill. Then the harness starts the skill
+for a task that matches. Write the names of the files and of the fields in the
+description. Thus the correct task starts the skill.
 
 ## Questions
 
