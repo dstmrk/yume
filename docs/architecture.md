@@ -245,6 +245,8 @@ product.
 | Animation | The digits turn when a value changes. |
 | Palette | Dark only. There is no light theme. |
 | Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
+| Screen | Mobile first. Refer to paragraph 5.4. |
+| Installation | A progressive web application. Refer to paragraph 5.5. |
 
 ### 5.0 One card for each currency
 
@@ -296,6 +298,52 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 - **Obey `prefers-reduced-motion`.** If the user selects this option, show the new value
   immediately. Do not animate the digits.
 - **Show the numbers in the Italian format.** Use the locale `it-IT`.
+
+### 5.3 The font of the digits
+
+Departure Mono is the font of the decision. The repository does not hold that file now.
+Until a session adds the file, the digits use the monospace font of the system.
+
+Give the property `font-variant-numeric: tabular-nums` to each number. Then a digit keeps
+its width when the value changes, and the number does not move.
+
+### 5.4 Mobile first
+
+The user reads a balance on a telephone. The user then writes that balance in Yume on the
+same telephone. Therefore the telephone is the first screen, not the second.
+
+Obey these rules:
+
+- **Write the styles for the small screen first.** Then add a breakpoint of Tailwind for
+  a larger screen. Do not write a desktop style and then correct it for the telephone.
+- **Make each control large enough for a finger.** The smallest control is 44 pixels on
+  each side.
+- **Use one column.** The cards are one above the other.
+- **Limit the width of the content on a large screen.** The content stays in the centre.
+  Yume has no separate design for a desktop.
+- **Do not make the page move sideways.** A long name breaks into two lines. It does not
+  make a horizontal bar.
+
+### 5.5 A progressive web application
+
+The user installs Yume on the home screen of the telephone. Then Yume starts without the
+bar of the browser.
+
+The first step gives only the installation:
+
+- A file `manifest.webmanifest` with the name, the icons, `display: standalone`, the
+  colour of the theme and `start_url`.
+- The icons of 192 and 512 pixels, and one icon with the purpose `maskable`.
+- The meta element `viewport` with `viewport-fit=cover`, and the padding of the safe area
+  on iOS.
+
+Yume has no service worker now, thus Yume does not operate without a connection. A later
+session can add that file. A service worker that supplies old files is the most frequent
+defect of a progressive web application. Therefore Yume adds it only with a plan for the
+update.
+
+A browser installs an application from an origin with TLS only. Paragraph 7 gives the
+rules for TLS.
 
 ## 6. Repository layout
 
