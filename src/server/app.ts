@@ -1,5 +1,11 @@
 import { Hono } from "hono";
-import { addSnapshotSchema, createAccountSchema } from "../shared/api.ts";
+import {
+	type AccountsResponse,
+	addSnapshotSchema,
+	type CatalogueResponse,
+	createAccountSchema,
+	type PotentialResponse,
+} from "../shared/api.ts";
 import { potentialMiles } from "../shared/potential.ts";
 import type { Db } from "./db/index.ts";
 import {
@@ -32,13 +38,20 @@ function today(): string {
 export function createApp(db: Db) {
 	const app = new Hono();
 
-	app.get("/api/catalogue", (c) =>
-		c.json({ currencies: allCurrencies(db), programs: allPrograms(db) }),
-	);
+	app.get("/api/catalogue", (c) => {
+		const body: CatalogueResponse = {
+			currencies: allCurrencies(db),
+			programs: allPrograms(db),
+		};
+		return c.json(body);
+	});
 
-	app.get("/api/accounts", (c) =>
-		c.json({ accounts: currentBalances(db, SINGLE_USER_ID) }),
-	);
+	app.get("/api/accounts", (c) => {
+		const body: AccountsResponse = {
+			accounts: currentBalances(db, SINGLE_USER_ID),
+		};
+		return c.json(body);
+	});
 
 	app.post("/api/accounts", async (c) => {
 		const body = createAccountSchema.safeParse(
@@ -99,7 +112,8 @@ export function createApp(db: Db) {
 				}),
 			);
 
-		return c.json({ at, potential });
+		const body: PotentialResponse = { at, potential };
+		return c.json(body);
 	});
 
 	return app;

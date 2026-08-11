@@ -7,6 +7,8 @@
  */
 
 import { z } from "zod";
+import type { Currency, Program } from "./catalogue.ts";
+import type { PotentialMiles } from "./potential.ts";
 
 /** A date in the ISO 8601 format, for example `2026-08-11`. */
 export const isoDateSchema = z
@@ -29,3 +31,34 @@ export const addSnapshotSchema = z.object({
 
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
+
+/**
+ * The shapes of the answers of the API. The server gives these types to its
+ * routes, and the client reads them. Thus the two sides cannot become
+ * different.
+ */
+
+/** One account of the user with its current balance. */
+export type AccountRow = {
+	accountId: string;
+	programId: string;
+	nickname: string | null;
+	/** It is null when the account has no snapshot. */
+	points: number | null;
+	observedAt: string | null;
+};
+
+export type CatalogueResponse = {
+	currencies: Currency[];
+	programs: Program[];
+};
+
+export type AccountsResponse = {
+	accounts: AccountRow[];
+};
+
+export type PotentialResponse = {
+	/** The date of the calculation. A rule has versions. */
+	at: string;
+	potential: PotentialMiles[];
+};
