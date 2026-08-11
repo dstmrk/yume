@@ -159,6 +159,8 @@ npm run db:generate # drizzle-kit generate, after a change to schema.ts
 npm run db:migrate  # drizzle-kit migrate, it applies the migrations
 npm run db:seed     # it writes the catalogue in the database
 npm run dev:server  # Hono on the port 3000
+npm run dev:client  # Vite on the port 5173, it sends /api to the port 3000
+npm run build       # Vite writes dist/, and Hono supplies those files
 ```
 
 The three commands of the database use `DATABASE_URL`. The default value is
