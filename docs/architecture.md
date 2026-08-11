@@ -117,7 +117,7 @@ Also keep the minimum quantity and the step of the transfer:
 
 ```ts
 transfer_rule {
-  fromCurrencyId, toCurrencyId,
+  fromProgramId, toProgramId, // refer to paragraph 3.3.1
   ratioNum, ratioDen,        // Amex: 5 MR gives 4 Avios  =>  num 4, den 5
   minTransfer, increment,
   validFrom, validTo,        // validTo is null for an active rule
@@ -140,6 +140,27 @@ find the cause of this error.
 Each rule has the fields `validFrom` and `validTo`. The ratios change. For example, Amex
 removed ITA Volare and Finnair Plus from its list of partners. Old snapshots must stay
 correct after a change of the ratios.
+
+### 3.3.1 A rule refers to a programme, not to a currency
+
+A transfer enters an account of a programme. The minimum quantity and the step belong to
+the pair of programmes. Two routes to the same currency can have different values. Amex
+gives these two routes to Avios:
+
+| Route | Ratio | Minimum | Step |
+|---|---|---|---|
+| Amex MR to The British Airways Club | 5 : 4 | 800 | 400 |
+| Amex MR to Iberia Club | 5 : 4 | 500 | 500 |
+
+A balance of 700 Membership Rewards points gives 400 Avios through Iberia Club. The same
+balance gives 0 Avios through The British Airways Club, because 400 is below the minimum
+of 800.
+
+Therefore `transfer_rule` refers to `fromProgramId` and `toProgramId`. A rule between two
+currencies cannot hold these two different limits.
+
+The currency stays necessary for the total. Avios from Iberia Club and Avios from The
+British Airways Club are the same currency. Paragraph 3.5 gives the calculation.
 
 ### 3.4 Tables
 
@@ -167,8 +188,22 @@ For a target currency *C*:
 
 ```
 potential(C) = currentBalance(C)
-             + the sum, for each flexible source S, of convert(balance(S), rule(S → C))
+             + the sum, for each source account S, of bestRoute(S, C)
+
+bestRoute(S, C) = the largest value of convert(balance(S), rule(S → P))
+                  for each programme P that uses the currency C
 ```
+
+The calculation obeys these four rules:
+
+1. **Add the balance of each account of the currency.** Avios from Iberia Club and Avios
+   from The British Airways Club are one balance.
+2. **Select the best route for each source account.** Paragraph 3.3.1 gives the reason.
+3. **Calculate each source account independently.** The minimum quantity applies to one
+   account. Two accounts of 400 points each give 0. They do not give the result of 800
+   points.
+4. **Do not add a source that uses the currency C.** Its balance is already in the
+   current balance.
 
 The user interface must show these two limits:
 
@@ -294,6 +329,11 @@ Obey these rules on a home server with arm64:
 
 The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
 Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*.
+
+This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
+truth. That file holds the step of each transfer and a `sourceUrl` for each rule. This
+appendix gives no step. Do not copy a value from this appendix into the seed file. Read
+the official page again and write the link.
 
 ### Shared currencies
 

@@ -57,16 +57,30 @@ Six programmes use Avios. The 19 airline programmes use 14 currencies.
 **Calculate the potential for each currency.** If you calculate the potential
 for each programme, you count the same balance six times.
 
-A `user_account` refers to a `program`. A `transfer_rule` refers to a
-`currency`. Therefore you must find the currency of the programme before the
-calculation:
-
-```
-account → program → currency → transfer_rule
-```
+A `user_account` refers to a `program`. A `transfer_rule` refers to two
+programmes, because the minimum quantity and the step belong to the pair of
+programmes. Refer to paragraph 3.3.1 of `docs/architecture.md`.
 
 For the balance of a currency, add the current balance of each account with a
 programme of that currency.
+
+### The best route
+
+One currency can have more than one route from the same source. Amex sends
+points to Avios through The British Airways Club, with a minimum of 800 and a
+step of 400. Amex also sends points to Avios through Iberia Club, with a minimum
+of 500 and a step of 500.
+
+**Select the largest result.** For each source account, calculate the conversion
+to each programme of the target currency. Then keep the largest value. A balance
+of 700 Membership Rewards points gives 400 Avios through Iberia Club, but 0
+Avios through The British Airways Club.
+
+### One account at a time
+
+Calculate each source account independently. The minimum quantity applies to one
+account. Two accounts of 400 points each give 0. Do not add the two balances
+first.
 
 ---
 
@@ -126,6 +140,8 @@ conversion must contain these cases:
 | The currency has more than one programme. | The function counts the balance one time. |
 | The rule is not valid at the date. | The function does not use the rule. |
 | The balance is 0. | 0 |
+| Two routes go to the same currency. | The function keeps the largest result. |
+| Two accounts use the same source programme. | The function converts each account alone. |
 
 Use a real ratio from the catalogue in a test. Example: Amex gives 4 Avios for 5
 Membership Rewards points, with a minimum of 800 for British Airways Club.
