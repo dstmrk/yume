@@ -13,23 +13,35 @@
 		"check": "biome check .",
 		"fix": "biome check --write .",
 		"dev:server": "node --experimental-strip-types --watch src/server/index.ts",
+		"dev:client": "vite",
+		"build": "vite build",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.8",
+		"@tailwindcss/vite": "^4.3.3",
 		"@types/better-sqlite3": "^9.6.0",
 		"@types/node": "^26.2.0",
+		"@types/react": "^19.2.18",
+		"@types/react-dom": "^19.2.4",
+		"@vitejs/plugin-react": "^6.0.5",
 		"drizzle-kit": "^0.31.10",
+		"tailwindcss": "^4.3.3",
 		"typescript": "^7.0.2",
+		"vite": "^8.2.1",
 		"vitest": "^4.1.10"
 	},
 	"dependencies": {
 		"@hono/node-server": "^2.1.0",
+		"@tanstack/react-query": "^5.101.4",
+		"@tanstack/react-router": "^1.170.25",
 		"better-sqlite3": "^13.0.3",
 		"drizzle-orm": "^0.45.2",
 		"hono": "^4.13.1",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8",
 		"zod": "^4.4.3"
 	}
 }
