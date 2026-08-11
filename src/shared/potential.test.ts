@@ -109,6 +109,21 @@ describe("potentialMiles", () => {
 		expect(result.total).toBe(1500);
 	});
 
+	it("adds the two balances of a currency and the transfers to it", () => {
+		// The user has Avios in Iberia Club and in The British Airways Club. A
+		// member moves Avios between the two programmes at no cost, thus the two
+		// balances are one balance. The 700 Membership Rewards points then give
+		// 400 Avios more, through the route of Iberia Club.
+		const result = avios([
+			{ programId: "ba-club", points: 1000 },
+			{ programId: "iberia-club", points: 500 },
+			{ programId: "amex-mr", points: 700 },
+		]);
+		expect(result.current).toBe(1500);
+		expect(result.fromTransfers).toBe(400);
+		expect(result.total).toBe(1900);
+	});
+
 	it("selects the route that gives the largest result", () => {
 		// 700 points: Iberia Club gives 400 Avios, The British Airways Club gives 0.
 		expect(avios([{ programId: "amex-mr", points: 700 }]).fromTransfers).toBe(

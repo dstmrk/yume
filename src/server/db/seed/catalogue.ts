@@ -139,4 +139,19 @@ export const transferRules: readonly TransferRule[] = [
 		sourceUrl:
 			"https://www.britishairways.com/content/en/es/the-british-airways-club/avios/collecting-avios/lifestyle",
 	},
+	{
+		// The ratio is 1 : 1, with the conditions of the route to Avios. Revolut
+		// refuses a request from a machine. Therefore the user read this ratio in
+		// the application on 11 August 2026 and confirmed it.
+		fromProgramId: "revolut",
+		toProgramId: "flying-blue",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON,
+		validTo: null,
+		sourceUrl:
+			"https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/",
+	},
 ];
