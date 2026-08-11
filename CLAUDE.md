@@ -144,7 +144,16 @@ npm run fix       # Biome, it writes the corrections
 ```
 
 Biome writes tab indentation. Run `npm run fix` after you add a file. Biome does not
-examine `.claude/`, because that directory belongs to the harness.
+examine `.claude/`, because that directory belongs to the harness. Biome does not examine
+`drizzle/`, because drizzle-kit writes those files.
+
+Run these commands for the database:
+
+```bash
+npm run db:generate # drizzle-kit generate, after a change to schema.ts
+npm run db:migrate  # drizzle-kit migrate, it applies the migrations
+npm run db:seed     # it writes the catalogue in the database
+```
 
 The hooks have commands. Run each test suite after a change to a hook:
 

@@ -11,11 +11,21 @@
 		"test:watch": "vitest",
 		"typecheck": "tsc --noEmit",
 		"check": "biome check .",
-		"fix": "biome check --write ."
+		"fix": "biome check --write .",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.8",
+		"@types/better-sqlite3": "^9.6.0",
+		"@types/node": "^26.2.0",
+		"drizzle-kit": "^0.31.10",
 		"typescript": "^7.0.2",
 		"vitest": "^4.1.10"
+	},
+	"dependencies": {
+		"better-sqlite3": "^13.0.3",
+		"drizzle-orm": "^0.45.2"
 	}
 }
