@@ -1,4 +1,4 @@
-import { asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
@@ -48,6 +48,21 @@ export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
 		.where(eq(userAccount.userId, userId))
 		.orderBy(asc(userAccount.id))
 		.all();
+}
+
+/**
+ * Finds one account of the user.
+ *
+ * The result is undefined when the account does not exist, and also when the
+ * account belongs to an other user. A route must call this function before it
+ * writes a snapshot.
+ */
+export function findAccount(db: Db, accountId: string, userId: string) {
+	return db
+		.select()
+		.from(userAccount)
+		.where(and(eq(userAccount.id, accountId), eq(userAccount.userId, userId)))
+		.get();
 }
 
 export function allCurrencies(db: Db) {

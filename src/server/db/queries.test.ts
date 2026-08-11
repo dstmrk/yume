@@ -7,6 +7,7 @@ import {
 	allTransferRules,
 	createAccount,
 	currentBalances,
+	findAccount,
 } from "./queries.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
@@ -137,6 +138,22 @@ describe("the catalogue queries", () => {
 			increment: 500,
 			validTo: null,
 		});
+	});
+});
+
+describe("findAccount", () => {
+	it("finds the account of the user", () => {
+		const id = createAccount(db, { userId: USER, programId: "ba-club" });
+		expect(findAccount(db, id, USER)?.id).toBe(id);
+	});
+
+	it("does not find the account of an other user", () => {
+		const id = createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+		expect(findAccount(db, id, USER)).toBeUndefined();
+	});
+
+	it("does not find an account that does not exist", () => {
+		expect(findAccount(db, "does-not-exist", USER)).toBeUndefined();
 	});
 });
 
