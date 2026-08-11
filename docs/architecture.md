@@ -197,12 +197,61 @@ The closed model has two results:
   forgotten password without help. The administrator must do this operation.
 - A seed script makes the first user. The user interface does not make the first user.
 
-## 5. Repository layout
+## 5. User interface
+
+The visual theme of Yume is an airport departure board with split-flap displays. Solari
+di Udine made the first of these boards. The theme is thus correct for an Italian
+product.
+
+| Decision | Value |
+|---|---|
+| Extent of the theme | The display surfaces only: the dashboard, the cards of the potential miles and the lists. |
+| Forms and dialogs | Standard shadcn/ui with the dark palette. |
+| Animation | The digits turn when a value changes. |
+| Palette | Dark only. There is no light theme. |
+| Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
+
+### 5.1 Two layers of components
+
+The directory `src/client/components/ui/` holds the shadcn/ui components. Do not change
+these files. If you change them, a future update from shadcn/ui becomes difficult.
+
+The directory `src/client/components/board/` holds the theme. These components use the
+components of `ui/`. Examples: `BoardPanel`, `BoardRow`, `SplitFlapNumber`, `FlapBadge`.
+
+One CSS file holds all the tokens. Tailwind CSS v4 gives the `@theme` directive for this
+file. The file does two operations:
+
+1. It gives new values to the tokens of shadcn/ui: `--background`, `--card`,
+   `--primary`, `--muted`.
+2. It adds the tokens of the theme: `--flap-face`, `--flap-edge`, `--board-amber`.
+
+Thus the standard components receive the theme, but their code stays the same. Declare
+each variant with CVA. Do not write the classes of a variant at the point of use.
+
+### 5.2 Rules for the theme
+
+- **Keep the font files in the repository.** Do not use an external CDN for a font. The
+  application must operate on a home network with no connection to the internet.
+- **Use the pixel font only for the digits and for short labels.** Use a standard sans
+  font for the other text. A pixel font is difficult to read in a long sentence.
+- **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
+  move. Put the correct value in a second element. That element is not visible, but a
+  screen reader finds it.
+- **Obey `prefers-reduced-motion`.** If the user selects this option, show the new value
+  immediately. Do not animate the digits.
+- **Show the numbers in the Italian format.** Use the locale `it-IT`.
+
+## 6. Repository layout
 
 ```
 yume/
   src/
     client/            # React, TanStack Router, shadcn/ui
+      components/ui/     # shadcn/ui. Do not change these files.
+      components/board/  # the theme of the departure board
+      styles/            # the tokens of the theme
+      fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
@@ -218,7 +267,7 @@ yume/
 The project has one `package.json`. Do not use a monorepo tool. At this size, a monorepo
 adds complexity but gives no advantage.
 
-## 6. Deployment
+## 7. Deployment
 
 Use a multi-stage `Dockerfile` with `node:22-bookworm-slim`. Use a user that is not
 root. Add a `HEALTHCHECK`. Start the container with `drizzle-kit migrate`. In
@@ -241,7 +290,7 @@ Obey these rules on a home server with arm64:
 - **Make backups.** Use `VACUUM INTO` in a cron job. Write the file to the mounted
   volume. Remove the old files.
 
-## 7. Appendix — the catalogue of programmes
+## 8. Appendix — the catalogue of programmes
 
 The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
 Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*.

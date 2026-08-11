@@ -76,6 +76,22 @@ Write a unit test for each new rule of the calculation.
 - Do not show a potential value as a sum of all the currencies. The user cannot send the
   same points to two programmes.
 
+The theme is an airport departure board with split-flap displays. The palette is dark
+only. Obey these rules:
+
+- Keep the shadcn/ui components in `src/client/components/ui/`. Do not change these
+  files.
+- Put the components of the theme in `src/client/components/board/`. These components
+  use the components of `ui/`.
+- Keep all the tokens in one CSS file. Use the `@theme` directive of Tailwind CSS v4.
+- Use the theme on the display surfaces. Use standard components for the forms and for
+  the dialogs.
+- Keep the font files in the repository. Do not use an external CDN.
+- Give `aria-hidden` to the digits that move. Put the correct value in an element that
+  is not visible.
+- If the user selects `prefers-reduced-motion`, show the new value immediately.
+- Show all the numbers with the locale `it-IT`.
+
 ## Commands
 
 The project is in the design stage. There is no application code and there are no
