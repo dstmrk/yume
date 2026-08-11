@@ -1,10 +1,53 @@
 # Yume ✈️
 
-**Yume** (from the Japanese 夢, "dream") is a smart dashboard designed to help travelers track and maximize their reward points and frequent flyer miles. 
+Yume is a private dashboard for reward points and airline miles. The name comes from the
+Japanese word 夢. The word means "dream".
 
-Built with a focus on the Italian market, Yume acts as a centralized hub. It aggregates your current airline miles and calculates your **"potential miles"** by simulating real-time transfers from flexible reward currencies like **American Express Membership Rewards** and **Revolut RevPoints**.
+## What Yume does
 
-Stop guessing conversion rates. Know exactly how many miles you can unlock across all major airline networks (Avios, SkyTeam, Star Alliance, Oneworld) to book your next dream flight. 
+Yume shows all your loyalty balances on one screen:
+
+- flexible points: American Express Membership Rewards and Revolut RevPoints
+- airline programmes: 19 programmes, with 14 different point currencies
+- hotel programmes that can supply miles
+
+Yume then calculates the **potential miles**. The potential miles are the miles that you
+can have in one airline currency, if you transfer all your flexible points to that
+currency.
+
+Yume does not connect to your bank or to your airline account. You write the balances
+manually.
+
+## Scope
+
+Yume is for the Italian market. It contains only the transfer partners of American
+Express Italy and Revolut. Amex Italy and Revolut are the only two sources of flexible
+points in Italy.
+
+## Important
+
+The potential miles value is a calculation, not a balance. Two limits apply:
+
+1. The value is a maximum for each currency. You cannot send the same points to two
+   different programmes.
+2. A transfer of points is permanent. Find the award seat first. Then transfer the
+   points.
+
+## Status
+
+The project is in the design stage. There is no application code.
+
+## Documents
+
+- [`docs/architecture.md`](docs/architecture.md) — the stack, the data model and the
+  deployment rules
+- [`CLAUDE.md`](CLAUDE.md) — the rules for work in this repository
+
+## Language
+
+The user interface is in Italian. All documents are in ASD-STE100 Simplified Technical
+English. All code, all identifiers and all commit messages are in English.
 
 ---
-*Turning daily expenses into your next journey.*
+
+*Your daily expenses become your next journey.*
