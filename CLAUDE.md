@@ -77,6 +77,16 @@ mechanical.
    - A fallback for an error at runtime.
 8. **Use the packages that the project has.** Read the documents and the types of an
    installed package first. Do not assume that a package cannot do the operation.
+9. **Keep the work minimal.** Write the smallest change that gives the requested result.
+   Obey these limits:
+   - Do not add a function for a future requirement. Add the function with the
+     requirement.
+   - Do not add an option, a configuration item or an abstraction that the user did not
+     request.
+   - Keep the text of the user interface short. One short sentence is sufficient for a
+     warning.
+   - Write each new idea in a list. Then ask the user. A later session can add the
+     function.
 
 ## Rules for the data
 
