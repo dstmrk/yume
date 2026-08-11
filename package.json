@@ -12,6 +12,7 @@
 		"typecheck": "tsc --noEmit",
 		"check": "biome check .",
 		"fix": "biome check --write .",
+		"dev:server": "node --experimental-strip-types --watch src/server/index.ts",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
