@@ -41,6 +41,27 @@
 	}
 }
 
+/**
+ * The face of a flap: a dark card with the line between the two halves.
+ *
+ * The digits keep the same width, thus a number does not move when the value
+ * changes. The flap does not turn now, because no value changes in the page.
+ * The session that adds the forms adds the animation.
+ */
+@utility flap {
+	background-color: var(--color-flap-face);
+	background-image: linear-gradient(
+		to bottom,
+		transparent calc(50% - 1px),
+		var(--color-flap-edge) calc(50% - 1px),
+		var(--color-flap-edge) calc(50% + 1px),
+		transparent calc(50% + 1px)
+	);
+	font-family: var(--font-board);
+	font-variant-numeric: tabular-nums;
+	border-radius: 0.25rem;
+}
+
 /** The space of the telephone below the screen, on iOS. */
 @utility pb-safe {
 	padding-bottom: calc(env(safe-area-inset-bottom) + --spacing(6));
