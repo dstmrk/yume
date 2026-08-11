@@ -35,7 +35,8 @@ The potential miles value is a calculation, not a balance. Two limits apply:
 
 ## Status
 
-The project is in the design stage. There is no application code.
+The project is in the first stage of the development. The conversion logic and its tests
+are present. The server, the database and the user interface are not present.
 
 ## Documents
 

@@ -134,8 +134,17 @@ only. Obey these rules:
 
 ## Commands
 
-The application is in the design stage. There is no application code and there are no
-commands for it. Add the commands to this file with the first code.
+Run these commands before each commit:
+
+```bash
+npm test          # Vitest, one time
+npm run typecheck # tsc --noEmit
+npm run check     # Biome, examination only
+npm run fix       # Biome, it writes the corrections
+```
+
+Biome writes tab indentation. Run `npm run fix` after you add a file. Biome does not
+examine `.claude/`, because that directory belongs to the harness.
 
 The hooks have commands. Run each test suite after a change to a hook:
 
