@@ -301,11 +301,22 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 
 ### 5.3 The font of the digits
 
-Departure Mono is the font of the decision. The repository does not hold that file now.
-Until a session adds the file, the digits use the monospace font of the system.
+Departure Mono is the font of the board. The repository holds one file:
+`src/client/fonts/DepartureMono-Regular.woff2`, version 1.500. The licence is the SIL
+Open Font License 1.1. The file `src/client/fonts/DepartureMono-LICENSE.txt` holds the
+text of the licence.
+
+The format is WOFF2 only. Each current browser reads that format, and the file is 22
+kilobytes. The `@font-face` rule is in `src/client/styles/theme.css`, with the other
+tokens of the theme. The rule gives `font-display: swap`: the monospace font of the
+system shows the text for the time of the load.
 
 Give the property `font-variant-numeric: tabular-nums` to each number. Then a digit keeps
 its width when the value changes, and the number does not move.
+
+Departure Mono is a pixel font. The author gives a font size of a multiple of 11 pixels
+for an exact result. Yume does not obey that limit now, because the sizes of Tailwind are
+different numbers.
 
 ### 5.4 Mobile first
 
