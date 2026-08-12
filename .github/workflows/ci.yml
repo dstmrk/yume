@@ -1,0 +1,52 @@
+# The examination of each change.
+#
+# The section Commands of CLAUDE.md gives four commands before a commit. A
+# person can forget one command. This workflow runs each one, thus a pull
+# request shows the result before the merge.
+#
+# The workflow also runs the test suites of the hooks. Vitest does not find
+# those suites, because a hook is a Bash script.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The workflow reads the repository. It writes nothing.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Node 22 LTS. Paragraph 2 of docs/architecture.md gives the reason.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests
+        run: npm test
+
+      - name: Types
+        run: npm run typecheck
+
+      - name: Lint and format
+        run: npm run check
+
+      - name: Build
+        run: npm run build
+
+      # Each hook makes a rule of CLAUDE.md mechanical. A hook that stops its
+      # block must make these suites fail.
+      - name: Hooks
+        run: |
+          bash .claude/hooks/test-block-commit-on-main.sh
+          bash .claude/hooks/test-block-push-to-main.sh
+          bash .claude/hooks/test-block-private-data-commit.sh
