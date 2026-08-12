@@ -3,6 +3,7 @@ import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FlapNumber } from "./components/board/FlapNumber.tsx";
+import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { groupRoutes } from "./lib/routes.ts";
@@ -124,7 +125,7 @@ function CurrencyCard({
 		<BoardPanel title={title}>
 			<div className="flex items-center justify-between gap-3">
 				<span className="text-board-muted text-xs">{text.potentialTitle}</span>
-				<FlapNumber value={row.total} variant="total" />
+				<SplitFlapNumber value={row.total} />
 			</div>
 
 			{holdings.length > 0 && (
