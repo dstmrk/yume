@@ -15,6 +15,9 @@ export const text = {
 	currentBalance: "Saldo",
 	fromTransfers: "Dai trasferimenti",
 	via: "via",
+	noPotential: "Aggiungi un saldo per vedere le miglia potenziali.",
+	showOthers: "Mostra le altre",
+	showLess: "Mostra meno",
 
 	accountsTitle: "I tuoi conti",
 	noAccounts: "Nessun conto.",

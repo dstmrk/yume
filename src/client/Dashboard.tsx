@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
@@ -6,13 +7,16 @@ import { FlapNumber } from "./components/board/FlapNumber.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
+import { Button } from "./components/ui/button.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
+import { cardsToShow } from "./lib/cards.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { groupRoutes } from "./lib/routes.ts";
 import { byValueDesc } from "./lib/sort.ts";
 import { text } from "./text.ts";
 
 export function Dashboard() {
+	const [expanded, setExpanded] = useState(false);
 	const catalogue = useQuery({
 		queryKey: ["catalogue"],
 		queryFn: fetchCatalogue,
@@ -44,9 +48,7 @@ export function Dashboard() {
 	const name = (programId: string) => names.get(programId) ?? programId;
 
 	// Each list goes from the largest value to the smallest one.
-	const cards = [...potential.data.potential].sort(
-		byValueDesc((row) => row.total),
-	);
+	const { cards, hidden } = cardsToShow(potential.data.potential, expanded);
 	const allAccounts = [...accounts.data.accounts].sort(
 		byValueDesc((account) => account.points),
 	);
@@ -63,19 +65,33 @@ export function Dashboard() {
 					</p>
 				</header>
 
-				{cards.map((row) => (
-					<CurrencyCard
-						key={row.currencyId}
-						row={row}
-						title={currencyNames.get(row.currencyId) ?? row.currencyId}
-						holdings={allAccounts.filter(
-							(account) =>
-								currencyOf.get(account.programId) === row.currencyId &&
-								account.points !== null,
-						)}
-						name={name}
-					/>
-				))}
+				{cards.length === 0 ? (
+					<p className="text-board-muted text-sm">{text.noPotential}</p>
+				) : (
+					cards.map((row) => (
+						<CurrencyCard
+							key={row.currencyId}
+							row={row}
+							title={currencyNames.get(row.currencyId) ?? row.currencyId}
+							holdings={allAccounts.filter(
+								(account) =>
+									currencyOf.get(account.programId) === row.currencyId &&
+									account.points !== null,
+							)}
+							name={name}
+						/>
+					))
+				)}
+
+				{(hidden > 0 || expanded) && (
+					<Button
+						type="button"
+						variant="outline"
+						onClick={() => setExpanded(!expanded)}
+					>
+						{expanded ? text.showLess : `${text.showOthers} ${hidden}`}
+					</Button>
+				)}
 			</section>
 
 			<BoardPanel title={text.accountsTitle}>
