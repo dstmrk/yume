@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { createApp, SINGLE_USER_ID } from "./app.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { addSnapshot, createAccount } from "./db/queries.ts";
+import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
 let db: Db;
@@ -160,12 +161,17 @@ describe("GET /api/accounts", () => {
 });
 
 describe("GET /api/potential", () => {
+	// The catalogue grows. Therefore this test reads the expected list from the
+	// catalogue. A list of names here breaks with each new programme.
 	it("gives one result for each airline currency", async () => {
+		const airline = currencies
+			.filter((currency) => currency.kind === "airline")
+			.map((currency) => currency.id);
+
 		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
-		expect(body.potential.map((row) => row.currencyId)).toEqual([
-			"avios",
-			"flying-blue",
-		]);
+		expect(body.potential.map((row) => row.currencyId).sort()).toEqual(
+			[...airline].sort(),
+		);
 	});
 
 	it("adds the two balances of Avios and the best route", async () => {

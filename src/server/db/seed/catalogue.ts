@@ -22,8 +22,12 @@ import type {
 	TransferRule,
 } from "../../../shared/catalogue.ts";
 
-/** The date of the examination of each page of this file. */
+/**
+ * The date of the examination of a page. One constant holds one date, because a
+ * rule keeps the date of its own source.
+ */
 const VERIFIED_ON = "2026-08-11";
+const VERIFIED_ON_2 = "2026-08-12";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -40,6 +44,10 @@ export const currencies: readonly Currency[] = [
 		name: "Flying Blue",
 		kind: "airline",
 	},
+	{ id: "eurobonus", code: "EB", name: "EuroBonus", kind: "airline" },
+	{ id: "asia-miles", code: "ASIA", name: "Asia Miles", kind: "airline" },
+	{ id: "skymiles", code: "SKY", name: "SkyMiles", kind: "airline" },
+	{ id: "krisflyer", code: "KF", name: "KrisFlyer", kind: "airline" },
 ];
 
 /**
@@ -82,6 +90,34 @@ export const programs: readonly Program[] = [
 		currencyId: "flying-blue",
 		code: "FB",
 		name: "Flying Blue",
+		transferable: true,
+	},
+	{
+		id: "sas",
+		currencyId: "eurobonus",
+		code: "SK",
+		name: "SAS",
+		transferable: true,
+	},
+	{
+		id: "cathay",
+		currencyId: "asia-miles",
+		code: "CX",
+		name: "Cathay",
+		transferable: true,
+	},
+	{
+		id: "delta",
+		currencyId: "skymiles",
+		code: "DL",
+		name: "Delta",
+		transferable: true,
+	},
+	{
+		id: "singapore",
+		currencyId: "krisflyer",
+		code: "SQ",
+		name: "Singapore",
 		transferable: true,
 	},
 ];
@@ -129,6 +165,69 @@ export const transferRules: readonly TransferRule[] = [
 		validTo: null,
 		sourceUrl:
 			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Iberia/Iberia-Plus/IBER-022",
+	},
+	{
+		// "5 punti Membership Rewards = 4 EuroBonus punti",
+		// "Trasferimento minimo richiesto 500 Punti",
+		// "il trasferimento deve essere effettuato in blocchi o multipli di 500 punti"
+		fromProgramId: "amex-mr",
+		toProgramId: "sas",
+		ratioNum: 4,
+		ratioDen: 5,
+		minTransfer: 500,
+		increment: 500,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl:
+			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/SAS/award-cancelled-/SAS-01",
+	},
+	{
+		// "5 punti Membership Rewards = 4 Cathay",
+		// "Trasferimento minimo richiesto 1000 Punti",
+		// "il trasferimento deve essere effettuato in blocchi o multipli di 500 punti"
+		fromProgramId: "amex-mr",
+		toProgramId: "cathay",
+		ratioNum: 4,
+		ratioDen: 5,
+		minTransfer: 1000,
+		increment: 500,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl:
+			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Cathay-Pacific/asia-miles/CATH-01",
+	},
+	{
+		// "3 punti Membership Rewards = 2 SkyMiles®",
+		// "Trasferimento minimo richiesto 3 Punti",
+		// "il trasferimento deve essere effettuato in blocchi o multipli di 3 punti"
+		fromProgramId: "amex-mr",
+		toProgramId: "delta",
+		ratioNum: 2,
+		ratioDen: 3,
+		minTransfer: 3,
+		increment: 3,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl:
+			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Delta/delta-delta-skymiles/DL02",
+	},
+	{
+		// "3 punti Membership Rewards = 2 Miglia KrisFlyer",
+		// "Trasferimento minimo richiesto 1500 Punti",
+		// "il trasferimento deve essere effettuato in blocchi o multipli di 300 punti"
+		//
+		// The step is 300, but the ratio needs a multiple of 3. Amex gives 200
+		// miles for 300 points, thus the division is exact.
+		fromProgramId: "amex-mr",
+		toProgramId: "singapore",
+		ratioNum: 2,
+		ratioDen: 3,
+		minTransfer: 1500,
+		increment: 300,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl:
+			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Singapore/singapore-krisflyer/SING-01",
 	},
 	{
 		// British Airways gives the ratio: "convert Revpoints into Avios at a

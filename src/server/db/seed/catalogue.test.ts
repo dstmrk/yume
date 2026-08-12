@@ -24,6 +24,25 @@ describe("the catalogue", () => {
 			expect(currencyIds).toContain(program.currencyId);
 		}
 	});
+
+	// The column `code` is unique in the database. A duplicate stops the seed
+	// script, and the container does not start.
+	it("gives a different code to each currency", () => {
+		const codes = currencies.map((currency) => currency.code);
+		expect(new Set(codes).size).toBe(codes.length);
+	});
+
+	it("gives a different code to each programme", () => {
+		const codes = programs.map((program) => program.code);
+		expect(new Set(codes).size).toBe(codes.length);
+	});
+
+	it("gives at least one programme to each currency", () => {
+		const used = new Set(programs.map((program) => program.currencyId));
+		for (const currency of currencies) {
+			expect(used).toContain(currency.id);
+		}
+	});
 });
 
 describe("the transfer rules", () => {
@@ -71,6 +90,40 @@ describe("the transfer rules", () => {
 		const byId = new Map(programs.map((program) => [program.id, program]));
 		for (const rule of transferRules) {
 			expect(byId.get(rule.toProgramId)?.transferable).toBe(true);
+		}
+	});
+
+	it("does not send points from a programme to itself", () => {
+		for (const rule of transferRules) {
+			expect(rule.fromProgramId).not.toBe(rule.toProgramId);
+		}
+	});
+
+	// A flexible currency is a source. A rule to a source gives a potential value
+	// to a currency that the dashboard does not show.
+	it("does not send points to a flexible currency", () => {
+		const kindOf = new Map(
+			currencies.map((currency) => [currency.id, currency.kind]),
+		);
+		const currencyOf = new Map(
+			programs.map((program) => [program.id, program.currencyId]),
+		);
+		for (const rule of transferRules) {
+			const currencyId = currencyOf.get(rule.toProgramId);
+			expect(kindOf.get(currencyId ?? "")).not.toBe("flexible");
+		}
+	});
+
+	// This test finds a programme that a session adds without its rule. That
+	// programme gives a potential of 0, and the user finds no cause.
+	it("gives an active rule to each programme that accepts a transfer", () => {
+		const targets = new Set(
+			transferRules
+				.filter((rule) => rule.validTo === null)
+				.map((rule) => rule.toProgramId),
+		);
+		for (const program of programs.filter((one) => one.transferable)) {
+			expect(targets).toContain(program.id);
 		}
 	});
 });
