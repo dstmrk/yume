@@ -35,7 +35,12 @@ The potential miles value is a calculation, not a balance. Two limits apply:
 
 ## Status
 
-The project is in the design stage. There is no application code.
+The project is in the first stage of the development. The conversion logic, the database,
+the API and a dashboard that only reads are present. Yume installs on the home screen of
+a telephone.
+
+The forms for a new account and for a new balance are not present. You write the data
+with the API. Authentication is not present: Yume has one user.
 
 ## Documents
 

@@ -48,6 +48,11 @@ server code.
 
 The project has one `package.json`. Do not add a monorepo tool.
 
+Write the extension `.ts` in a relative import: `import { x } from "./x.ts"`. Node removes
+the types at runtime with `--experimental-strip-types`, and it resolves the path exactly
+as you write it. An import of `./x.js` gives the error `ERR_MODULE_NOT_FOUND`, because
+that file does not exist. The server needs no build step with this rule.
+
 ## Rules for the work
 
 These rules apply to each task. The section Hooks gives the rules that a hook makes
@@ -77,6 +82,16 @@ mechanical.
    - A fallback for an error at runtime.
 8. **Use the packages that the project has.** Read the documents and the types of an
    installed package first. Do not assume that a package cannot do the operation.
+9. **Keep the work minimal.** Write the smallest change that gives the requested result.
+   Obey these limits:
+   - Do not add a function for a future requirement. Add the function with the
+     requirement.
+   - Do not add an option, a configuration item or an abstraction that the user did not
+     request.
+   - Keep the text of the user interface short. One short sentence is sufficient for a
+     warning.
+   - Write each new idea in a list. Then ask the user. A later session can add the
+     function.
 
 ## Rules for the data
 
@@ -124,8 +139,32 @@ only. Obey these rules:
 
 ## Commands
 
-The application is in the design stage. There is no application code and there are no
-commands for it. Add the commands to this file with the first code.
+Run these commands before each commit:
+
+```bash
+npm test          # Vitest, one time
+npm run typecheck # tsc --noEmit
+npm run check     # Biome, examination only
+npm run fix       # Biome, it writes the corrections
+```
+
+Biome writes tab indentation. Run `npm run fix` after you add a file. Biome does not
+examine `.claude/`, because that directory belongs to the harness. Biome does not examine
+`drizzle/`, because drizzle-kit writes those files.
+
+Run these commands for the database and for the server:
+
+```bash
+npm run db:generate # drizzle-kit generate, after a change to schema.ts
+npm run db:migrate  # drizzle-kit migrate, it applies the migrations
+npm run db:seed     # it writes the catalogue in the database
+npm run dev:server  # Hono on the port 3000
+npm run dev:client  # Vite on the port 5173, it sends /api to the port 3000
+npm run build       # Vite writes dist/, and Hono supplies those files
+```
+
+The three commands of the database use `DATABASE_URL`. The default value is
+`./data/yume.db`.
 
 The hooks have commands. Run each test suite after a change to a hook:
 

@@ -1,0 +1,201 @@
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import type { Hono } from "hono";
+import { beforeEach, describe, expect, it } from "vitest";
+import { createApp, SINGLE_USER_ID } from "./app.ts";
+import { type Db, openDatabase } from "./db/index.ts";
+import { addSnapshot, createAccount } from "./db/queries.ts";
+import { seedCatalogue } from "./db/seed/seed.ts";
+
+let db: Db;
+let app: Hono;
+
+beforeEach(() => {
+	db = openDatabase(":memory:");
+	migrate(db, { migrationsFolder: "drizzle" });
+	seedCatalogue(db);
+	app = createApp(db);
+});
+
+type PotentialRow = {
+	currencyId: string;
+	current: number;
+	fromTransfers: number;
+	total: number;
+	routes: { fromProgramId: string; toProgramId: string; points: number }[];
+};
+
+async function getJson<T>(path: string): Promise<T> {
+	const response = await app.request(path);
+	expect(response.status).toBe(200);
+	return (await response.json()) as T;
+}
+
+function post(path: string, body: unknown) {
+	return app.request(path, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify(body),
+	});
+}
+
+describe("GET /api/catalogue", () => {
+	it("gives the currencies and the programmes", async () => {
+		const body = await getJson<{
+			currencies: { id: string }[];
+			programs: { id: string }[];
+		}>("/api/catalogue");
+		expect(body.currencies.length).toBeGreaterThan(0);
+		expect(body.programs.some((row) => row.id === "ba-club")).toBe(true);
+	});
+});
+
+describe("POST /api/accounts", () => {
+	it("makes an account and gives the id", async () => {
+		const response = await post("/api/accounts", { programId: "ba-club" });
+		expect(response.status).toBe(201);
+		const body = (await response.json()) as { id: string };
+		expect(body.id).toEqual(expect.any(String));
+	});
+
+	it("refuses a body with no programme", async () => {
+		expect((await post("/api/accounts", {})).status).toBe(400);
+	});
+
+	it("refuses a body that is not JSON", async () => {
+		const response = await app.request("/api/accounts", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: "not json",
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("refuses a programme that the catalogue does not have", async () => {
+		const response = await post("/api/accounts", {
+			programId: "does-not-exist",
+		});
+		expect(response.status).toBe(404);
+	});
+});
+
+describe("POST /api/accounts/:id/snapshots", () => {
+	it("adds a snapshot", async () => {
+		const account = createAccount(db, {
+			userId: SINGLE_USER_ID,
+			programId: "ba-club",
+		});
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 1000,
+			observedAt: "2026-08-11",
+		});
+		expect(response.status).toBe(201);
+	});
+
+	it("refuses a balance below 0", async () => {
+		const account = createAccount(db, {
+			userId: SINGLE_USER_ID,
+			programId: "ba-club",
+		});
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: -1,
+			observedAt: "2026-08-11",
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("refuses a balance that is not an integer", async () => {
+		const account = createAccount(db, {
+			userId: SINGLE_USER_ID,
+			programId: "ba-club",
+		});
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10.5,
+			observedAt: "2026-08-11",
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("refuses a date that is not correct", async () => {
+		const account = createAccount(db, {
+			userId: SINGLE_USER_ID,
+			programId: "ba-club",
+		});
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10,
+			observedAt: "2026-13-45",
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("refuses the account of an other user", async () => {
+		const account = createAccount(db, {
+			userId: "an-other-user",
+			programId: "ba-club",
+		});
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10,
+			observedAt: "2026-08-11",
+		});
+		expect(response.status).toBe(404);
+	});
+});
+
+describe("GET /api/accounts", () => {
+	it("gives the account with its current balance", async () => {
+		const account = createAccount(db, {
+			userId: SINGLE_USER_ID,
+			programId: "ba-club",
+		});
+		addSnapshot(db, {
+			accountId: account,
+			points: 1000,
+			observedAt: "2026-08-01",
+		});
+
+		const body = await getJson<{ accounts: unknown[] }>("/api/accounts");
+		expect(body.accounts).toMatchObject([
+			{ programId: "ba-club", points: 1000, observedAt: "2026-08-01" },
+		]);
+	});
+});
+
+describe("GET /api/potential", () => {
+	it("gives one result for each airline currency", async () => {
+		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
+		expect(body.potential.map((row) => row.currencyId)).toEqual([
+			"avios",
+			"flying-blue",
+		]);
+	});
+
+	it("adds the two balances of Avios and the best route", async () => {
+		for (const [programId, points] of [
+			["ba-club", 1000],
+			["iberia-club", 500],
+			["amex-mr", 700],
+		] as const) {
+			const account = createAccount(db, {
+				userId: SINGLE_USER_ID,
+				programId,
+			});
+			addSnapshot(db, { accountId: account, points, observedAt: "2026-08-11" });
+		}
+
+		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
+		const avios = body.potential.find((row) => row.currencyId === "avios");
+		expect(avios).toMatchObject({
+			current: 1500,
+			fromTransfers: 400,
+			total: 1900,
+			routes: [
+				{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 400 },
+			],
+		});
+	});
+
+	it("ignores an account with no snapshot", async () => {
+		createAccount(db, { userId: SINGLE_USER_ID, programId: "amex-mr" });
+		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
+		expect(body.potential.every((row) => row.total === 0)).toBe(true);
+	});
+});

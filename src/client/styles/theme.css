@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+/**
+ * The tokens of the theme. This file is the only place that holds a colour.
+ * The theme is an airport departure board with split-flap displays. The palette
+ * is dark only: Yume has no light theme.
+ */
+@theme {
+	--color-board-bg: #0b0c0e;
+	--color-board-panel: #16181c;
+	--color-board-line: #24272c;
+	--color-board-text: #e8e6e1;
+	--color-board-muted: #8b8f96;
+
+	/* The amber of a departure board. It marks a value that is a calculation. */
+	--color-board-amber: #f5a623;
+
+	/* The two faces of a flap. The edge is the line between the two halves. */
+	--color-flap-face: #1f2226;
+	--color-flap-edge: #0b0c0e;
+
+	/* Departure Mono is the font of the decision. The repository does not hold
+	   that file now, thus the digits use the monospace font of the system.
+	   Refer to paragraph 5.3 of docs/architecture.md. */
+	--font-board:
+		ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+	/* The width of the content on a large screen. Yume is mobile first and has
+	   no separate design for a desktop. Refer to paragraph 5.4. */
+	--container-board: 32rem;
+}
+
+@layer base {
+	:root {
+		color-scheme: dark;
+	}
+
+	body {
+		background-color: var(--color-board-bg);
+		color: var(--color-board-text);
+	}
+}
+
+/**
+ * The face of a flap: a dark card with the line between the two halves.
+ *
+ * The digits keep the same width, thus a number does not move when the value
+ * changes.
+ */
+@utility flap {
+	background-color: var(--color-flap-face);
+	background-image: linear-gradient(
+		to bottom,
+		transparent calc(50% - 1px),
+		var(--color-flap-edge) calc(50% - 1px),
+		var(--color-flap-edge) calc(50% + 1px),
+		transparent calc(50% + 1px)
+	);
+	font-family: var(--font-board);
+	font-variant-numeric: tabular-nums;
+	border-radius: 0.25rem;
+}
+
+/**
+ * A board turns its flaps when new data arrives. The page load is that moment.
+ *
+ * Each flap falls into its place with the correct digit. The flaps do not show
+ * other digits first: this page shows a balance, and digits that change at
+ * random read as data that is not correct.
+ *
+ * The variable `--flap-index` gives the place of the flap. Thus the flaps fall
+ * one after the other, from the left.
+ */
+@keyframes flap-drop {
+	from {
+		transform: rotateX(-90deg);
+		opacity: 0;
+	}
+	to {
+		transform: rotateX(0deg);
+		opacity: 1;
+	}
+}
+
+@utility flap-board {
+	perspective: 320px;
+}
+
+@utility flap-drop {
+	/* The animation is present only for a user that accepts the movement. A
+	   user with prefers-reduced-motion sees the value immediately. */
+	@media (prefers-reduced-motion: no-preference) {
+		transform-origin: top center;
+		/* `backwards` keeps the flap hidden during the delay. Without it, each
+		   flap appears first and then turns. */
+		animation: flap-drop 260ms ease-out backwards;
+		animation-delay: calc(var(--flap-index, 0) * 60ms);
+	}
+}
+
+/** The space of the telephone below the screen, on iOS. */
+@utility pb-safe {
+	padding-bottom: calc(env(safe-area-inset-bottom) + --spacing(6));
+}
