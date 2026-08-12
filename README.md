@@ -42,9 +42,7 @@ the dashboard. Yume installs on the home screen of a telephone.
 The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
 from Revolut. It also holds Miles & More, which no source can increase.
 
-Authentication is not present: Yume has one user. Amex Italia asks for an authentication
-on the page of Emirates Skywards from 1 July 2026, thus that rule has no source and the
-catalogue does not hold it.
+Authentication is not present: Yume has one user.
 
 ## Documents
 

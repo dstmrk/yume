@@ -340,6 +340,29 @@ export const transferRules: readonly TransferRule[] = [
 			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Singapore/singapore-krisflyer/SING-01",
 	},
 	{
+		// 5 punti Membership Rewards = 2 Miglia Skywards. The minimum is 500
+		// points, in blocks of 500.
+		//
+		// Amex Italia asks for an authentication on this page from 1 July 2026,
+		// thus a machine cannot read it. The user read the page on 12 August 2026
+		// and confirmed the ratio, the minimum and the block.
+		//
+		// The page gives two ratios: 5 : 4 for a Centurion card and 5 : 2 for each
+		// other card. Yume holds no card of the user, therefore the catalogue keeps
+		// the ratio of the other cards. A member with a Centurion card reads a
+		// value that is below the real value.
+		fromProgramId: "amex-mr",
+		toProgramId: "emirates",
+		ratioNum: 2,
+		ratioDen: 5,
+		minTransfer: 500,
+		increment: 500,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl:
+			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Emirates/emirates-skywards/EK-02",
+	},
+	{
 		// British Airways gives the ratio: "convert Revpoints into Avios at a
 		// conversion rate of 1:1". Revolut refuses a request from a machine, thus
 		// the source is the page of the airline.
