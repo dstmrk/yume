@@ -3,7 +3,6 @@ import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
-import { FlapNumber } from "./components/board/FlapNumber.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
@@ -119,7 +118,10 @@ export function Dashboard() {
 										</span>
 									) : (
 										<span className="flex shrink-0 flex-col items-end gap-1">
-											<FlapNumber value={account.points} />
+											<SplitFlapNumber
+												value={account.points}
+												variant="balance"
+											/>
 											{account.observedAt !== null && (
 												<span className="text-board-muted text-xs">
 													{text.observedOn} {formatDate(account.observedAt)}
@@ -155,7 +157,7 @@ function CurrencyCard({
 		<BoardPanel title={title}>
 			<div className="flex items-center justify-between gap-3">
 				<span className="text-board-muted text-xs">{text.potentialTitle}</span>
-				<SplitFlapNumber value={row.total} />
+				<SplitFlapNumber value={row.total} variant="potential" />
 			</div>
 
 			{holdings.length > 0 && (

@@ -292,6 +292,11 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   application must operate on a home network with no connection to the internet.
 - **Use the pixel font only for the digits and for short labels.** Use a standard sans
   font for the other text. A pixel font is difficult to read in a long sentence.
+- **Give one flap to one digit.** A board of Solari holds one flap for each digit. A
+  number on one large flap is not a board. Therefore each number on a flap surface uses
+  `SplitFlapNumber`. The component gives the variant `potential` in amber and the variant
+  `balance` in the colour of the text. The separator of the thousands holds no digit,
+  thus it is not a flap.
 - **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
   move. Put the correct value in a second element. That element is not visible, but a
   screen reader finds it.

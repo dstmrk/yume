@@ -131,7 +131,10 @@ only. Obey these rules:
 - Keep all the tokens in one CSS file. Use the `@theme` directive of Tailwind CSS v4.
 - Use the theme on the display surfaces. Use standard components for the forms and for
   the dialogs.
-- Keep the font files in the repository. Do not use an external CDN.
+- Keep the font files in the repository. Do not use an external CDN. The font of the
+  board is Departure Mono, in `src/client/fonts/`.
+- Show each number of a flap surface with `SplitFlapNumber`: one flap for one digit. Do
+  not put a full number on one flap.
 - Give `aria-hidden` to the digits that move. Put the correct value in an element that
   is not visible.
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
