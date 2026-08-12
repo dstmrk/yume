@@ -11,6 +11,7 @@ import { Button } from "./components/ui/button.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
 import { cardsToShow } from "./lib/cards.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
+import type { GroupedRoute } from "./lib/routes.ts";
 import { groupRoutes } from "./lib/routes.ts";
 import { byValueDesc } from "./lib/sort.ts";
 import { text } from "./text.ts";
@@ -180,21 +181,79 @@ function CurrencyCard({
 					{groupRoutes(row.routes)
 						.sort(byValueDesc((route) => route.points))
 						.map((route) => (
+							<RouteRow key={route.fromProgramId} route={route} name={name} />
+						))}
+				</ul>
+			)}
+		</BoardPanel>
+	);
+}
+
+/**
+ * One source of a card, with the points that it can send.
+ *
+ * The line names no programme of the target currency. Two programmes can give
+ * the same result, and then one name is a choice without a reason. The button
+ * opens the list of the programmes with the result of each one. A transfer is
+ * permanent, thus the user must read the programme that accepts the balance.
+ */
+function RouteRow({
+	route,
+	name,
+}: {
+	route: GroupedRoute;
+	name: (programId: string) => string;
+}) {
+	const [open, setOpen] = useState(false);
+	const panelId = `routes-${route.fromProgramId}`;
+
+	return (
+		<li className="flex flex-col text-sm">
+			<div className="flex items-baseline justify-between gap-3">
+				<span className="flex min-w-0 items-center gap-1">
+					<span className="min-w-0 break-words text-board-muted">
+						{name(route.fromProgramId)}
+					</span>
+					<button
+						type="button"
+						aria-expanded={open}
+						aria-controls={panelId}
+						aria-label={text.routeDetail}
+						onClick={() => setOpen(!open)}
+						className="-my-3 -mr-2 flex h-11 w-11 shrink-0 items-center justify-center"
+					>
+						<span
+							aria-hidden="true"
+							className="flex h-5 w-5 items-center justify-center rounded-full border border-board-line font-board text-[10px] text-board-muted"
+						>
+							i
+						</span>
+					</button>
+				</span>
+				<span className="shrink-0 text-board-amber tabular-nums">
+					+{formatPoints(route.points)}
+				</span>
+			</div>
+
+			{open && (
+				<ul id={panelId} className="mt-1 flex flex-col gap-1 pl-3">
+					{[...route.options]
+						.sort(byValueDesc((option) => option.points))
+						.map((option) => (
 							<li
-								key={`${route.fromProgramId}>${route.toProgramId}`}
-								className="flex items-baseline justify-between gap-3 text-sm"
+								key={option.toProgramId}
+								className="flex items-baseline justify-between gap-3 text-board-muted text-xs"
 							>
-								<span className="min-w-0 break-words text-board-muted">
-									{name(route.fromProgramId)} {text.via}{" "}
-									{name(route.toProgramId)}
+								<span className="min-w-0 break-words">
+									{name(option.toProgramId)}
 								</span>
-								<span className="shrink-0 text-board-amber tabular-nums">
-									+{formatPoints(route.points)}
+								<span className="shrink-0 tabular-nums">
+									{formatPoints(option.points)}
 								</span>
 							</li>
 						))}
 				</ul>
 			)}
-		</BoardPanel>
+		</li>
 	);
 }

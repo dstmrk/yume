@@ -142,7 +142,15 @@ describe("potentialMiles", () => {
 		// falls on the route with the smallest minimum. That route also operates
 		// with a balance that is smaller.
 		expect(avios([{ programId: "amex-mr", points: 2000 }]).routes).toEqual([
-			{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 1600 },
+			{
+				fromProgramId: "amex-mr",
+				toProgramId: "iberia-club",
+				points: 1600,
+				options: [
+					{ toProgramId: "ba-club", points: 1600 },
+					{ toProgramId: "iberia-club", points: 1600 },
+				],
+			},
 		]);
 	});
 
@@ -194,9 +202,39 @@ describe("potentialMiles", () => {
 			{ programId: "revolut", points: 250 },
 		]);
 		expect(result.routes).toEqual([
-			{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 400 },
-			{ fromProgramId: "revolut", toProgramId: "ba-club", points: 250 },
+			{
+				fromProgramId: "amex-mr",
+				toProgramId: "iberia-club",
+				points: 400,
+				options: [
+					{ toProgramId: "ba-club", points: 0 },
+					{ toProgramId: "iberia-club", points: 400 },
+				],
+			},
+			{
+				fromProgramId: "revolut",
+				toProgramId: "ba-club",
+				points: 250,
+				options: [{ toProgramId: "ba-club", points: 250 }],
+			},
 		]);
+	});
+
+	// The card does not name one programme of a currency that many programmes
+	// use. It shows this list. Thus the user reads that 700 points give 400
+	// Avios through Iberia Club, and 0 through The British Airways Club.
+	it("gives the result of each programme of the currency", () => {
+		const [route] = avios([{ programId: "amex-mr", points: 700 }]).routes;
+		expect(route?.options).toEqual([
+			{ toProgramId: "ba-club", points: 0 },
+			{ toProgramId: "iberia-club", points: 400 },
+		]);
+	});
+
+	it("gives no option for a programme with no rule from the source", () => {
+		// Revolut has a rule to The British Airways Club only.
+		const [route] = avios([{ programId: "revolut", points: 250 }]).routes;
+		expect(route?.options.map((one) => one.toProgramId)).toEqual(["ba-club"]);
 	});
 
 	it("does not name a route that gives 0", () => {
