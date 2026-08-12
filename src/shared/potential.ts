@@ -100,8 +100,13 @@ export function potentialMiles(input: {
 /**
  * Gives the route that sends the largest quantity of points to the currency.
  *
- * The result is undefined when no route gives more than 0. Two routes with the
- * same result keep the first programme of the catalogue.
+ * The result is undefined when no route gives more than 0.
+ *
+ * Two routes to the same currency can give the same result. Amex sends 2 000
+ * points to The British Airways Club or to Iberia Club, and both routes give
+ * 1 600 Avios. The choice then falls on the route with the smallest minimum:
+ * that route also operates with a balance that is smaller. Two routes with the
+ * same minimum keep the first programme of the catalogue.
  */
 function bestRoute(
 	points: number,
@@ -111,14 +116,23 @@ function bestRoute(
 	at: IsoDate,
 ): BestRoute | undefined {
 	let best: BestRoute | undefined;
+	let bestMinTransfer = 0;
 	for (const target of targets) {
 		const rule = findRule(rules, fromProgramId, target.id, at);
 		if (rule === undefined) {
 			continue;
 		}
 		const converted = convert(points, rule);
-		if (converted > 0 && (best === undefined || converted > best.points)) {
+		if (converted === 0) {
+			continue;
+		}
+		const better =
+			best === undefined ||
+			converted > best.points ||
+			(converted === best.points && rule.minTransfer < bestMinTransfer);
+		if (better) {
 			best = { fromProgramId, toProgramId: target.id, points: converted };
+			bestMinTransfer = rule.minTransfer;
 		}
 	}
 	return best;

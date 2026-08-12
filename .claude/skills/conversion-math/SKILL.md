@@ -76,6 +76,12 @@ to each programme of the target currency. Then keep the largest value. A balance
 of 700 Membership Rewards points gives 400 Avios through Iberia Club, but 0
 Avios through The British Airways Club.
 
+**Two equal results keep the smallest minimum.** A balance of 2 000 Membership
+Rewards points gives 1 600 Avios through each of the two routes. The function
+then keeps Iberia Club, because its minimum is 500 and the minimum of The
+British Airways Club is 800. That route also operates with a balance that is
+smaller.
+
 ### One account at a time
 
 Calculate each source account independently. The minimum quantity applies to one
@@ -141,6 +147,7 @@ conversion must contain these cases:
 | The rule is not valid at the date. | The function does not use the rule. |
 | The balance is 0. | 0 |
 | Two routes go to the same currency. | The function keeps the largest result. |
+| Two routes give the same result. | The function keeps the smallest minimum. |
 | Two accounts use the same source programme. | The function converts each account alone. |
 
 Use a real ratio from the catalogue in a test. Example: Amex gives 4 Avios for 5

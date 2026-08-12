@@ -136,6 +136,16 @@ describe("potentialMiles", () => {
 		);
 	});
 
+	it("selects the smallest minimum when two routes give the same result", () => {
+		// 2 000 points give 1 600 Avios through The British Airways Club and 1 600
+		// Avios through Iberia Club. The two results are equal, thus the choice
+		// falls on the route with the smallest minimum. That route also operates
+		// with a balance that is smaller.
+		expect(avios([{ programId: "amex-mr", points: 2000 }]).routes).toEqual([
+			{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 1600 },
+		]);
+	});
+
 	it("converts each account of the same programme alone", () => {
 		const result = avios([
 			{ programId: "amex-mr", points: 400 },
