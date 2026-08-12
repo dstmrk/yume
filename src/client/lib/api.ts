@@ -1,5 +1,6 @@
 import type {
 	AccountsResponse,
+	AddSnapshotInput,
 	CatalogueResponse,
 	CreateAccountInput,
 	PotentialResponse,
@@ -48,4 +49,20 @@ export function createAccount(
 	input: CreateAccountInput,
 ): Promise<{ id: string }> {
 	return post<{ id: string }>("/api/accounts", input);
+}
+
+/**
+ * Adds a snapshot of the balance of an account.
+ *
+ * The id of the account is a UUID, but `encodeURIComponent` keeps the path
+ * correct also with an other shape of the id.
+ */
+export function addSnapshot(
+	accountId: string,
+	input: AddSnapshotInput,
+): Promise<{ id: string }> {
+	return post<{ id: string }>(
+		`/api/accounts/${encodeURIComponent(accountId)}/snapshots`,
+		input,
+	);
 }
