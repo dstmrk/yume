@@ -60,6 +60,7 @@ export const currencies: readonly Currency[] = [
 	{ id: "etihad-guest", code: "EG", name: "Etihad Guest", kind: "airline" },
 	{ id: "saga-points", code: "SAGA", name: "Saga Points", kind: "airline" },
 	{ id: "miles-and-go", code: "MG", name: "Miles&Go", kind: "airline" },
+	{ id: "miles-and-more", code: "MM", name: "Miles & More", kind: "airline" },
 ];
 
 /**
@@ -217,6 +218,17 @@ export const programs: readonly Program[] = [
 		code: "TP",
 		name: "TAP",
 		transferable: true,
+	},
+	// Miles & More is the programme of ITA Airways from 1 April 2026. Amex Italia
+	// and Revolut send no points to it. The catalogue holds this programme,
+	// because many Italian users have this balance. For these users, the answer
+	// is clear: no source can increase it.
+	{
+		id: "miles-and-more",
+		currencyId: "miles-and-more",
+		code: "LH",
+		name: "Miles & More",
+		transferable: false,
 	},
 ];
 
