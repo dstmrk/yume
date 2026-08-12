@@ -4,6 +4,7 @@ import type { PotentialMiles } from "../shared/potential.ts";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FlapNumber } from "./components/board/FlapNumber.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
+import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { groupRoutes } from "./lib/routes.ts";
@@ -115,6 +116,8 @@ export function Dashboard() {
 					</ul>
 				)}
 			</BoardPanel>
+
+			<NewAccountForm programs={catalogue.data.programs} />
 		</div>
 	);
 }

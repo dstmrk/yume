@@ -21,6 +21,18 @@ export const text = {
 	noBalance: "Nessun saldo",
 	observedOn: "al",
 
+	addAccount: "Aggiungi conto",
+	newAccountTitle: "Nuovo conto",
+	programLabel: "Programma",
+	programPlaceholder: "Scegli un programma",
+	nicknameLabel: "Nome (facoltativo)",
+	membershipLabel: "Numero tessera (facoltativo)",
+
+	save: "Salva",
+	saving: "Salvataggio…",
+	cancel: "Annulla",
+	saveError: "Salvataggio non riuscito.",
+
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",
 } as const;
