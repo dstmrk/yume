@@ -28,6 +28,29 @@
 	/* The width of the content on a large screen. Yume is mobile first and has
 	   no separate design for a desktop. Refer to paragraph 5.4. */
 	--container-board: 32rem;
+
+	/* The tokens of shadcn/ui. They receive the colours of the board. Thus a
+	   standard component of `components/ui/` shows the theme, but its code stays
+	   the same. Refer to paragraph 5.1 of docs/architecture.md. */
+	--color-background: var(--color-board-bg);
+	--color-foreground: var(--color-board-text);
+	--color-muted: var(--color-board-panel);
+	--color-muted-foreground: var(--color-board-muted);
+	--color-border: var(--color-board-line);
+	--color-input: var(--color-board-line);
+	--color-ring: var(--color-board-amber);
+	--color-accent: var(--color-board-line);
+	--color-accent-foreground: var(--color-board-text);
+	--color-popover: var(--color-board-panel);
+	--color-popover-foreground: var(--color-board-text);
+
+	/* The amber is the colour of the action, thus the text on it is dark. */
+	--color-primary: var(--color-board-amber);
+	--color-primary-foreground: var(--color-board-bg);
+
+	/* The colour of an error. It is not the amber: the amber marks a value that
+	   is a calculation. */
+	--color-destructive: #f0776a;
 }
 
 @layer base {
