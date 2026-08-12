@@ -5,6 +5,7 @@ import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FlapNumber } from "./components/board/FlapNumber.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
+import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { groupRoutes } from "./lib/routes.ts";
@@ -81,36 +82,36 @@ export function Dashboard() {
 				{allAccounts.length === 0 ? (
 					<p className="text-board-muted text-sm">{text.noAccounts}</p>
 				) : (
-					<ul className="flex flex-col gap-2">
+					<ul className="flex flex-col gap-4">
 						{allAccounts.map((account) => (
-							<li
-								key={account.accountId}
-								className="flex items-center justify-between gap-3"
-							>
-								<span className="min-w-0 text-sm">
-									<span className="block break-words">
-										{name(account.programId)}
-									</span>
-									{account.nickname !== null && (
-										<span className="block text-board-muted text-xs">
-											{account.nickname}
+							<li key={account.accountId} className="flex flex-col gap-2">
+								<div className="flex items-center justify-between gap-3">
+									<span className="min-w-0 text-sm">
+										<span className="block break-words">
+											{name(account.programId)}
 										</span>
-									)}
-								</span>
-								{account.points === null ? (
-									<span className="shrink-0 text-board-muted text-xs">
-										{text.noBalance}
-									</span>
-								) : (
-									<span className="flex shrink-0 flex-col items-end gap-1">
-										<FlapNumber value={account.points} />
-										{account.observedAt !== null && (
-											<span className="text-board-muted text-xs">
-												{text.observedOn} {formatDate(account.observedAt)}
+										{account.nickname !== null && (
+											<span className="block text-board-muted text-xs">
+												{account.nickname}
 											</span>
 										)}
 									</span>
-								)}
+									{account.points === null ? (
+										<span className="shrink-0 text-board-muted text-xs">
+											{text.noBalance}
+										</span>
+									) : (
+										<span className="flex shrink-0 flex-col items-end gap-1">
+											<FlapNumber value={account.points} />
+											{account.observedAt !== null && (
+												<span className="text-board-muted text-xs">
+													{text.observedOn} {formatDate(account.observedAt)}
+												</span>
+											)}
+										</span>
+									)}
+								</div>
+								<NewBalanceForm accountId={account.accountId} />
 							</li>
 						))}
 					</ul>

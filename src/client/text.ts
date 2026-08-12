@@ -28,6 +28,12 @@ export const text = {
 	nicknameLabel: "Nome (facoltativo)",
 	membershipLabel: "Numero tessera (facoltativo)",
 
+	updateBalance: "Aggiorna saldo",
+	pointsLabel: "Saldo",
+	dateLabel: "Data",
+	noteLabel: "Nota (facoltativo)",
+	pointsError: "Scrivi il saldo in numeri.",
+
 	save: "Salva",
 	saving: "Salvataggio…",
 	cancel: "Annulla",
