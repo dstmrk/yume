@@ -7,6 +7,7 @@ import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { groupRoutes } from "./lib/routes.ts";
+import { byValueDesc } from "./lib/sort.ts";
 import { text } from "./text.ts";
 
 export function Dashboard() {
@@ -40,6 +41,14 @@ export function Dashboard() {
 
 	const name = (programId: string) => names.get(programId) ?? programId;
 
+	// Each list goes from the largest value to the smallest one.
+	const cards = [...potential.data.potential].sort(
+		byValueDesc((row) => row.total),
+	);
+	const allAccounts = [...accounts.data.accounts].sort(
+		byValueDesc((account) => account.points),
+	);
+
 	return (
 		<div className="flex flex-col gap-6">
 			<section className="flex flex-col gap-3">
@@ -52,12 +61,12 @@ export function Dashboard() {
 					</p>
 				</header>
 
-				{potential.data.potential.map((row) => (
+				{cards.map((row) => (
 					<CurrencyCard
 						key={row.currencyId}
 						row={row}
 						title={currencyNames.get(row.currencyId) ?? row.currencyId}
-						holdings={accounts.data.accounts.filter(
+						holdings={allAccounts.filter(
 							(account) =>
 								currencyOf.get(account.programId) === row.currencyId &&
 								account.points !== null,
@@ -68,11 +77,11 @@ export function Dashboard() {
 			</section>
 
 			<BoardPanel title={text.accountsTitle}>
-				{accounts.data.accounts.length === 0 ? (
+				{allAccounts.length === 0 ? (
 					<p className="text-board-muted text-sm">{text.noAccounts}</p>
 				) : (
 					<ul className="flex flex-col gap-2">
-						{accounts.data.accounts.map((account) => (
+						{allAccounts.map((account) => (
 							<li
 								key={account.accountId}
 								className="flex items-center justify-between gap-3"
@@ -148,19 +157,22 @@ function CurrencyCard({
 
 			{row.routes.length > 0 && (
 				<ul className="mt-3 flex flex-col gap-1 border-board-line border-t pt-3">
-					{groupRoutes(row.routes).map((route) => (
-						<li
-							key={`${route.fromProgramId}>${route.toProgramId}`}
-							className="flex items-baseline justify-between gap-3 text-sm"
-						>
-							<span className="min-w-0 break-words text-board-muted">
-								{name(route.fromProgramId)} {text.via} {name(route.toProgramId)}
-							</span>
-							<span className="shrink-0 text-board-amber tabular-nums">
-								+{formatPoints(route.points)}
-							</span>
-						</li>
-					))}
+					{groupRoutes(row.routes)
+						.sort(byValueDesc((route) => route.points))
+						.map((route) => (
+							<li
+								key={`${route.fromProgramId}>${route.toProgramId}`}
+								className="flex items-baseline justify-between gap-3 text-sm"
+							>
+								<span className="min-w-0 break-words text-board-muted">
+									{name(route.fromProgramId)} {text.via}{" "}
+									{name(route.toProgramId)}
+								</span>
+								<span className="shrink-0 text-board-amber tabular-nums">
+									+{formatPoints(route.points)}
+								</span>
+							</li>
+						))}
 				</ul>
 			)}
 		</BoardPanel>
