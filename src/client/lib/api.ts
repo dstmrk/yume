@@ -1,6 +1,7 @@
 import type {
 	AccountsResponse,
 	CatalogueResponse,
+	CreateAccountInput,
 	PotentialResponse,
 } from "../../shared/api.ts";
 
@@ -18,6 +19,18 @@ async function get<T>(path: string): Promise<T> {
 	return (await response.json()) as T;
 }
 
+async function post<T>(path: string, body: unknown): Promise<T> {
+	const response = await fetch(path, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify(body),
+	});
+	if (!response.ok) {
+		throw new Error(`${path} gives the status ${response.status}`);
+	}
+	return (await response.json()) as T;
+}
+
 export function fetchCatalogue(): Promise<CatalogueResponse> {
 	return get<CatalogueResponse>("/api/catalogue");
 }
@@ -28,4 +41,11 @@ export function fetchAccounts(): Promise<AccountsResponse> {
 
 export function fetchPotential(): Promise<PotentialResponse> {
 	return get<PotentialResponse>("/api/potential");
+}
+
+/** Adds an account of the user. It gives the id of the new account. */
+export function createAccount(
+	input: CreateAccountInput,
+): Promise<{ id: string }> {
+	return post<{ id: string }>("/api/accounts", input);
 }
