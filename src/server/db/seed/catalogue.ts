@@ -37,38 +37,44 @@ export const currencies: readonly Currency[] = [
 	{
 		id: "flying-blue",
 		code: "FB",
-		name: "Miglia Flying Blue",
+		name: "Flying Blue",
 		kind: "airline",
 	},
 ];
 
+/**
+ * The field `name` is short, because the interface shows it on a telephone.
+ * `Amex MR via British Airways` is one line, but
+ * `American Express Membership Rewards via The British Airways Club` is three
+ * lines. The field `code` holds the identity for a person who needs it.
+ */
 export const programs: readonly Program[] = [
 	{
 		id: "amex-mr",
 		currencyId: "amex-mr",
 		code: "AMEX_MR",
-		name: "American Express Membership Rewards",
+		name: "Amex MR",
 		transferable: false,
 	},
 	{
 		id: "revolut",
 		currencyId: "revpoints",
 		code: "REVOLUT",
-		name: "Revolut RevPoints",
+		name: "Revolut",
 		transferable: false,
 	},
 	{
 		id: "ba-club",
 		currencyId: "avios",
 		code: "BA",
-		name: "The British Airways Club",
+		name: "British Airways",
 		transferable: true,
 	},
 	{
 		id: "iberia-club",
 		currencyId: "avios",
 		code: "IB",
-		name: "Iberia Club",
+		name: "Iberia",
 		transferable: true,
 	},
 	{
