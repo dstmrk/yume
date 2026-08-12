@@ -14,7 +14,10 @@ export const text = {
 		"Valore calcolato, non un saldo. Il trasferimento è definitivo.",
 	currentBalance: "Saldo",
 	fromTransfers: "Dai trasferimenti",
-	via: "via",
+	routeDetail: "Dove puoi trasferire",
+	noPotential: "Aggiungi un saldo per vedere le miglia potenziali.",
+	showOthers: "Mostra le altre",
+	showLess: "Mostra meno",
 
 	accountsTitle: "I tuoi conti",
 	noAccounts: "Nessun conto.",

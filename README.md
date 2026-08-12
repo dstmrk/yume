@@ -39,8 +39,10 @@ The project is in the first stage of the development. The conversion logic, the 
 the API and the dashboard are present. You add an account and you write a balance from
 the dashboard. Yume installs on the home screen of a telephone.
 
-Authentication is not present: Yume has one user. The catalogue holds 5 programmes of the
-19 programmes.
+The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
+from Revolut. It also holds Miles & More, which no source can increase.
+
+Authentication is not present: Yume has one user.
 
 ## Documents
 

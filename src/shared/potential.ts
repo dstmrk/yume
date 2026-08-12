@@ -13,6 +13,13 @@ import type {
 } from "./catalogue.ts";
 import { convert, findRule } from "./conversion.ts";
 
+/** One programme of the target currency, with the result of that route. */
+export type RouteOption = {
+	readonly toProgramId: string;
+	/** The points that arrive. It is 0 when the balance is below the minimum. */
+	readonly points: number;
+};
+
 /** The best route from one source account to the target currency. */
 export type BestRoute = {
 	readonly fromProgramId: string;
@@ -20,6 +27,16 @@ export type BestRoute = {
 	readonly toProgramId: string;
 	/** The points that arrive in the target currency. It is more than 0. */
 	readonly points: number;
+	/**
+	 * Each programme of the currency that has a rule from this source, with the
+	 * result of that programme. The list holds the best route too.
+	 *
+	 * The card shows this list, because it names no programme. Two programmes of
+	 * one currency can give the same result, and then the name of one programme
+	 * is a choice without a reason. The list also shows a route that gives 0, and
+	 * a transfer of points is permanent.
+	 */
+	readonly options: readonly RouteOption[];
 };
 
 export type PotentialMiles = {
@@ -100,8 +117,13 @@ export function potentialMiles(input: {
 /**
  * Gives the route that sends the largest quantity of points to the currency.
  *
- * The result is undefined when no route gives more than 0. Two routes with the
- * same result keep the first programme of the catalogue.
+ * The result is undefined when no route gives more than 0.
+ *
+ * Two routes to the same currency can give the same result. Amex sends 2 000
+ * points to The British Airways Club or to Iberia Club, and both routes give
+ * 1 600 Avios. The choice then falls on the route with the smallest minimum:
+ * that route also operates with a balance that is smaller. Two routes with the
+ * same minimum keep the first programme of the catalogue.
  */
 function bestRoute(
 	points: number,
@@ -110,16 +132,34 @@ function bestRoute(
 	rules: readonly TransferRule[],
 	at: IsoDate,
 ): BestRoute | undefined {
-	let best: BestRoute | undefined;
+	const options: RouteOption[] = [];
+	let toProgramId: string | undefined;
+	let bestPoints = 0;
+	let bestMinTransfer = 0;
+
 	for (const target of targets) {
 		const rule = findRule(rules, fromProgramId, target.id, at);
 		if (rule === undefined) {
 			continue;
 		}
 		const converted = convert(points, rule);
-		if (converted > 0 && (best === undefined || converted > best.points)) {
-			best = { fromProgramId, toProgramId: target.id, points: converted };
+		options.push({ toProgramId: target.id, points: converted });
+		if (converted === 0) {
+			continue;
+		}
+		const better =
+			toProgramId === undefined ||
+			converted > bestPoints ||
+			(converted === bestPoints && rule.minTransfer < bestMinTransfer);
+		if (better) {
+			toProgramId = target.id;
+			bestPoints = converted;
+			bestMinTransfer = rule.minTransfer;
 		}
 	}
-	return best;
+
+	if (toProgramId === undefined) {
+		return undefined;
+	}
+	return { fromProgramId, toProgramId, points: bestPoints, options };
 }
