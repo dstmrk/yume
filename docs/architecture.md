@@ -242,7 +242,7 @@ product.
 |---|---|
 | Extent of the theme | The display surfaces only: the dashboard, the cards of the potential miles and the lists. |
 | Forms and dialogs | Standard shadcn/ui with the dark palette. |
-| Animation | The digits turn when a value changes. |
+| Animation | The flaps turn when the page loads and when a value changes. Refer to paragraph 5.6. |
 | Palette | Dark only. There is no light theme. |
 | Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
 | Screen | Mobile first. Refer to paragraph 5.4. |
@@ -344,6 +344,25 @@ update.
 
 A browser installs an application from an origin with TLS only. Paragraph 7 gives the
 rules for TLS.
+
+### 5.6 The movement of the flaps
+
+A board turns its flaps when new data arrives. The page load is that moment for Yume.
+Therefore the flaps of a potential value fall into their place at the load, one after the
+other, from the left.
+
+**A flap does not show a digit that is not correct.** The flap arrives with the correct
+digit. Some boards show other digits first, but this page shows a balance. Digits that
+change at random read as data that is not correct.
+
+The animation obeys these limits:
+
+- The animation is present only inside `@media (prefers-reduced-motion: no-preference)`.
+  Thus a user who refuses the movement sees the value immediately.
+- The flaps hold `aria-hidden`. A screen reader reads the value from an element that is
+  not visible, and it reads it one time.
+- The number of flaps comes from the last value. Therefore no flap enters or leaves
+  during the animation, and the page does not move.
 
 ## 6. Repository layout
 

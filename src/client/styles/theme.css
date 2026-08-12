@@ -45,8 +45,7 @@
  * The face of a flap: a dark card with the line between the two halves.
  *
  * The digits keep the same width, thus a number does not move when the value
- * changes. The flap does not turn now, because no value changes in the page.
- * The session that adds the forms adds the animation.
+ * changes.
  */
 @utility flap {
 	background-color: var(--color-flap-face);
@@ -60,6 +59,43 @@
 	font-family: var(--font-board);
 	font-variant-numeric: tabular-nums;
 	border-radius: 0.25rem;
+}
+
+/**
+ * A board turns its flaps when new data arrives. The page load is that moment.
+ *
+ * Each flap falls into its place with the correct digit. The flaps do not show
+ * other digits first: this page shows a balance, and digits that change at
+ * random read as data that is not correct.
+ *
+ * The variable `--flap-index` gives the place of the flap. Thus the flaps fall
+ * one after the other, from the left.
+ */
+@keyframes flap-drop {
+	from {
+		transform: rotateX(-90deg);
+		opacity: 0;
+	}
+	to {
+		transform: rotateX(0deg);
+		opacity: 1;
+	}
+}
+
+@utility flap-board {
+	perspective: 320px;
+}
+
+@utility flap-drop {
+	/* The animation is present only for a user that accepts the movement. A
+	   user with prefers-reduced-motion sees the value immediately. */
+	@media (prefers-reduced-motion: no-preference) {
+		transform-origin: top center;
+		/* `backwards` keeps the flap hidden during the delay. Without it, each
+		   flap appears first and then turns. */
+		animation: flap-drop 260ms ease-out backwards;
+		animation-delay: calc(var(--flap-index, 0) * 60ms);
+	}
 }
 
 /** The space of the telephone below the screen, on iOS. */
