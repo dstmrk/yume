@@ -171,6 +171,10 @@ Biome writes tab indentation. Run `npm run fix` after you add a file. Biome does
 examine `.claude/`, because that directory belongs to the harness. Biome does not examine
 `drizzle/`, because drizzle-kit writes those files.
 
+The workflow `.github/workflows/ci.yml` runs these commands, the build and the test
+suites of the hooks. It runs them for each pull request and for each push to `main`.
+The workflow is the second defence: run the commands before the commit.
+
 Run these commands for the database and for the server:
 
 ```bash
