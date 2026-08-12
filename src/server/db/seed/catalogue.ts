@@ -65,16 +65,20 @@ export const currencies: readonly Currency[] = [
 
 /**
  * The field `name` is short, because the interface shows it on a telephone.
- * `Amex MR via British Airways` is one line, but
- * `American Express Membership Rewards via The British Airways Club` is three
- * lines. The field `code` holds the identity for a person who needs it.
+ * `American Express Membership Rewards` takes three lines on a small screen.
+ * The field `code` holds the identity for a person who needs it.
+ *
+ * The name of a source holds the issuer only: `Amex` and `Revolut`. Each issuer
+ * has one programme in the catalogue, therefore the name of the currency adds
+ * no information. The two names are also parallel: one name with the currency
+ * and one name without it read as an error.
  */
 export const programs: readonly Program[] = [
 	{
 		id: "amex-mr",
 		currencyId: "amex-mr",
 		code: "AMEX_MR",
-		name: "Amex MR",
+		name: "Amex",
 		transferable: false,
 	},
 	{
