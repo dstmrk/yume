@@ -29,6 +29,10 @@ import type {
 const VERIFIED_ON = "2026-08-11";
 const VERIFIED_ON_2 = "2026-08-12";
 
+/** The page of Revolut for the transfer of RevPoints into miles. */
+const REVOLUT_MILES_PAGE =
+	"https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/";
+
 export const currencies: readonly Currency[] = [
 	{
 		id: "amex-mr",
@@ -48,6 +52,14 @@ export const currencies: readonly Currency[] = [
 	{ id: "asia-miles", code: "ASIA", name: "Asia Miles", kind: "airline" },
 	{ id: "skymiles", code: "SKY", name: "SkyMiles", kind: "airline" },
 	{ id: "krisflyer", code: "KF", name: "KrisFlyer", kind: "airline" },
+	{ id: "skywards", code: "SKWD", name: "Skywards", kind: "airline" },
+	{ id: "miles-and-smiles", code: "MS", name: "Miles&Smiles", kind: "airline" },
+	{ id: "miles-and-bonus", code: "MB", name: "Miles+Bonus", kind: "airline" },
+	{ id: "lifemiles", code: "LM", name: "LifeMiles", kind: "airline" },
+	{ id: "sky-pearl", code: "SP", name: "Sky Pearl", kind: "airline" },
+	{ id: "etihad-guest", code: "EG", name: "Etihad Guest", kind: "airline" },
+	{ id: "saga-points", code: "SAGA", name: "Saga Points", kind: "airline" },
+	{ id: "miles-and-go", code: "MG", name: "Miles&Go", kind: "airline" },
 ];
 
 /**
@@ -118,6 +130,92 @@ export const programs: readonly Program[] = [
 		currencyId: "krisflyer",
 		code: "SQ",
 		name: "Singapore",
+		transferable: true,
+	},
+	// The six programmes of the Avios family. A member moves Avios between them
+	// at no cost. Therefore the dashboard shows one card, not six.
+	{
+		id: "aer-lingus",
+		currencyId: "avios",
+		code: "EI",
+		name: "Aer Lingus",
+		transferable: true,
+	},
+	{
+		id: "finnair",
+		currencyId: "avios",
+		code: "AY",
+		name: "Finnair",
+		transferable: true,
+	},
+	{
+		id: "qatar",
+		currencyId: "avios",
+		code: "QR",
+		name: "Qatar Airways",
+		transferable: true,
+	},
+	{
+		id: "vueling",
+		currencyId: "avios",
+		code: "VY",
+		name: "Vueling",
+		transferable: true,
+	},
+	{
+		id: "emirates",
+		currencyId: "skywards",
+		code: "EK",
+		name: "Emirates",
+		transferable: true,
+	},
+	{
+		id: "turkish",
+		currencyId: "miles-and-smiles",
+		code: "TK",
+		name: "Turkish",
+		transferable: true,
+	},
+	{
+		id: "aegean",
+		currencyId: "miles-and-bonus",
+		code: "A3",
+		name: "Aegean",
+		transferable: true,
+	},
+	{
+		id: "avianca",
+		currencyId: "lifemiles",
+		code: "AV",
+		name: "Avianca",
+		transferable: true,
+	},
+	{
+		id: "china-southern",
+		currencyId: "sky-pearl",
+		code: "CZ",
+		name: "China Southern",
+		transferable: true,
+	},
+	{
+		id: "etihad",
+		currencyId: "etihad-guest",
+		code: "EY",
+		name: "Etihad",
+		transferable: true,
+	},
+	{
+		id: "icelandair",
+		currencyId: "saga-points",
+		code: "FI",
+		name: "Icelandair",
+		transferable: true,
+	},
+	{
+		id: "tap",
+		currencyId: "miles-and-go",
+		code: "TP",
+		name: "TAP",
 		transferable: true,
 	},
 ];
@@ -256,7 +354,187 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON,
 		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+
+	// The other 15 routes of Revolut.
+	//
+	// Revolut refuses a request from a machine: `help.revolut.com` and
+	// `revolut.com` both give the status 403. Therefore the user read the list of
+	// the partners in the application on 12 August 2026. The user confirmed the
+	// ratio 1 : 1 of each programme, and the ratio 2 : 1 of Emirates and of
+	// Singapore. The page of the airline is the source when that page gives the
+	// ratio.
+	//
+	// The application accepts any quantity, thus the minimum and the step are 1.
+	{
+		fromProgramId: "revolut",
+		toProgramId: "iberia-club",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "aer-lingus",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "finnair",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		// Qatar Airways gives the ratio: "Collect 1 Avios for every 1 RevPoint
+		// that you choose to convert".
+		fromProgramId: "revolut",
+		toProgramId: "qatar",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
 		sourceUrl:
-			"https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/",
+			"https://www.qatarairways.com/en/Privilege-Club/offers/revolut-convert.html",
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "vueling",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "sas",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "turkish",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "aegean",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "avianca",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "china-southern",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "etihad",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "icelandair",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "tap",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		// 2 RevPoints give 1 mile.
+		fromProgramId: "revolut",
+		toProgramId: "emirates",
+		ratioNum: 1,
+		ratioDen: 2,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
+	},
+	{
+		// 2 RevPoints give 1 mile.
+		fromProgramId: "revolut",
+		toProgramId: "singapore",
+		ratioNum: 1,
+		ratioDen: 2,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_2,
+		validTo: null,
+		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 ];
