@@ -137,6 +137,25 @@ only. Obey these rules:
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
 - Show all the numbers with the locale `it-IT`.
 
+The project has no `jsdom` and no library for the tests of a component. Therefore keep
+the logic of the client in `src/client/lib/`, with a test file. Then a `.tsx` file holds
+only the elements and the state. These three examples are logic: the order of a list, the
+change of a field into the body of a request, and the examination of a text that a person
+writes.
+
+Obey these two rules in a form:
+
+- **Read a quantity of points with `parsePoints`.** The interface writes each number with
+  the locale `it-IT`. Thus the user reads `1.900` and can write the same text. A field of
+  the type `number` refuses that text. The function also refuses a group that is not of
+  three digits: without that examination, `1.9` gives 19.
+- **Make an empty field null.** The schemas of `src/shared/api.ts` ask for one character
+  or for null. An empty string gives the status 400.
+
+Biome examines one file. It cannot follow the properties through a component, thus the
+rule `noLabelWithoutControl` gives an error in a component that receives `htmlFor`. Make
+that field necessary in the type. Then add the suppression with the reason.
+
 ## Commands
 
 Run these commands before each commit:
