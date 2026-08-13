@@ -78,6 +78,10 @@ function post(path: string, body: unknown) {
 	});
 }
 
+function remove(path: string) {
+	return app.request(path, { method: "DELETE", headers: { cookie } });
+}
+
 describe("the session", () => {
 	// The list holds each route of the data. A new route with no session must
 	// make this test fail.
@@ -86,6 +90,8 @@ describe("the session", () => {
 		["GET", "/api/accounts"],
 		["POST", "/api/accounts"],
 		["POST", "/api/accounts/an-account/snapshots"],
+		["DELETE", "/api/accounts/an-account"],
+		["DELETE", "/api/accounts/an-account/snapshots/a-snapshot"],
 		["GET", "/api/potential"],
 	] as const;
 
@@ -249,7 +255,7 @@ describe("GET /api/accounts", () => {
 			userId,
 			programId: "ba-club",
 		});
-		addSnapshot(db, {
+		const snapshot = addSnapshot(db, {
 			accountId: account,
 			points: 1000,
 			observedAt: "2026-08-01",
@@ -257,8 +263,111 @@ describe("GET /api/accounts", () => {
 
 		const body = await getJson<{ accounts: unknown[] }>("/api/accounts");
 		expect(body.accounts).toMatchObject([
-			{ programId: "ba-club", points: 1000, observedAt: "2026-08-01" },
+			{
+				programId: "ba-club",
+				points: 1000,
+				observedAt: "2026-08-01",
+				snapshotId: snapshot,
+			},
 		]);
+	});
+});
+
+describe("DELETE /api/accounts/:id", () => {
+	it("removes the account of the user", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+
+		const response = await remove(`/api/accounts/${account}`);
+
+		expect(response.status).toBe(204);
+		expect(currentBalances(db, userId)).toEqual([]);
+	});
+
+	it("refuses the account of an other user", async () => {
+		const account = createAccount(db, {
+			userId: OTHER_USER,
+			programId: "ba-club",
+		});
+
+		const response = await remove(`/api/accounts/${account}`);
+
+		expect(response.status).toBe(404);
+		expect(currentBalances(db, OTHER_USER)).toHaveLength(1);
+	});
+
+	it("refuses an account that does not exist", async () => {
+		expect((await remove("/api/accounts/does-not-exist")).status).toBe(404);
+	});
+});
+
+describe("DELETE /api/accounts/:id/snapshots/:snapshotId", () => {
+	it("removes the snapshot and gives the balance before it", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 1900,
+			observedAt: "2026-01-01",
+		});
+		const wrong = addSnapshot(db, {
+			accountId: account,
+			points: 19000,
+			observedAt: "2026-08-01",
+		});
+
+		const response = await remove(
+			`/api/accounts/${account}/snapshots/${wrong}`,
+		);
+
+		expect(response.status).toBe(204);
+		expect(currentBalances(db, userId)).toMatchObject([{ points: 1900 }]);
+	});
+
+	it("refuses a snapshot that does not exist", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const response = await remove(
+			`/api/accounts/${account}/snapshots/does-not-exist`,
+		);
+		expect(response.status).toBe(404);
+	});
+
+	// The path holds the account of the user, but the snapshot belongs to an
+	// other account. The condition of the query holds the two ids.
+	it("refuses a snapshot of an other account", async () => {
+		const mine = createAccount(db, { userId, programId: "ba-club" });
+		const other = createAccount(db, { userId, programId: "amex-mr" });
+		const snapshot = addSnapshot(db, {
+			accountId: other,
+			points: 100,
+			observedAt: "2026-08-01",
+		});
+
+		const response = await remove(
+			`/api/accounts/${mine}/snapshots/${snapshot}`,
+		);
+
+		expect(response.status).toBe(404);
+		expect(currentBalances(db, userId)).toContainEqual(
+			expect.objectContaining({ accountId: other, points: 100 }),
+		);
+	});
+
+	it("refuses the account of an other user", async () => {
+		const account = createAccount(db, {
+			userId: OTHER_USER,
+			programId: "ba-club",
+		});
+		const snapshot = addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-08-01",
+		});
+
+		const response = await remove(
+			`/api/accounts/${account}/snapshots/${snapshot}`,
+		);
+
+		expect(response.status).toBe(404);
+		expect(currentBalances(db, OTHER_USER)).toMatchObject([{ points: 100 }]);
 	});
 });
 

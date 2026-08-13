@@ -17,6 +17,8 @@ import {
 	allTransferRules,
 	createAccount,
 	currentBalances,
+	deleteAccount,
+	deleteSnapshot,
 	findAccount,
 } from "./db/queries.ts";
 
@@ -130,6 +132,38 @@ export function createApp(db: Db, auth: Auth) {
 		}
 		const id = addSnapshot(db, { accountId, ...body.data });
 		return c.json({ id }, 201);
+	});
+
+	/**
+	 * Removes an account of the user, with each snapshot of that account.
+	 *
+	 * The query holds the user in its condition. Thus the account of an other
+	 * user gives the status 404, and no answer says that the account exists.
+	 */
+	app.delete("/api/accounts/:id", (c) => {
+		const removed = deleteAccount(db, c.req.param("id"), c.get("userId"));
+		if (!removed) {
+			return c.json({ error: "unknown_account" }, 404);
+		}
+		return c.body(null, 204);
+	});
+
+	/**
+	 * Removes one snapshot of an account.
+	 *
+	 * This operation is the correction of a value that the user wrote in a wrong
+	 * way. The current balance then goes back to the snapshot before it.
+	 */
+	app.delete("/api/accounts/:id/snapshots/:snapshotId", (c) => {
+		const accountId = c.req.param("id");
+		if (findAccount(db, accountId, c.get("userId")) === undefined) {
+			return c.json({ error: "unknown_account" }, 404);
+		}
+		const removed = deleteSnapshot(db, c.req.param("snapshotId"), accountId);
+		if (!removed) {
+			return c.json({ error: "unknown_snapshot" }, 404);
+		}
+		return c.body(null, 204);
 	});
 
 	/**

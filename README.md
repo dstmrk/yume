@@ -36,26 +36,37 @@ The potential miles value is a calculation, not a balance. Two limits apply:
 ## Status
 
 The project is in the first stage of the development. The conversion logic, the database,
-the API and the dashboard are present. You add an account and you write a balance from
-the dashboard. Yume installs on the home screen of a telephone.
+the API and the dashboard are present. From the dashboard you add an account, you write a
+balance, you cancel a balance and you remove an account. Yume installs on the home screen
+of a telephone.
 
 The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
 from Revolut. It also holds Miles & More, which no source can increase.
 
-Authentication is not present: Yume has one user.
+Authentication is present. Registration is possible only with an invitation: a script
+makes the first user, and that user makes a code for each other person.
 
 ## Installation
 
 Yume runs in one container on a home server, on a NAS or on a Raspberry Pi with arm64.
-Use these two commands:
+The installation needs `compose.yaml` and `.env` only. It needs no clone of the
+repository, because Docker pulls the image from `ghcr.io/dstmrk/yume`:
 
 ```bash
 mkdir -p data && sudo chown 1000:1000 data
-docker compose up -d --build
+cp .env.example .env      # then write the values
+docker compose up -d
 ```
 
 The container applies the migrations, writes the catalogue and then starts the server.
 The directory `data/` holds the database. That directory stays outside the image.
+
+Then make the first user. The image holds no npm, thus this command calls node:
+
+```bash
+docker compose exec yume node --experimental-strip-types \
+  src/server/scripts/user.ts <email> <name> <password>
+```
 
 Yume then listens on `127.0.0.1:3000`. Put TLS in front of that port: Tailscale, a
 Cloudflare Tunnel, or Caddy with a local certificate. A browser installs a progressive

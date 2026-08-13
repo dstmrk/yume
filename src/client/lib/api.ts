@@ -33,6 +33,17 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 }
 
 /**
+ * Removes a row. The answer of a removal holds no body, thus this function
+ * reads only the status.
+ */
+async function del(path: string): Promise<void> {
+	const response = await fetch(path, { method: "DELETE" });
+	if (!response.ok) {
+		throw new Error(`${path} gives the status ${response.status}`);
+	}
+}
+
+/**
  * An error of Better Auth, with the field `code` of the answer.
  *
  * The client shows the message of that code in Italian. Refer to
@@ -129,5 +140,25 @@ export function addSnapshot(
 	return post<{ id: string }>(
 		`/api/accounts/${encodeURIComponent(accountId)}/snapshots`,
 		input,
+	);
+}
+
+/** Removes an account of the user, with each snapshot of that account. */
+export function deleteAccount(accountId: string): Promise<void> {
+	return del(`/api/accounts/${encodeURIComponent(accountId)}`);
+}
+
+/**
+ * Removes one snapshot of an account.
+ *
+ * The client sends the id of the snapshot that it shows. Thus it removes that
+ * balance, and no balance that an other device wrote after it.
+ */
+export function deleteSnapshot(
+	accountId: string,
+	snapshotId: string,
+): Promise<void> {
+	return del(
+		`/api/accounts/${encodeURIComponent(accountId)}/snapshots/${encodeURIComponent(snapshotId)}`,
 	);
 }

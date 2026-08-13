@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./fixtures.ts";
@@ -9,11 +10,14 @@ import {
 	createAccount,
 	createInvitation,
 	currentBalances,
+	deleteAccount,
+	deleteSnapshot,
 	findAccount,
 	findInvitation,
 	findUserByEmail,
 	markInvitationUsed,
 } from "./queries.ts";
+import { balanceSnapshot } from "./schema.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
 const USER = "user-1";
@@ -28,6 +32,15 @@ beforeEach(() => {
 	insertUser(db, USER);
 	insertUser(db, OTHER_USER);
 });
+
+/** The quantity of snapshots of an account, also the rows that no query gives. */
+function snapshotCount(accountId: string): number {
+	return db
+		.select()
+		.from(balanceSnapshot)
+		.where(eq(balanceSnapshot.accountId, accountId))
+		.all().length;
+}
 
 describe("currentBalances", () => {
 	it("gives no row when the user has no account", () => {
@@ -124,6 +137,27 @@ describe("currentBalances", () => {
 		});
 
 		expect(currentBalances(db, USER)).toHaveLength(1);
+	});
+
+	it("gives the id of the most recent snapshot", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-01-01",
+		});
+		const last = addSnapshot(db, {
+			accountId: account,
+			points: 200,
+			observedAt: "2026-08-01",
+		});
+
+		expect(currentBalances(db, USER)).toMatchObject([{ snapshotId: last }]);
+	});
+
+	it("gives no id of a snapshot for an account with no snapshot", () => {
+		createAccount(db, { userId: USER, programId: "ba-club" });
+		expect(currentBalances(db, USER)).toMatchObject([{ snapshotId: null }]);
 	});
 });
 
@@ -256,5 +290,115 @@ describe("addSnapshot", () => {
 				observedAt: "2026-08-01",
 			}),
 		).toThrow();
+	});
+});
+
+describe("deleteAccount", () => {
+	it("removes the account of the user", () => {
+		const id = createAccount(db, { userId: USER, programId: "ba-club" });
+
+		expect(deleteAccount(db, id, USER)).toBe(true);
+		expect(currentBalances(db, USER)).toEqual([]);
+	});
+
+	// The column `balance_snapshot.account_id` holds `on delete cascade`, and
+	// `openDatabase` sets the pragma `foreign_keys`. Thus the removal of the
+	// account also removes its snapshots.
+	it("removes the snapshots of the account", () => {
+		const id = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, { accountId: id, points: 100, observedAt: "2026-08-01" });
+
+		deleteAccount(db, id, USER);
+
+		expect(snapshotCount(id)).toBe(0);
+	});
+
+	it("keeps the other account of the user", () => {
+		const first = createAccount(db, { userId: USER, programId: "ba-club" });
+		createAccount(db, { userId: USER, programId: "amex-mr" });
+
+		deleteAccount(db, first, USER);
+
+		expect(currentBalances(db, USER)).toMatchObject([{ programId: "amex-mr" }]);
+	});
+
+	it("keeps the account of an other user and gives false", () => {
+		const id = createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+
+		expect(deleteAccount(db, id, USER)).toBe(false);
+		expect(findAccount(db, id, OTHER_USER)?.id).toBe(id);
+	});
+
+	it("gives false for an account that does not exist", () => {
+		expect(deleteAccount(db, "does-not-exist", USER)).toBe(false);
+	});
+});
+
+describe("deleteSnapshot", () => {
+	it("removes the snapshot of the account", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		const id = addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-08-01",
+		});
+
+		expect(deleteSnapshot(db, id, account)).toBe(true);
+		expect(snapshotCount(account)).toBe(0);
+	});
+
+	// This is the correction of a value that the user wrote in a wrong way. The
+	// balance of the account then goes back to the snapshot before it.
+	it("gives the snapshot before it as the current balance", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 1900,
+			observedAt: "2026-01-01",
+		});
+		const wrong = addSnapshot(db, {
+			accountId: account,
+			points: 19000,
+			observedAt: "2026-08-01",
+		});
+
+		deleteSnapshot(db, wrong, account);
+
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ points: 1900, observedAt: "2026-01-01" },
+		]);
+	});
+
+	it("gives an account with no balance after the last snapshot", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		const id = addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-08-01",
+		});
+
+		deleteSnapshot(db, id, account);
+
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ points: null, observedAt: null, snapshotId: null },
+		]);
+	});
+
+	it("keeps the snapshot of an other account and gives false", () => {
+		const mine = createAccount(db, { userId: USER, programId: "ba-club" });
+		const other = createAccount(db, { userId: USER, programId: "amex-mr" });
+		const id = addSnapshot(db, {
+			accountId: other,
+			points: 100,
+			observedAt: "2026-08-01",
+		});
+
+		expect(deleteSnapshot(db, id, mine)).toBe(false);
+		expect(snapshotCount(other)).toBe(1);
+	});
+
+	it("gives false for a snapshot that does not exist", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		expect(deleteSnapshot(db, "does-not-exist", account)).toBe(false);
 	});
 });
