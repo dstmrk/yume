@@ -342,8 +342,14 @@ holds all those pixels.
 
 At 33 pixels, a potential of six digits is 243 pixels wide and it enters. A potential of
 seven digits is 313 pixels wide and it does not enter. The panel holds `overflow-hidden`,
-thus it cuts the last flap and it shows no bar. A user then reads a value that is not
-correct. A later session must correct this defect.
+thus it cuts the last flap and it shows no bar. The user then reads a value that is not
+correct.
+
+Therefore the function `flapSize` of `src/client/lib/flaps.ts` gives the size of the
+flaps of a potential. Above six digits it gives 22 pixels in the place of 33 pixels. The
+board of seven digits is then 250 pixels, and the board of eight digits is 278 pixels.
+Both enter the panel. A value of nine digits does not enter, but no user of Yume holds
+that quantity of points.
 
 ### 5.4 Mobile first
 
