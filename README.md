@@ -9,7 +9,6 @@ Yume shows all your loyalty balances on one screen:
 
 - flexible points: American Express Membership Rewards and Revolut RevPoints
 - airline programmes: 19 programmes, with 14 different point currencies
-- hotel programmes that can supply miles
 
 Yume then calculates the **potential miles**. The potential miles are the miles that you
 can have in one airline currency, if you transfer all your flexible points to that
@@ -45,6 +44,19 @@ from Revolut. It also holds Miles & More, which no source can increase.
 
 Authentication is present. Registration is possible only with an invitation: a script
 makes the first user, and that user makes a code for each other person.
+
+## Potential future functions
+
+These two functions are not present. A later session can add them.
+
+**The history of the balances.** The database keeps a snapshot of a balance at a date.
+The dashboard shows the most recent snapshot only. A later version can show each snapshot
+of an account, and the change between two dates.
+
+**Hotel programmes and rail programmes in the catalogue.** These programmes also collect
+points, and some of them send those points to an airline programme. The database holds
+the two kinds already. Each new transfer rule needs the official page as `sourceUrl`, and
+the user confirms each ratio.
 
 ## Installation
 
