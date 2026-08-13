@@ -379,6 +379,10 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   holds a position, thus it is also a flap: then the line between the two halves crosses
   the full number. The component gives the variant `potential` in amber and the variant
   `balance` in the colour of the text.
+- **Give the border of a control a contrast of 3:1.** A field, a select and a button with
+  an outline use `--color-board-control`. A separator and the border of a panel use
+  `--color-board-line`, a colour that is more dark. The WCAG 2.2 ask for that contrast
+  for the limits of a control, but not for decoration.
 - **Move the flaps of the potential only.** The potential is the value of the card, thus
   its flaps fall at the load of the page. The list of the accounts holds many numbers.
   The movement of all those flaps is noise, thus the variant `balance` does not move.
