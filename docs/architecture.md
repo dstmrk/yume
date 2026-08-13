@@ -289,7 +289,7 @@ message and stops. Make a key with `openssl rand -base64 32`.
 
 The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
-values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
+values in `compose.yml`. Node reads no `.env` file: `npm run dev:server` gives a key and
 the origin of the client of Vite for development.
 
 ### 4.3 The protection of the routes
@@ -523,7 +523,7 @@ yume/
   drizzle/             # the generated migrations, under version control
   docs/
   Dockerfile
-  compose.yaml
+  compose.yml
 ```
 
 The project has one `package.json`. Do not use a monorepo tool. At this size, a monorepo
@@ -531,10 +531,10 @@ adds complexity but gives no advantage.
 
 ## 7. Deployment
 
-The repository holds `Dockerfile`, `.dockerignore` and `compose.yaml`. The `Dockerfile`
+The repository holds `Dockerfile`, `.dockerignore` and `compose.yml`. The `Dockerfile`
 has three stages with `node:22-bookworm-slim`: the dependencies of production, the build
 of the client, and the image of runtime. The image runs as the user `node`, and it holds
-a `HEALTHCHECK` on `GET /api/health`. `compose.yaml` mounts `./data` on `/data`.
+a `HEALTHCHECK` on `GET /api/health`. `compose.yml` mounts `./data` on `/data`.
 
 The container applies the migrations, writes the catalogue and then starts the server.
 The two scripts make no change on a second start, thus the container can start many
@@ -557,7 +557,7 @@ Obey these rules on a home server with arm64:
   removes these cookies on a plain HTTP connection. Thus a login at
   `http://nas.local:3000` is not possible, and the browser shows no error message. Use
   Caddy with a local certificate, or a Cloudflare Tunnel, or Tailscale. Tailscale
-  supplies HTTPS. Do not set `secure` to false. `compose.yaml` holds no service for the
+  supplies HTTPS. Do not set `secure` to false. `compose.yml` holds no service for the
   TLS: it gives the port to the local machine only, thus one of these three tools
   supplies the access from the network.
 - **Make backups.** Use `VACUUM INTO` in a cron job. Write the file to the mounted

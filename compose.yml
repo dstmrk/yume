@@ -24,9 +24,9 @@ services:
     environment:
       DATABASE_URL: /data/yume.db
       PORT: "3000"
-      # Better Auth signs the cookies and the tokens with this key. Write a
-      # random value in the file `.env`, near this file:
-      #   echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> .env
+      # Better Auth signs the cookies and the tokens with this key. Copy
+      # `.env.example` to `.env`, near this file, and write a random value.
+      # Make that value with the command: openssl rand -base64 32
       # A new key removes each session. The server stops without this value.
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?write a random value in .env}
       # The origin of the application, with the name of the reverse proxy, for
