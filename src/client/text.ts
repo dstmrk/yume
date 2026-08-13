@@ -11,6 +11,15 @@ export const text = {
 
 	homeTagline:
 		"Tutti i tuoi punti su una schermata. Yume calcola quante miglia puoi avere in ogni valuta.",
+	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
+	homeHowTitle: "Come funziona",
+	homeHow: "Scrivi i saldi a mano. Yume li converte valuta per valuta.",
+	homeLimitsTitle: "I limiti",
+	homeLimits:
+		"Il valore è calcolato, non un saldo. Il trasferimento è definitivo.",
+	homeScopeTitle: "Cosa copre",
+	homeScope:
+		"I partner di trasferimento di American Express Italia e di Revolut.",
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
