@@ -260,7 +260,9 @@ user to add them. That sum is not possible.
 
 Each card holds three parts:
 
-1. The total potential of the currency. This is the large number.
+1. The total potential of the currency. This is the large number. Its label is above it,
+   thus the board holds the full width of the card. The board starts at the left, with
+   the label and with the names of the list below it.
 2. The balance of each account of the currency. Example: British Airways 1 000 and
    Iberia 500.
 3. The best route for each source. Example: Amex MR, through Iberia Club, gives 400.
@@ -292,6 +294,15 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   application must operate on a home network with no connection to the internet.
 - **Use the pixel font only for the digits and for short labels.** Use a standard sans
   font for the other text. A pixel font is difficult to read in a long sentence.
+- **Give one flap to one position.** A board of Solari holds one flap for each position,
+  and each flap has the same size. A number on one large flap is not a board. Therefore
+  each number on a flap surface uses `SplitFlapNumber`. The separator of the thousands
+  holds a position, thus it is also a flap: then the line between the two halves crosses
+  the full number. The component gives the variant `potential` in amber and the variant
+  `balance` in the colour of the text.
+- **Move the flaps of the potential only.** The potential is the value of the card, thus
+  its flaps fall at the load of the page. The list of the accounts holds many numbers.
+  The movement of all those flaps is noise, thus the variant `balance` does not move.
 - **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
   move. Put the correct value in a second element. That element is not visible, but a
   screen reader finds it.
@@ -301,11 +312,44 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 
 ### 5.3 The font of the digits
 
-Departure Mono is the font of the decision. The repository does not hold that file now.
-Until a session adds the file, the digits use the monospace font of the system.
+Departure Mono is the font of the board. The repository holds one file:
+`src/client/fonts/DepartureMono-Regular.woff2`, version 1.500. The licence is the SIL
+Open Font License 1.1. The file `src/client/fonts/DepartureMono-LICENSE.txt` holds the
+text of the licence.
+
+The format is WOFF2 only. Each current browser reads that format, and the file is 22
+kilobytes. The `@font-face` rule is in `src/client/styles/theme.css`, with the other
+tokens of the theme. The rule gives `font-display: swap`: the monospace font of the
+system shows the text for the time of the load.
 
 Give the property `font-variant-numeric: tabular-nums` to each number. Then a digit keeps
 its width when the value changes, and the number does not move.
+
+Departure Mono is a pixel font. The author gives a font size of a multiple of 11 pixels
+for an exact result. Therefore each text of the board holds a size of that grid: 11
+pixels for a title and for a label, 22 pixels for the name of the application and for a
+balance, 33 pixels for a potential. A different size makes the strokes of the digits
+unequal.
+
+Write the size as an arbitrary value: `text-[33px]`. Do not make a token `--text-flap-lg`
+in the `@theme` directive. The class `text-flap-lg` and the class `text-board-amber` have
+the same shape, thus `tailwind-merge` reads the two as a colour and removes the size. A
+class with a length in the brackets has no such defect.
+
+Paragraph 5.4 gives the width of the screen. On a screen of 360 pixels, the panel gives
+294 pixels to the board. The label of the potential is above the board, thus the board
+holds all those pixels.
+
+At 33 pixels, a potential of six digits is 243 pixels wide and it enters. A potential of
+seven digits is 313 pixels wide and it does not enter. The panel holds `overflow-hidden`,
+thus it cuts the last flap and it shows no bar. The user then reads a value that is not
+correct.
+
+Therefore the function `flapSize` of `src/client/lib/flaps.ts` gives the size of the
+flaps of a potential. Above six digits it gives 22 pixels in the place of 33 pixels. The
+board of seven digits is then 250 pixels, and the board of eight digits is 278 pixels.
+Both enter the panel. A value of nine digits does not enter, but no user of Yume holds
+that quantity of points.
 
 ### 5.4 Mobile first
 

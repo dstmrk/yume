@@ -3,7 +3,6 @@ import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
-import { FlapNumber } from "./components/board/FlapNumber.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
@@ -58,7 +57,7 @@ export function Dashboard() {
 		<div className="flex flex-col gap-6">
 			<section className="flex flex-col gap-3">
 				<header>
-					<h2 className="font-board text-board-muted text-xs uppercase tracking-widest">
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 						{text.potentialTitle}
 					</h2>
 					<p className="mt-1 text-board-muted text-xs">
@@ -119,7 +118,10 @@ export function Dashboard() {
 										</span>
 									) : (
 										<span className="flex shrink-0 flex-col items-end gap-1">
-											<FlapNumber value={account.points} />
+											<SplitFlapNumber
+												value={account.points}
+												variant="balance"
+											/>
 											{account.observedAt !== null && (
 												<span className="text-board-muted text-xs">
 													{text.observedOn} {formatDate(account.observedAt)}
@@ -153,9 +155,12 @@ function CurrencyCard({
 }) {
 	return (
 		<BoardPanel title={title}>
-			<div className="flex items-center justify-between gap-3">
+			{/* The label is above the board. Then the board holds the full width of
+			    the card, and a value of seven digits enters one line. Refer to
+			    paragraph 5.0 of `docs/architecture.md`. */}
+			<div className="flex flex-col items-start gap-1">
 				<span className="text-board-muted text-xs">{text.potentialTitle}</span>
-				<SplitFlapNumber value={row.total} />
+				<SplitFlapNumber value={row.total} variant="potential" />
 			</div>
 
 			{holdings.length > 0 && (
@@ -224,7 +229,7 @@ function RouteRow({
 					>
 						<span
 							aria-hidden="true"
-							className="flex h-5 w-5 items-center justify-center rounded-full border border-board-line font-board text-[10px] text-board-muted"
+							className="flex h-5 w-5 items-center justify-center rounded-full border border-board-line font-board text-[11px] text-board-muted"
 						>
 							i
 						</span>
