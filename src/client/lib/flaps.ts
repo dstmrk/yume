@@ -10,15 +10,17 @@ import { formatPoints } from "./format.ts";
 export type FlapCell = {
 	readonly position: number;
 	readonly char: string;
-	/** A separator of the thousands is not a flap of the board. */
-	readonly kind: "digit" | "separator";
 };
 
-/** Divides a quantity of points into one flap for each character. */
+/**
+ * Divides a quantity of points into one flap for each character.
+ *
+ * The separator of the thousands receives a flap. A board of Solari holds one
+ * flap for each position, and each flap has the same size.
+ */
 export function toFlapCells(value: number): FlapCell[] {
 	return [...formatPoints(value)].map((char, position) => ({
 		position,
 		char,
-		kind: char >= "0" && char <= "9" ? "digit" : "separator",
 	}));
 }

@@ -3,15 +3,14 @@ import { toFlapCells } from "./flaps.ts";
 
 describe("toFlapCells", () => {
 	it("gives one flap for a value of one digit", () => {
-		expect(toFlapCells(0)).toEqual([{ position: 0, char: "0", kind: "digit" }]);
+		expect(toFlapCells(0)).toEqual([{ position: 0, char: "0" }]);
 	});
 
-	it("marks the separator of the thousands", () => {
+	it("gives one flap also to the separator of the thousands", () => {
 		const cells = toFlapCells(51400);
 		expect(cells).toHaveLength(6);
 		expect(cells.map((cell) => cell.char).join("")).toBe("51.400");
-		expect(cells[2]).toEqual({ position: 2, char: ".", kind: "separator" });
-		expect(cells.filter((cell) => cell.kind === "digit")).toHaveLength(5);
+		expect(cells[2]).toEqual({ position: 2, char: "." });
 	});
 
 	it("gives a different position to each flap", () => {
@@ -22,14 +21,12 @@ describe("toFlapCells", () => {
 		]);
 	});
 
-	it("marks the separator also in a value of four digits", () => {
+	it("gives a separator also in a value of four digits", () => {
 		// The format always makes the groups. Refer to lib/format.ts.
-		expect(toFlapCells(1000).map((cell) => cell.kind)).toEqual([
-			"digit",
-			"separator",
-			"digit",
-			"digit",
-			"digit",
-		]);
+		expect(
+			toFlapCells(1000)
+				.map((cell) => cell.char)
+				.join(""),
+		).toBe("1.000");
 	});
 });
