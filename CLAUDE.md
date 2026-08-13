@@ -218,8 +218,17 @@ that variable. `npm run dev:server` gives a value for development only.
 Run these commands for the container:
 
 ```bash
-docker compose up -d --build # it builds the image and starts the container
-docker compose logs -f       # it shows the log of the container
+docker compose up -d   # it pulls ghcr.io/dstmrk/yume and starts the container
+docker compose logs -f # it shows the log of the container
+docker compose pull && docker compose up -d # it takes the new image
+```
+
+`docker-compose.yml` holds `image:` and no `build:`. The workflow publishes the image
+after each push to `main`. Paragraph 7.0 of `docs/architecture.md` gives the reason. To
+examine a change of the `Dockerfile` on your machine, build the image with the same name:
+
+```bash
+docker build -t ghcr.io/dstmrk/yume:latest .
 ```
 
 Give `--ignore-scripts` to each call of `npm ci` in the `Dockerfile`. `better-sqlite3`

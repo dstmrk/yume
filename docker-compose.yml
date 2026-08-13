@@ -1,8 +1,19 @@
 # Yume on a home server. Refer to paragraph 7 of `docs/architecture.md`.
 #
-# The directory `./data` holds the database and the backups. Give it to the
-# user 1000 before the first start:
+# This file needs no clone of the repository. Take this file and `.env.example`,
+# then start the container:
 #   mkdir -p data && sudo chown 1000:1000 data
+#   cp .env.example .env      # then write the values
+#   docker compose up -d
+#
+# The directory `./data` holds the database and the backups. The user 1000 of
+# the container writes it, thus that user needs the directory before the first
+# start.
+#
+# The image is on the registry of GitHub, for amd64 and for arm64. The workflow
+# publishes it at each push to main. To build the image of your own change:
+#   docker build -t ghcr.io/dstmrk/yume:latest .
+# Docker Compose then finds that image and it pulls no other image.
 #
 # This file gives no TLS. Put Yume behind Tailscale, behind a Cloudflare Tunnel
 # or behind a reverse proxy with a certificate. Better Auth sends the session
@@ -11,8 +22,7 @@
 
 services:
   yume:
-    build: .
-    image: yume
+    image: ghcr.io/dstmrk/yume:latest
     container_name: yume
     restart: unless-stopped
     # Only the local machine reads this port. The reverse proxy gives the
