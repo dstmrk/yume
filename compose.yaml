@@ -24,3 +24,14 @@ services:
     environment:
       DATABASE_URL: /data/yume.db
       PORT: "3000"
+    # The limits keep the other services of the home server free. The largest
+    # quantity of memory is at the start, with the migrations and the seed.
+    mem_limit: 512m
+    cpus: "1.0"
+    # Without a limit, the file of the log grows without an end on the disk of
+    # the home server.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

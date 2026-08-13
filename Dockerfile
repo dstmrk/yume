@@ -6,6 +6,9 @@
 #
 # Build the image for a home server with this command:
 #   docker buildx build --platform linux/arm64 -t yume .
+#
+# The build needs BuildKit for the cache of npm. Docker 23 and after start
+# BuildKit for each build.
 
 FROM node:22-bookworm-slim AS deps
 WORKDIR /app
@@ -13,12 +16,19 @@ COPY package.json package-lock.json ./
 # Only the dependencies of production. The server reads the TypeScript files
 # with `--experimental-strip-types`, thus the image needs no build of the
 # server and no development tool.
-RUN npm ci --omit=dev
+#
+# Do not add `--ignore-scripts` here. `better-sqlite3` reads its compiled
+# binary in the script of the installation. Without that script, the module
+# does not load and the server stops at the first request.
+#
+# The cache of npm stays between two builds on the same machine. A build on a
+# Raspberry Pi is then more rapid.
+RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --prefer-offline
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
 COPY tsconfig.json vite.config.ts ./
 COPY src ./src
 # Vite writes the files of the client in `dist/`.
@@ -41,7 +51,12 @@ COPY src/server ./src/server
 COPY src/shared ./src/shared
 
 # The database is on a mounted volume. The user `node` (1000) writes it.
-RUN mkdir -p /data && chown node:node /data
+#
+# The CMD calls node, thus the image needs no npm at runtime. Without npm, the
+# image holds no dependency of npm, and a scan of the vulnerabilities gives a
+# smaller list. On Debian, npm is in `/usr/local`.
+RUN mkdir -p /data && chown node:node /data && \
+	rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 USER node
 EXPOSE 3000
 
