@@ -12,7 +12,7 @@
 		"typecheck": "tsc --noEmit",
 		"check": "biome check .",
 		"fix": "biome check --write .",
-		"dev:server": "node --experimental-strip-types --watch src/server/index.ts",
+		"dev:server": "BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-development-only-secret} TRUSTED_ORIGINS=http://localhost:5173 node --experimental-strip-types --watch src/server/index.ts",
 		"dev:client": "vite",
 		"build": "vite build",
 		"db:generate": "drizzle-kit generate",

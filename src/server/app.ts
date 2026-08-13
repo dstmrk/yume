@@ -8,6 +8,7 @@ import {
 	type PotentialResponse,
 } from "../shared/api.ts";
 import { potentialMiles } from "../shared/potential.ts";
+import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
 	addSnapshot,
@@ -36,8 +37,14 @@ function today(): string {
 	return new Date().toISOString().slice(0, 10);
 }
 
-export function createApp(db: Db) {
+export function createApp(db: Db, auth: Auth) {
 	const app = new Hono();
+
+	/**
+	 * The routes of Better Auth: the sign-up, the sign-in, the sign-out and the
+	 * session. The library reads the request and writes the cookies.
+	 */
+	app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 	/**
 	 * The state of the application, for the `HEALTHCHECK` of the container.

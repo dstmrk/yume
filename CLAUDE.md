@@ -163,6 +163,10 @@ Biome examines one file. It cannot follow the properties through a component, th
 rule `noLabelWithoutControl` gives an error in a component that receives `htmlFor`. Make
 that field necessary in the type. Then add the suppression with the reason.
 
+Do not give a name that starts with `use` to a function of the server. Biome reads such a
+name as a hook of React. Then the rule `useHookAtTopLevel` gives an error at an early
+return, also in a file with no React. Write `markInvitationUsed`, not `useInvitation`.
+
 ## Commands
 
 Run these commands before each commit:

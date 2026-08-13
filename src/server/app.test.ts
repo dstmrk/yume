@@ -2,6 +2,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { Hono } from "hono";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createApp, SINGLE_USER_ID } from "./app.ts";
+import { createAuth } from "./auth.ts";
 import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { addSnapshot, createAccount } from "./db/queries.ts";
@@ -19,7 +20,13 @@ beforeEach(() => {
 	seedCatalogue(db);
 	insertUser(db, SINGLE_USER_ID);
 	insertUser(db, OTHER_USER);
-	app = createApp(db);
+	app = createApp(
+		db,
+		createAuth(db, {
+			secret: "a-secret-for-the-test",
+			baseURL: "http://localhost:3000",
+		}),
+	);
 });
 
 type PotentialRow = {
