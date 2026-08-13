@@ -39,6 +39,20 @@ function post(path: string, body: unknown) {
 	});
 }
 
+describe("GET /api/health", () => {
+	it("gives the status ok when the database answers", async () => {
+		const body = await getJson<{ status: string }>("/api/health");
+		expect(body).toEqual({ status: "ok" });
+	});
+
+	it("gives the status 503 when the database does not answer", async () => {
+		db.$client.close();
+		const response = await app.request("/api/health");
+		expect(response.status).toBe(503);
+		expect(await response.json()).toEqual({ status: "error" });
+	});
+});
+
 describe("GET /api/catalogue", () => {
 	it("gives the currencies and the programmes", async () => {
 		const body = await getJson<{

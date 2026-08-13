@@ -182,11 +182,15 @@ The workflow `.github/workflows/ci.yml` runs these commands, the build and the t
 suites of the hooks. It runs them for each pull request and for each push to `main`.
 The workflow is the second defence: run the commands before the commit.
 
+The workflow also builds the image and starts the container. Then it reads
+`GET /api/health`, the catalogue and the page of the client. Vitest examines no file of
+the container, thus this job is the only examination of the `Dockerfile`.
+
 Run these commands for the database and for the server:
 
 ```bash
 npm run db:generate # drizzle-kit generate, after a change to schema.ts
-npm run db:migrate  # drizzle-kit migrate, it applies the migrations
+npm run db:migrate  # it applies the migrations of drizzle/ with drizzle-orm
 npm run db:seed     # it writes the catalogue in the database
 npm run dev:server  # Hono on the port 3000
 npm run dev:client  # Vite on the port 5173, it sends /api to the port 3000
@@ -195,6 +199,18 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 
 The three commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
+
+Run these commands for the container:
+
+```bash
+docker compose up -d --build # it builds the image and starts the container
+docker compose logs -f       # it shows the log of the container
+```
+
+Give `--ignore-scripts` to each call of `npm ci` in the `Dockerfile`. `better-sqlite3`
+holds a `binding.gyp`, thus npm calls `node-gyp rebuild`. That command needs `python3`,
+and the image `node:22-bookworm-slim` holds no `python3`. The command also compiles
+nothing: the package holds the compiled binary of each platform in `prebuilds/`.
 
 The hooks have commands. Run each test suite after a change to a hook:
 

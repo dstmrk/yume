@@ -435,26 +435,52 @@ adds complexity but gives no advantage.
 
 ## 7. Deployment
 
-Use a multi-stage `Dockerfile` with `node:22-bookworm-slim`. Use a user that is not
-root. Add a `HEALTHCHECK`. Start the container with `drizzle-kit migrate`. In
-`compose.yaml`, mount `./data` on `/data`.
+The repository holds `Dockerfile`, `.dockerignore` and `compose.yaml`. The `Dockerfile`
+has three stages with `node:22-bookworm-slim`: the dependencies of production, the build
+of the client, and the image of runtime. The image runs as the user `node`, and it holds
+a `HEALTHCHECK` on `GET /api/health`. `compose.yaml` mounts `./data` on `/data`.
+
+The container applies the migrations, writes the catalogue and then starts the server.
+The two scripts make no change on a second start, thus the container can start many
+times.
 
 Obey these rules on a home server with arm64:
 
-- **Use Debian slim. Do not use Alpine.** `better-sqlite3` is a native module. With musl,
-  the build stage must compile the module from the source code. This operation is slow.
-  The build stage needs `python3`, `make` and `g++`.
-- **Use a 64-bit operating system.** For arm64, compiled binaries are available. For
-  32-bit armv7, they are not available. A Raspberry Pi then compiles the module locally.
-  This operation is slow and it needs much memory. Build the image with
+- **Use Debian slim.** `better-sqlite3` holds the compiled binary of each platform in
+  `prebuilds/`, for glibc and for musl. Therefore Alpine also operates. Debian stays the
+  decision, because the image of Node with Debian is the standard image.
+- **Give `--ignore-scripts` to each call of `npm ci`.** The package holds a
+  `binding.gyp`, thus npm calls `node-gyp rebuild`. That command needs `python3`, and
+  the image of Node holds no `python3`. The command also compiles nothing: it finds the
+  binary in `prebuilds/`. Without this option, the build stops.
+- **Use a 64-bit operating system.** `prebuilds/` holds `linux-arm64.node`, but it holds
+  no binary for 32-bit armv7. On armv7, the installation compiles the module. This
+  operation is slow and it needs much memory. Build the image with
   `docker buildx --platform linux/arm64`, or build the image on the device.
 - **Use TLS.** Better Auth sends session cookies with the `secure` attribute. A browser
   removes these cookies on a plain HTTP connection. Thus a login at
   `http://nas.local:3000` is not possible, and the browser shows no error message. Use
   Caddy with a local certificate, or a Cloudflare Tunnel, or Tailscale. Tailscale
-  supplies HTTPS. Do not set `secure` to false.
+  supplies HTTPS. Do not set `secure` to false. `compose.yaml` holds no service for the
+  TLS: it gives the port to the local machine only, thus one of these three tools
+  supplies the access from the network.
 - **Make backups.** Use `VACUUM INTO` in a cron job. Write the file to the mounted
   volume. Remove the old files.
+
+### 7.1 The migrations of the container
+
+The container applies the migrations with the migrator of `drizzle-orm`. It does not use
+`drizzle-kit`. The script is `src/server/db/migrate.ts`, and `npm run db:migrate` also
+calls that script.
+
+`drizzle-kit` is a dependency of development. With `drizzle-kit`, the image of runtime
+needs the tools of development, and the image becomes large on an arm64 device.
+`drizzle-orm` is a dependency of production and it holds the same migrator. The
+migrations in `drizzle/` stay the same. `drizzle-kit` stays for `npm run db:generate`.
+
+The image of runtime holds `drizzle/`, because the migrator reads
+`drizzle/meta/_journal.json` and the SQL files. The migrator also keeps a table of the
+migrations that ran. Therefore a second start applies no migration again.
 
 ## 8. Appendix — the catalogue of programmes
 

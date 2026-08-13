@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import {
 	type AccountsResponse,
@@ -37,6 +38,22 @@ function today(): string {
 
 export function createApp(db: Db) {
 	const app = new Hono();
+
+	/**
+	 * The state of the application, for the `HEALTHCHECK` of the container.
+	 *
+	 * The route reads the database. A process that answers with a database that
+	 * is not available is not in good health: the dashboard gives an error on
+	 * each request. Refer to paragraph 7 of `docs/architecture.md`.
+	 */
+	app.get("/api/health", (c) => {
+		try {
+			db.get(sql`select 1`);
+		} catch {
+			return c.json({ status: "error" }, 503);
+		}
+		return c.json({ status: "ok" });
+	});
 
 	app.get("/api/catalogue", (c) => {
 		const body: CatalogueResponse = {

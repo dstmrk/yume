@@ -1,0 +1,29 @@
+# The build stage makes these directories again.
+node_modules
+dist
+
+# The tests. The image of runtime holds `src/server`, thus without this line
+# each test file of the server enters the image. Vitest runs the tests before
+# the commit and in the workflow, not in the container.
+**/*.test.ts
+
+# The private data of the user. It stays on the mounted volume.
+# Refer to the section Git of `CLAUDE.md`.
+data
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+.env
+.env.*
+
+# These files give no value to the image.
+.git
+.github
+.claude
+docs
+*.md
+biome.json
+vitest.config.ts
+drizzle.config.ts
