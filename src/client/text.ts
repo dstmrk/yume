@@ -37,6 +37,13 @@ export const text = {
 	noteLabel: "Nota (facoltativo)",
 	pointsError: "Scrivi il saldo in numeri.",
 
+	removeBalance: "Cancella saldo",
+	removeBalanceQuestion: "Cancelli il saldo? Torna al saldo precedente.",
+	removeAccount: "Rimuovi conto",
+	removeAccountQuestion: "Rimuovi il conto e tutti i suoi saldi?",
+	removeError: "Rimozione non riuscita.",
+	confirm: "Conferma",
+
 	save: "Salva",
 	saving: "Salvataggio…",
 	cancel: "Annulla",

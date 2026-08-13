@@ -3,6 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
+import { AccountActions } from "./components/AccountActions.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
@@ -137,6 +138,10 @@ export function Dashboard() {
 									)}
 								</div>
 								<NewBalanceForm accountId={account.accountId} />
+								<AccountActions
+									accountId={account.accountId}
+									snapshotId={account.snapshotId}
+								/>
 							</li>
 						))}
 					</ul>
