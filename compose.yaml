@@ -1,0 +1,26 @@
+# Yume on a home server. Refer to paragraph 7 of `docs/architecture.md`.
+#
+# The directory `./data` holds the database and the backups. Give it to the
+# user 1000 before the first start:
+#   mkdir -p data && sudo chown 1000:1000 data
+#
+# This file gives no TLS. Put Yume behind Tailscale, behind a Cloudflare Tunnel
+# or behind a reverse proxy with a certificate. Better Auth sends the session
+# cookies with the attribute `secure`, thus a login on plain HTTP is not
+# possible.
+
+services:
+  yume:
+    build: .
+    image: yume
+    container_name: yume
+    restart: unless-stopped
+    # Only the local machine reads this port. The reverse proxy gives the
+    # access from the network.
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - ./data:/data
+    environment:
+      DATABASE_URL: /data/yume.db
+      PORT: "3000"

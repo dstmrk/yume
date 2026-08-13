@@ -1,0 +1,24 @@
+# The build stage makes these directories again.
+node_modules
+dist
+
+# The private data of the user. It stays on the mounted volume.
+# Refer to the section Git of `CLAUDE.md`.
+data
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+.env
+.env.*
+
+# These files give no value to the image.
+.git
+.github
+.claude
+docs
+*.md
+biome.json
+vitest.config.ts
+drizzle.config.ts
