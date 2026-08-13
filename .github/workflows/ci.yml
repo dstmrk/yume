@@ -168,7 +168,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # The tag `latest` is for docker-compose.yml. The tag of the commit gives
+      # The tag `latest` is for compose.yaml. The tag of the commit gives
       # one image for each change, thus a person can go back to the image
       # before a defect.
       - name: Build the image and publish it

@@ -223,7 +223,7 @@ docker compose logs -f # it shows the log of the container
 docker compose pull && docker compose up -d # it takes the new image
 ```
 
-`docker-compose.yml` holds `image:` and no `build:`. The workflow publishes the image
+`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image
 after each push to `main`. Paragraph 7.0 of `docs/architecture.md` gives the reason. To
 examine a change of the `Dockerfile` on your machine, build the image with the same name:
 
