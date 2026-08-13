@@ -19,7 +19,7 @@ export function BoardPanel({
 	return (
 		<section className="overflow-hidden rounded-lg border border-board-line bg-board-panel">
 			<header className="border-board-line border-b px-4 py-2">
-				<h2 className="font-board text-board-muted text-xs uppercase tracking-widest">
+				<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 					{title}
 				</h2>
 				{note !== undefined && (

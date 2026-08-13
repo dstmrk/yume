@@ -57,7 +57,7 @@ export function Dashboard() {
 		<div className="flex flex-col gap-6">
 			<section className="flex flex-col gap-3">
 				<header>
-					<h2 className="font-board text-board-muted text-xs uppercase tracking-widest">
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 						{text.potentialTitle}
 					</h2>
 					<p className="mt-1 text-board-muted text-xs">
@@ -226,7 +226,7 @@ function RouteRow({
 					>
 						<span
 							aria-hidden="true"
-							className="flex h-5 w-5 items-center justify-center rounded-full border border-board-line font-board text-[10px] text-board-muted"
+							className="flex h-5 w-5 items-center justify-center rounded-full border border-board-line font-board text-[11px] text-board-muted"
 						>
 							i
 						</span>

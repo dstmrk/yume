@@ -77,7 +77,7 @@ function Fields({
 				save.mutate();
 			}}
 		>
-			<h2 className="font-board text-board-muted text-xs uppercase tracking-widest">
+			<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 				{text.newAccountTitle}
 			</h2>
 
