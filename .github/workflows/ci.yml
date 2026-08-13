@@ -75,8 +75,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      # The server stops without BETTER_AUTH_SECRET. Refer to paragraph 4 of
+      # docs/architecture.md. This value is only for the workflow.
       - name: Start the container
-        run: docker run -d --name yume-ci -p 3000:3000 yume:ci
+        run: |
+          docker run -d --name yume-ci -p 3000:3000 \
+            -e BETTER_AUTH_SECRET=a-secret-for-the-workflow-and-for-no-server \
+            yume:ci
 
       # The container applies the migrations and writes the catalogue before
       # the server. Therefore the first answer arrives some seconds late.
@@ -94,11 +99,32 @@ jobs:
           done
           exit 1
 
+      # Each route of the data needs a session. The image holds no npm, thus
+      # the script of the user runs with node.
+      - name: Examine the protection of the routes
+        run: |
+          code="$(curl -s -o /dev/null -w '%{http_code}' \
+            http://127.0.0.1:3000/api/catalogue)"
+          test "$code" = "401"
+
       # The catalogue shows that the migrations and the seed ran. The page
       # shows that the server supplies the files of the client from dist/.
+      #
+      # The origin of the request is the value of BETTER_AUTH_URL, and the
+      # default value of that variable holds the name localhost. Better Auth
+      # refuses a request from an other origin.
       - name: Examine the catalogue and the page
         run: |
-          curl -fsS http://127.0.0.1:3000/api/catalogue | grep -q ba-club
+          docker exec yume-ci node --experimental-strip-types \
+            src/server/scripts/user.ts ci@example.com CI una-parola-lunga
+          curl -fsS -c cookies.txt -X POST \
+            http://127.0.0.1:3000/api/auth/sign-in/email \
+            -H 'content-type: application/json' \
+            -H 'origin: http://localhost:3000' \
+            -d '{"email":"ci@example.com","password":"una-parola-lunga"}' \
+            > /dev/null
+          curl -fsS -b cookies.txt http://127.0.0.1:3000/api/catalogue \
+            | grep -q ba-club
           curl -fsS http://127.0.0.1:3000/ | grep -q 'id="root"'
 
       - name: Give the log of the container

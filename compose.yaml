@@ -24,6 +24,15 @@ services:
     environment:
       DATABASE_URL: /data/yume.db
       PORT: "3000"
+      # Better Auth signs the cookies and the tokens with this key. Write a
+      # random value in the file `.env`, near this file:
+      #   echo "BETTER_AUTH_SECRET=$(openssl rand -base64 32)" >> .env
+      # A new key removes each session. The server stops without this value.
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?write a random value in .env}
+      # The origin of the application, with the name of the reverse proxy, for
+      # example https://yume.example.com. Better Auth refuses a request from an
+      # other origin.
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
     # The limits keep the other services of the home server free. The largest
     # quantity of memory is at the start, with the migrations and the seed.
     mem_limit: 512m
