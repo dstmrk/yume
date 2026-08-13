@@ -182,6 +182,10 @@ The workflow `.github/workflows/ci.yml` runs these commands, the build and the t
 suites of the hooks. It runs them for each pull request and for each push to `main`.
 The workflow is the second defence: run the commands before the commit.
 
+The workflow also builds the image and starts the container. Then it reads
+`GET /api/health`, the catalogue and the page of the client. Vitest examines no file of
+the container, thus this job is the only examination of the `Dockerfile`.
+
 Run these commands for the database and for the server:
 
 ```bash
@@ -195,6 +199,17 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 
 The three commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
+
+Run these commands for the container:
+
+```bash
+docker compose up -d --build # it builds the image and starts the container
+docker compose logs -f       # it shows the log of the container
+```
+
+Do not add `--ignore-scripts` to a call of `npm ci` in the `Dockerfile`.
+`better-sqlite3` reads its compiled binary in the script of the installation. With that
+option, the module does not load and the server stops at the first request.
 
 The hooks have commands. Run each test suite after a change to a hook:
 
