@@ -133,8 +133,12 @@ only. Obey these rules:
   the dialogs.
 - Keep the font files in the repository. Do not use an external CDN. The font of the
   board is Departure Mono, in `src/client/fonts/`.
-- Show each number of a flap surface with `SplitFlapNumber`: one flap for one digit. Do
-  not put a full number on one flap.
+- Show each number of a flap surface with `SplitFlapNumber`: one flap for one position.
+  Do not put a full number on one flap. The separator of the thousands is also a flap.
+- Give a size of a multiple of 11 pixels to each text of the board: `text-[11px]`,
+  `text-[22px]`, `text-[33px]`. Departure Mono is a pixel font. Write the size as an
+  arbitrary value with a length. A token `text-flap-lg` has the shape of a colour, thus
+  `tailwind-merge` removes it and keeps `text-board-amber`.
 - Give `aria-hidden` to the digits that move. Put the correct value in an element that
   is not visible.
 - If the user selects `prefers-reduced-motion`, show the new value immediately.

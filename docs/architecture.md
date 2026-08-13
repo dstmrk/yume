@@ -292,11 +292,15 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   application must operate on a home network with no connection to the internet.
 - **Use the pixel font only for the digits and for short labels.** Use a standard sans
   font for the other text. A pixel font is difficult to read in a long sentence.
-- **Give one flap to one digit.** A board of Solari holds one flap for each digit. A
-  number on one large flap is not a board. Therefore each number on a flap surface uses
-  `SplitFlapNumber`. The component gives the variant `potential` in amber and the variant
-  `balance` in the colour of the text. The separator of the thousands holds no digit,
-  thus it is not a flap.
+- **Give one flap to one position.** A board of Solari holds one flap for each position,
+  and each flap has the same size. A number on one large flap is not a board. Therefore
+  each number on a flap surface uses `SplitFlapNumber`. The separator of the thousands
+  holds a position, thus it is also a flap: then the line between the two halves crosses
+  the full number. The component gives the variant `potential` in amber and the variant
+  `balance` in the colour of the text.
+- **Move the flaps of the potential only.** The potential is the value of the card, thus
+  its flaps fall at the load of the page. The list of the accounts holds many numbers.
+  The movement of all those flaps is noise, thus the variant `balance` does not move.
 - **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
   move. Put the correct value in a second element. That element is not visible, but a
   screen reader finds it.
@@ -320,8 +324,19 @@ Give the property `font-variant-numeric: tabular-nums` to each number. Then a di
 its width when the value changes, and the number does not move.
 
 Departure Mono is a pixel font. The author gives a font size of a multiple of 11 pixels
-for an exact result. Yume does not obey that limit now, because the sizes of Tailwind are
-different numbers.
+for an exact result. Therefore each text of the board holds a size of that grid: 11
+pixels for a title and for a label, 22 pixels for the name of the application and for a
+balance, 33 pixels for a potential. A different size makes the strokes of the digits
+unequal.
+
+Write the size as an arbitrary value: `text-[33px]`. Do not make a token `--text-flap-lg`
+in the `@theme` directive. The class `text-flap-lg` and the class `text-board-amber` have
+the same shape, thus `tailwind-merge` reads the two as a colour and removes the size. A
+class with a length in the brackets has no such defect.
+
+Paragraph 5.4 gives the width of the screen. At 33 pixels, a potential of seven digits is
+313 pixels wide, and the panel gives 326 pixels on a screen of 360 pixels. Therefore a
+value of eight digits does not enter one line.
 
 ### 5.4 Mobile first
 
