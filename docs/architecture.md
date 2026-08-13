@@ -260,7 +260,9 @@ user to add them. That sum is not possible.
 
 Each card holds three parts:
 
-1. The total potential of the currency. This is the large number.
+1. The total potential of the currency. This is the large number. Its label is above it,
+   thus the board holds the full width of the card. The board starts at the left, with
+   the label and with the names of the list below it.
 2. The balance of each account of the currency. Example: British Airways 1 000 and
    Iberia 500.
 3. The best route for each source. Example: Amex MR, through Iberia Club, gives 400.
@@ -334,9 +336,14 @@ in the `@theme` directive. The class `text-flap-lg` and the class `text-board-am
 the same shape, thus `tailwind-merge` reads the two as a colour and removes the size. A
 class with a length in the brackets has no such defect.
 
-Paragraph 5.4 gives the width of the screen. At 33 pixels, a potential of seven digits is
-313 pixels wide, and the panel gives 326 pixels on a screen of 360 pixels. Therefore a
-value of eight digits does not enter one line.
+Paragraph 5.4 gives the width of the screen. On a screen of 360 pixels, the panel gives
+294 pixels to the board. The label of the potential is above the board, thus the board
+holds all those pixels.
+
+At 33 pixels, a potential of six digits is 243 pixels wide and it enters. A potential of
+seven digits is 313 pixels wide and it does not enter. The panel holds `overflow-hidden`,
+thus it cuts the last flap and it shows no bar. A user then reads a value that is not
+correct. A later session must correct this defect.
 
 ### 5.4 Mobile first
 

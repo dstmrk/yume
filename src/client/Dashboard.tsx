@@ -155,7 +155,10 @@ function CurrencyCard({
 }) {
 	return (
 		<BoardPanel title={title}>
-			<div className="flex items-center justify-between gap-3">
+			{/* The label is above the board. Then the board holds the full width of
+			    the card, and a value of seven digits enters one line. Refer to
+			    paragraph 5.0 of `docs/architecture.md`. */}
+			<div className="flex flex-col items-start gap-1">
 				<span className="text-board-muted text-xs">{text.potentialTitle}</span>
 				<SplitFlapNumber value={row.total} variant="potential" />
 			</div>
