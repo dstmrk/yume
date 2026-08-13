@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/cn.ts";
-import { toFlapCells } from "../../lib/flaps.ts";
+import { flapSize, toFlapCells } from "../../lib/flaps.ts";
 import { formatPoints } from "../../lib/format.ts";
 
 /**
@@ -11,7 +11,9 @@ import { formatPoints } from "../../lib/format.ts";
  * flap. Then the line between the two halves crosses the full number.
  *
  * The size is a multiple of 11 pixels. Departure Mono is a pixel font, and the
- * author gives that grid for an exact result. Refer to paragraph 5.3 of
+ * author gives that grid for an exact result. A balance holds the medium size.
+ * A potential holds the large size, but a value of seven digits is wider than
+ * the panel: `flapSize` then gives the medium size. Refer to paragraph 5.3 of
  * `docs/architecture.md`.
  *
  * The size comes from an arbitrary value, not from a token of the theme. A
@@ -28,12 +30,17 @@ import { formatPoints } from "../../lib/format.ts";
 const flapCell = cva("flap", {
 	variants: {
 		variant: {
-			potential: "flap-drop px-1.5 py-2 text-[33px] text-board-amber",
-			balance: "px-1 py-1 text-[22px] text-board-text",
+			potential: "flap-drop px-1.5 py-2 text-board-amber",
+			balance: "px-1 py-1 text-board-text",
+		},
+		size: {
+			lg: "text-[33px]",
+			md: "text-[22px]",
 		},
 	},
 	defaultVariants: {
 		variant: "potential",
+		size: "lg",
 	},
 });
 
@@ -59,6 +66,10 @@ export function SplitFlapNumber({
 	value: number;
 	variant?: VariantProps<typeof flapCell>["variant"];
 }) {
+	// The component gives the size. A balance is in a line of a list, thus it
+	// always holds the medium size.
+	const size = variant === "balance" ? "md" : flapSize(value);
+
 	return (
 		<span className="inline-flex items-stretch gap-0.5">
 			<span className="sr-only">{formatPoints(value)}</span>
@@ -70,7 +81,7 @@ export function SplitFlapNumber({
 					<span
 						key={cell.position}
 						style={{ "--flap-index": cell.position } as React.CSSProperties}
-						className={cn(flapCell({ variant }))}
+						className={cn(flapCell({ variant, size }))}
 					>
 						{cell.char}
 					</span>

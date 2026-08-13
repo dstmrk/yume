@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { toFlapCells } from "./flaps.ts";
+import { flapSize, toFlapCells } from "./flaps.ts";
 
 describe("toFlapCells", () => {
 	it("gives one flap for a value of one digit", () => {
@@ -28,5 +28,30 @@ describe("toFlapCells", () => {
 				.map((cell) => cell.char)
 				.join(""),
 		).toBe("1.000");
+	});
+});
+
+describe("flapSize", () => {
+	it("gives the large size to a value of one digit", () => {
+		expect(flapSize(0)).toBe("lg");
+	});
+
+	it("gives the large size to a value of six digits", () => {
+		expect(flapSize(999999)).toBe("lg");
+	});
+
+	it("gives the medium size to the first value of seven digits", () => {
+		expect(flapSize(1000000)).toBe("md");
+	});
+
+	it("gives the medium size to a value of seven digits", () => {
+		expect(flapSize(1234567)).toBe("md");
+	});
+
+	it("gives the medium size to a value of more than seven digits", () => {
+		// A value of eight digits is 278 pixels at the medium size, thus it also
+		// enters the 294 pixels of the panel. Refer to paragraph 5.3 of
+		// docs/architecture.md.
+		expect(flapSize(12345678)).toBe("md");
 	});
 });
