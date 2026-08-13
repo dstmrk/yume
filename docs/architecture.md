@@ -287,6 +287,11 @@ docker compose exec yume node --experimental-strip-types \
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
 
+The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
+that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
+values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
+the origin of the client of Vite for development.
+
 ### 4.3 The protection of the routes
 
 The first middleware of the application reads the session. Each route under `/api` needs
