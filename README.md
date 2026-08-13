@@ -44,6 +44,23 @@ from Revolut. It also holds Miles & More, which no source can increase.
 
 Authentication is not present: Yume has one user.
 
+## Installation
+
+Yume runs in one container on a home server, on a NAS or on a Raspberry Pi with arm64.
+Use these two commands:
+
+```bash
+mkdir -p data && sudo chown 1000:1000 data
+docker compose up -d --build
+```
+
+The container applies the migrations, writes the catalogue and then starts the server.
+The directory `data/` holds the database. That directory stays outside the image.
+
+Yume then listens on `127.0.0.1:3000`. Put TLS in front of that port: Tailscale, a
+Cloudflare Tunnel, or Caddy with a local certificate. A browser installs a progressive
+web application from an origin with TLS only.
+
 ## Documents
 
 - [`docs/architecture.md`](docs/architecture.md) — the stack, the data model and the

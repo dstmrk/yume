@@ -186,7 +186,7 @@ Run these commands for the database and for the server:
 
 ```bash
 npm run db:generate # drizzle-kit generate, after a change to schema.ts
-npm run db:migrate  # drizzle-kit migrate, it applies the migrations
+npm run db:migrate  # it applies the migrations of drizzle/ with drizzle-orm
 npm run db:seed     # it writes the catalogue in the database
 npm run dev:server  # Hono on the port 3000
 npm run dev:client  # Vite on the port 5173, it sends /api to the port 3000
