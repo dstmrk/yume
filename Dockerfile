@@ -1,8 +1,8 @@
 # Yume in one container. Refer to paragraph 7 of `docs/architecture.md`.
 #
-# The image uses Debian slim, not Alpine. `better-sqlite3` is a native module,
-# and it gives a compiled binary for glibc. With musl, the build must compile
-# the module from the source code. That operation is slow on an arm64 device.
+# The image uses Debian slim. `better-sqlite3` holds the compiled binary of
+# each platform in `prebuilds/`, for glibc and for musl, thus the build
+# compiles nothing on amd64 and on arm64.
 #
 # Build the image for a home server with this command:
 #   docker buildx build --platform linux/arm64 -t yume .
@@ -17,18 +17,24 @@ COPY package.json package-lock.json ./
 # with `--experimental-strip-types`, thus the image needs no build of the
 # server and no development tool.
 #
-# Do not add `--ignore-scripts` here. `better-sqlite3` reads its compiled
-# binary in the script of the installation. Without that script, the module
-# does not load and the server stops at the first request.
+# `--ignore-scripts` is necessary. `better-sqlite3` holds a `binding.gyp`,
+# thus npm calls `node-gyp rebuild`. That command needs python3, and this
+# image holds no python3. The command also compiles nothing: the package
+# holds the compiled binary of each platform in `prebuilds/`. Without the
+# scripts, the module loads `prebuilds/linux-x64.node` or
+# `prebuilds/linux-arm64.node`.
 #
 # The cache of npm stays between two builds on the same machine. A build on a
 # Raspberry Pi is then more rapid.
-RUN --mount=type=cache,target=/root/.npm npm ci --omit=dev --prefer-offline
+RUN --mount=type=cache,target=/root/.npm \
+	npm ci --omit=dev --ignore-scripts --prefer-offline
 
 FROM node:22-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
+# The same rule for the scripts. Vite, esbuild and Rollup need no script of
+# the installation: each binary arrives in a package of the platform.
+RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts --prefer-offline
 COPY tsconfig.json vite.config.ts ./
 COPY src ./src
 # Vite writes the files of the client in `dist/`.

@@ -207,9 +207,10 @@ docker compose up -d --build # it builds the image and starts the container
 docker compose logs -f       # it shows the log of the container
 ```
 
-Do not add `--ignore-scripts` to a call of `npm ci` in the `Dockerfile`.
-`better-sqlite3` reads its compiled binary in the script of the installation. With that
-option, the module does not load and the server stops at the first request.
+Give `--ignore-scripts` to each call of `npm ci` in the `Dockerfile`. `better-sqlite3`
+holds a `binding.gyp`, thus npm calls `node-gyp rebuild`. That command needs `python3`,
+and the image `node:22-bookworm-slim` holds no `python3`. The command also compiles
+nothing: the package holds the compiled binary of each platform in `prebuilds/`.
 
 The hooks have commands. Run each test suite after a change to a hook:
 

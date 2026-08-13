@@ -446,12 +446,16 @@ times.
 
 Obey these rules on a home server with arm64:
 
-- **Use Debian slim. Do not use Alpine.** `better-sqlite3` is a native module. With musl,
-  the build stage must compile the module from the source code. This operation is slow.
-  The build stage needs `python3`, `make` and `g++`.
-- **Use a 64-bit operating system.** For arm64, compiled binaries are available. For
-  32-bit armv7, they are not available. A Raspberry Pi then compiles the module locally.
-  This operation is slow and it needs much memory. Build the image with
+- **Use Debian slim.** `better-sqlite3` holds the compiled binary of each platform in
+  `prebuilds/`, for glibc and for musl. Therefore Alpine also operates. Debian stays the
+  decision, because the image of Node with Debian is the standard image.
+- **Give `--ignore-scripts` to each call of `npm ci`.** The package holds a
+  `binding.gyp`, thus npm calls `node-gyp rebuild`. That command needs `python3`, and
+  the image of Node holds no `python3`. The command also compiles nothing: it finds the
+  binary in `prebuilds/`. Without this option, the build stops.
+- **Use a 64-bit operating system.** `prebuilds/` holds `linux-arm64.node`, but it holds
+  no binary for 32-bit armv7. On armv7, the installation compiles the module. This
+  operation is slow and it needs much memory. Build the image with
   `docker buildx --platform linux/arm64`, or build the image on the device.
 - **Use TLS.** Better Auth sends session cookies with the `secure` attribute. A browser
   removes these cookies on a plain HTTP connection. Thus a login at
