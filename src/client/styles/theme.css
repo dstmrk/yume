@@ -34,12 +34,26 @@
 	--color-board-text: #e8e6e1;
 	--color-board-muted: #8b8f96;
 
+	/* The border of a control that the user operates: a field, a select and a
+	   button with an outline. It is not `--color-board-line`: a separator is
+	   decoration, but the border of a control gives its limits. The WCAG 2.2 ask
+	   for a contrast of 3:1 for that border. This colour gives 3.31:1 on the
+	   panel and 3.64:1 on the background. */
+	--color-board-control: #666b72;
+
 	/* The amber of a departure board. It marks a value that is a calculation. */
 	--color-board-amber: #f5a623;
 
 	/* The two faces of a flap. The edge is the line between the two halves. */
 	--color-flap-face: #1f2226;
 	--color-flap-edge: #0b0c0e;
+
+	/* The light comes from above, thus the top of a flap is lighter than its
+	   base. The two colours hold `--color-flap-face` at the middle, thus the
+	   contrast of the digits does not change. The difference is 1.17:1: the eye
+	   reads the volume, but the surface stays quiet. */
+	--color-flap-top: #262a2f;
+	--color-flap-base: #1a1d21;
 
 	/* Departure Mono is the font of the board. The list gives the monospace font
 	   of the system for the time of the load. Refer to paragraph 5.3 of
@@ -60,7 +74,7 @@
 	--color-muted: var(--color-board-panel);
 	--color-muted-foreground: var(--color-board-muted);
 	--color-border: var(--color-board-line);
-	--color-input: var(--color-board-line);
+	--color-input: var(--color-board-control);
 	--color-ring: var(--color-board-amber);
 	--color-accent: var(--color-board-line);
 	--color-accent-foreground: var(--color-board-text);
@@ -90,18 +104,27 @@
 /**
  * The face of a flap: a dark card with the line between the two halves.
  *
+ * The surface holds two layers. The first layer is the line between the two
+ * halves. The second layer is the light: a flap of a board is a physical card,
+ * thus its top catches the light and its base stays in the shade.
+ *
+ * `background-color` gives the flat colour of the face. A browser with no
+ * gradient shows that colour.
+ *
  * The digits keep the same width, thus a number does not move when the value
  * changes.
  */
 @utility flap {
 	background-color: var(--color-flap-face);
-	background-image: linear-gradient(
-		to bottom,
-		transparent calc(50% - 1px),
-		var(--color-flap-edge) calc(50% - 1px),
-		var(--color-flap-edge) calc(50% + 1px),
-		transparent calc(50% + 1px)
-	);
+	background-image:
+		linear-gradient(
+			to bottom,
+			transparent calc(50% - 1px),
+			var(--color-flap-edge) calc(50% - 1px),
+			var(--color-flap-edge) calc(50% + 1px),
+			transparent calc(50% + 1px)
+		),
+		linear-gradient(to bottom, var(--color-flap-top), var(--color-flap-base));
 	font-family: var(--font-board);
 	font-variant-numeric: tabular-nums;
 	border-radius: 0.25rem;
