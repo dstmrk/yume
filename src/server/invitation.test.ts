@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { invitationState } from "./invitation.ts";
+import { invitationState, makeCode } from "./invitation.ts";
 
 const NOW = "2026-08-13T10:00:00.000Z";
 
@@ -65,5 +65,34 @@ describe("invitationState", () => {
 		expect(
 			invitationState({ expiresAt: "not a date", usedAt: null }, NOW),
 		).toBe("expired");
+	});
+});
+
+describe("makeCode", () => {
+	it("gives one character for each byte", () => {
+		expect(makeCode(new Uint8Array(10))).toHaveLength(10);
+	});
+
+	it("gives the same code for the same bytes", () => {
+		const bytes = new Uint8Array([0, 1, 2, 3]);
+		expect(makeCode(bytes)).toBe(makeCode(bytes));
+	});
+
+	it("gives no character that is easy to read in a wrong way", () => {
+		const all = makeCode(new Uint8Array(256).map((_, index) => index));
+		expect(all).not.toMatch(/[IO01]/);
+	});
+
+	// The alphabet holds 32 characters and one byte holds 256 values. Therefore
+	// each character arrives 8 times, and no character is more frequent.
+	it("gives each character with the same frequency", () => {
+		const all = makeCode(new Uint8Array(256).map((_, index) => index));
+		const count = new Map<string, number>();
+		for (const character of all) {
+			count.set(character, (count.get(character) ?? 0) + 1);
+		}
+
+		expect(count.size).toBe(32);
+		expect([...count.values()]).toEqual(new Array(32).fill(8));
 	});
 });

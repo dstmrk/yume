@@ -6,6 +6,7 @@ import {
 	invitation,
 	program,
 	transferRule,
+	user,
 	userAccount,
 } from "./schema.ts";
 
@@ -80,6 +81,34 @@ export function allTransferRules(db: Db) {
 		.from(transferRule)
 		.orderBy(asc(transferRule.fromProgramId), asc(transferRule.toProgramId))
 		.all();
+}
+
+/** Finds the user with the address. The script of the invitation needs it. */
+export function findUserByEmail(db: Db, email: string) {
+	return db.select().from(user).where(eq(user.email, email)).get();
+}
+
+/** Writes an invitation. It gives the id of the new row. */
+export function createInvitation(
+	db: Db,
+	input: {
+		code: string;
+		createdByUserId: string;
+		email?: string | null;
+		expiresAt: string;
+	},
+): string {
+	const id = crypto.randomUUID();
+	db.insert(invitation)
+		.values({
+			id,
+			code: input.code,
+			createdByUserId: input.createdByUserId,
+			email: input.email ?? null,
+			expiresAt: input.expiresAt,
+		})
+		.run();
+	return id;
 }
 
 /** Finds the invitation with the code. It gives undefined for an unknown code. */

@@ -6,6 +6,20 @@
  * thus a test gives each state without a database.
  */
 
+/**
+ * The characters of a code.
+ *
+ * The alphabet holds no `I`, no `O`, no `0` and no `1`: a person reads a code
+ * from a message and writes it in the form. The quantity is 32, thus one byte
+ * gives 8 values for each character and no character is more frequent.
+ */
+const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+/** Gives a code with one character for each byte. */
+export function makeCode(bytes: Uint8Array): string {
+	return Array.from(bytes, (byte) => ALPHABET[byte % ALPHABET.length]).join("");
+}
+
 /** The state of a code at a moment. Only `valid` gives access to the sign-up. */
 export type InvitationState = "valid" | "unknown" | "expired" | "used";
 
