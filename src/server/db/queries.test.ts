@@ -1,5 +1,6 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
+import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
 	addSnapshot,
@@ -20,6 +21,8 @@ beforeEach(() => {
 	db = openDatabase(":memory:");
 	migrate(db, { migrationsFolder: "drizzle" });
 	seedCatalogue(db);
+	insertUser(db, USER);
+	insertUser(db, OTHER_USER);
 });
 
 describe("currentBalances", () => {

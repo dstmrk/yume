@@ -2,10 +2,13 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import type { Hono } from "hono";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createApp, SINGLE_USER_ID } from "./app.ts";
+import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { addSnapshot, createAccount } from "./db/queries.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
+
+const OTHER_USER = "an-other-user";
 
 let db: Db;
 let app: Hono;
@@ -14,6 +17,8 @@ beforeEach(() => {
 	db = openDatabase(":memory:");
 	migrate(db, { migrationsFolder: "drizzle" });
 	seedCatalogue(db);
+	insertUser(db, SINGLE_USER_ID);
+	insertUser(db, OTHER_USER);
 	app = createApp(db);
 });
 
@@ -144,7 +149,7 @@ describe("POST /api/accounts/:id/snapshots", () => {
 
 	it("refuses the account of an other user", async () => {
 		const account = createAccount(db, {
-			userId: "an-other-user",
+			userId: OTHER_USER,
 			programId: "ba-club",
 		});
 		const response = await post(`/api/accounts/${account}/snapshots`, {
