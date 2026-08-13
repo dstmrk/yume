@@ -163,6 +163,10 @@ Biome examines one file. It cannot follow the properties through a component, th
 rule `noLabelWithoutControl` gives an error in a component that receives `htmlFor`. Make
 that field necessary in the type. Then add the suppression with the reason.
 
+Do not give a name that starts with `use` to a function of the server. Biome reads such a
+name as a hook of React. Then the rule `useHookAtTopLevel` gives an error at an early
+return, also in a file with no React. Write `markInvitationUsed`, not `useInvitation`.
+
 ## Commands
 
 Run these commands before each commit:
@@ -200,11 +204,31 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 The three commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
 
+Run these commands for the users. Paragraph 4.1 of `docs/architecture.md` gives the
+rules:
+
+```bash
+npm run auth:user -- <email> <name> <password>   # the first user
+npm run auth:invite -- <email> [days] [email]    # it prints a code of invitation
+```
+
+`npm run auth:user` and the server need `BETTER_AUTH_SECRET`. The server stops without
+that variable. `npm run dev:server` gives a value for development only.
+
 Run these commands for the container:
 
 ```bash
-docker compose up -d --build # it builds the image and starts the container
-docker compose logs -f       # it shows the log of the container
+docker compose up -d   # it pulls ghcr.io/dstmrk/yume and starts the container
+docker compose logs -f # it shows the log of the container
+docker compose pull && docker compose up -d # it takes the new image
+```
+
+`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image
+after each push to `main`. Paragraph 7.0 of `docs/architecture.md` gives the reason. To
+examine a change of the `Dockerfile` on your machine, build the image with the same name:
+
+```bash
+docker build -t ghcr.io/dstmrk/yume:latest .
 ```
 
 Give `--ignore-scripts` to each call of `npm ci` in the `Dockerfile`. `better-sqlite3`

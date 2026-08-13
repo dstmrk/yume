@@ -218,19 +218,98 @@ client and the server use the same function.
 ## 4. Authentication
 
 Better Auth controls the sessions. It keeps the sessions in SQLite with the Drizzle
-adapter. The Better Auth CLI makes the tables for the authentication. Put these tables
-in the Drizzle schema. Then one pipeline controls all the migrations.
+adapter. The tables `user`, `session`, `account` and `verification` are in
+`src/server/db/schema.ts`, with the tables of the application. Then one pipeline controls
+all the migrations.
+
+The name of each property of those four tables is the name of the field of Better Auth,
+because the Drizzle adapter finds a column with that name. The name of the column keeps
+the form of the other tables. The test `src/server/db/schema.test.ts` reads the fields
+from `getAuthTables` of the library. Thus a new version with a new field breaks the test,
+and no user finds the defect at the sign-in.
+
+Those four tables hold a `Date`, therefore those columns are integers of seconds. The
+other tables of the application hold text in the ISO 8601 format.
 
 Registration is possible only with an invitation. The sign-up request must include the
-field `inviteCode`. A `before` hook of Better Auth examines the code. The hook refuses an
-unknown code, an expired code and a used code. If the code is correct, the same
-transaction marks the invitation as used.
+field `inviteCode`. Two hooks control the operation:
+
+1. A `before` hook of the request examines the code. The pure function
+   `invitationState` of `src/server/invitation.ts` gives the state. The hook refuses an
+   unknown code, an expired code and a used code.
+2. A hook of the database, after the creation of the user, marks the invitation. This
+   hook is the second one, because the id of the user does not exist before the
+   creation. The condition of the update holds `used_at is null`.
+
+A sign-up that stops between the two hooks keeps the code free. Example: an address that
+an other user has.
 
 The closed model has two results:
 
 - Email verification is OFF. There is no SMTP dependency. Thus the user cannot change a
   forgotten password without help. The administrator must do this operation.
-- A seed script makes the first user. The user interface does not make the first user.
+- A script makes the first user. The user interface does not make the first user.
+
+### 4.1 The two scripts of the administrator
+
+A sign-up from the network needs an invitation, and an invitation needs a user.
+Therefore the administrator runs two scripts on the machine of the server:
+
+```bash
+npm run auth:user -- <email> <name> <password>
+npm run auth:invite -- <email of the user who invites> [days] [email]
+```
+
+The first script calls `auth.api.signUpEmail`, thus Better Auth writes the password with
+its own operation. A call of `auth.api` holds no `request`, and the hook of the
+invitation reads that difference: a sign-up with no request needs no code. A request from
+the network always holds a `Request`.
+
+The second script prints a code of 10 characters. The alphabet holds 32 characters and no
+character that a person reads in a wrong way: no `I`, no `O`, no `0` and no `1`. One byte
+gives 8 values for each character, thus no character is more frequent.
+
+The image of the container holds no npm. Run a script in the container with node:
+
+```bash
+docker compose exec yume node --experimental-strip-types \
+  src/server/scripts/user.ts <email> <name> <password>
+```
+
+### 4.2 The variables of the environment
+
+| Variable | Value |
+|---|---|
+| `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. |
+| `BETTER_AUTH_URL` | The origin of the application. Better Auth refuses a request from an other origin. The default value is `http://localhost:<PORT>`. |
+| `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
+
+A default value of the key in the code gives no security. Therefore the server writes a
+message and stops. Make a key with `openssl rand -base64 32`.
+
+The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
+that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
+values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
+the origin of the client of Vite for development.
+
+### 4.3 The protection of the routes
+
+The first middleware of the application reads the session. Each route under `/api` needs
+that session, thus a new route is closed and no person must remember the protection. Two
+paths are the exceptions:
+
+- `/api/health`, for the `HEALTHCHECK` of the container. Refer to paragraph 7.
+- `/api/auth/`, because the sign-in has no session before it.
+
+Each route of the data reads the user with `c.get("userId")`. The application holds no
+user with a fixed value.
+
+### 4.4 The peer dependency of Better Auth
+
+Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12, and the
+project holds the version 13. That peer is optional: the library imports it only with its
+own adapter of SQLite. This project uses the Drizzle adapter, thus Drizzle imports the
+module. An `overrides` in `package.json` gives the version of the project to npm.
 
 ## 5. User interface
 
@@ -389,6 +468,20 @@ update.
 A browser installs an application from an origin with TLS only. Paragraph 7 gives the
 rules for TLS.
 
+### 5.5.1 The routes of the client
+
+The client holds two routes: `/` for the dashboard and `/login` for the access. The tree
+is in `src/client/router.tsx`, in the code. The project needs no plugin of the router and
+no step of generation.
+
+The route `/` reads the session before the load. With no session it sends the user to
+`/login`, therefore the dashboard makes no request that gives the status 401. The route
+`/login` does the contrary operation: a user with a session reads the dashboard.
+
+The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
+the invitation. The server holds no Italian text: it gives the field `code` of the error,
+and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
+
 ### 5.6 The movement of the flaps
 
 A board turns its flaps when new data arrives. The page load is that moment for Yume.
@@ -414,15 +507,18 @@ The animation obeys these limits:
 yume/
   src/
     client/            # React, TanStack Router, shadcn/ui
+      router.tsx         # the tree of the routes, in the code
       components/ui/     # shadcn/ui. Do not change these files.
       components/board/  # the theme of the departure board
+      lib/               # the logic of the client, with a test file
       styles/            # the tokens of the theme
       fonts/             # the font files
     server/            # the Hono application
-      auth.ts          # the Better Auth instance
+      auth.ts          # the Better Auth instance, with the hooks of the invitation
+      invitation.ts    # the pure examination of a code
+      scripts/         # the scripts of the administrator: the user and the invitation
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
-      routes/
     shared/            # Zod schemas and the conversion logic. Both sides use them.
   drizzle/             # the generated migrations, under version control
   docs/
@@ -435,14 +531,51 @@ adds complexity but gives no advantage.
 
 ## 7. Deployment
 
-The repository holds `Dockerfile`, `.dockerignore` and `compose.yaml`. The `Dockerfile`
-has three stages with `node:22-bookworm-slim`: the dependencies of production, the build
-of the client, and the image of runtime. The image runs as the user `node`, and it holds
-a `HEALTHCHECK` on `GET /api/health`. `compose.yaml` mounts `./data` on `/data`.
+The repository holds `Dockerfile`, `.dockerignore` and `compose.yaml`. The
+`Dockerfile` has three stages with `node:22-bookworm-slim`: the dependencies of
+production, the build of the client, and the image of runtime. The image runs as the user
+`node`, and it holds a `HEALTHCHECK` on `GET /api/health`. `compose.yaml` mounts
+`./data` on `/data`.
 
 The container applies the migrations, writes the catalogue and then starts the server.
 The two scripts make no change on a second start, thus the container can start many
 times.
+
+### 7.0 The image on the registry
+
+The workflow publishes the image on `ghcr.io/dstmrk/yume` after each push to `main`. The
+job `publish` needs the job of the tests and the job of the container: an image with a
+test that fails must not arrive on the registry.
+
+Therefore `compose.yaml` holds `image:` and it holds no `build:`. The installation
+on a home server needs that file and `.env` only, and it needs no clone of the
+repository:
+
+```bash
+mkdir -p data && sudo chown 1000:1000 data
+cp .env.example .env      # then write the values
+docker compose up -d
+```
+
+The job publishes two platforms, `linux/amd64` and `linux/arm64`, with QEMU. The build
+compiles nothing, because each `npm ci` of the `Dockerfile` holds `--ignore-scripts` and
+`better-sqlite3` holds the binary of each platform. Thus the emulation only writes the
+files of the client with Vite.
+
+The job writes two tags: `latest` for `compose.yaml`, and the SHA of the commit for
+one image of each change. A person can then go back to the image before a defect.
+
+A package of GHCR that a workflow publishes with `GITHUB_TOKEN` takes the visibility of
+the repository. This repository is public, therefore `docker compose up` needs no
+`docker login`. Examine that visibility after the first publication, in Settings, on the
+page of the package.
+
+To build the image of your own change on the machine, use this command. Docker Compose
+then finds that image and it pulls no other image:
+
+```bash
+docker build -t ghcr.io/dstmrk/yume:latest .
+```
 
 Obey these rules on a home server with arm64:
 

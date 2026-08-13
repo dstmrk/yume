@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
@@ -7,7 +8,12 @@ import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { Button } from "./components/ui/button.tsx";
-import { fetchAccounts, fetchCatalogue, fetchPotential } from "./lib/api.ts";
+import {
+	fetchAccounts,
+	fetchCatalogue,
+	fetchPotential,
+	signOut,
+} from "./lib/api.ts";
 import { cardsToShow } from "./lib/cards.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import type { GroupedRoute } from "./lib/routes.ts";
@@ -138,7 +144,39 @@ export function Dashboard() {
 			</BoardPanel>
 
 			<NewAccountForm programs={catalogue.data.programs} />
+			<SignOutButton />
 		</div>
+	);
+}
+
+/**
+ * The button of the sign-out.
+ *
+ * After the sign-out the router examines the session again. The route `/` then
+ * finds no session and it sends the user to `/login`.
+ */
+function SignOutButton() {
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	const leave = useMutation({
+		mutationFn: signOut,
+		onSuccess: async () => {
+			// The data of the user stays in the cache of the query. A second user
+			// on the same telephone must not read it.
+			queryClient.clear();
+			await router.invalidate();
+		},
+	});
+
+	return (
+		<Button
+			variant="outline"
+			type="button"
+			disabled={leave.isPending}
+			onClick={() => leave.mutate()}
+		>
+			{text.signOut}
+		</Button>
 	);
 }
 

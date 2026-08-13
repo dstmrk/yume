@@ -32,6 +32,71 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 	return (await response.json()) as T;
 }
 
+/**
+ * An error of Better Auth, with the field `code` of the answer.
+ *
+ * The client shows the message of that code in Italian. Refer to
+ * `src/client/lib/auth.ts`.
+ */
+export class AuthError extends Error {
+	constructor(readonly code: string | undefined) {
+		super(code ?? "auth");
+		this.name = "AuthError";
+	}
+}
+
+/** The user of the session, or null with no session. */
+export type Session = { user: { id: string; name: string; email: string } };
+
+async function postToAuth(path: string, body: unknown): Promise<void> {
+	const response = await fetch(`/api/auth/${path}`, {
+		method: "POST",
+		headers: { "content-type": "application/json" },
+		body: JSON.stringify(body),
+	});
+	if (!response.ok) {
+		const error = (await response.json().catch(() => null)) as {
+			code?: string;
+		} | null;
+		throw new AuthError(error?.code);
+	}
+}
+
+/**
+ * Gives the session of the request, or null.
+ *
+ * Better Auth answers with the status 200 and the body `null` with no session.
+ * Therefore this function reads the body, and it does not read the status.
+ */
+export async function fetchSession(): Promise<Session | null> {
+	const response = await fetch("/api/auth/get-session");
+	if (!response.ok) {
+		return null;
+	}
+	return ((await response.json().catch(() => null)) as Session | null) ?? null;
+}
+
+export function signIn(input: {
+	email: string;
+	password: string;
+}): Promise<void> {
+	return postToAuth("sign-in/email", input);
+}
+
+/** The sign-up needs an invitation. Refer to paragraph 4 of the architecture. */
+export function signUp(input: {
+	name: string;
+	email: string;
+	password: string;
+	inviteCode: string;
+}): Promise<void> {
+	return postToAuth("sign-up/email", input);
+}
+
+export function signOut(): Promise<void> {
+	return postToAuth("sign-out", {});
+}
+
 export function fetchCatalogue(): Promise<CatalogueResponse> {
 	return get<CatalogueResponse>("/api/catalogue");
 }

@@ -1,10 +1,12 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
 	currency,
+	invitation,
 	program,
 	transferRule,
+	user,
 	userAccount,
 } from "./schema.ts";
 
@@ -79,6 +81,61 @@ export function allTransferRules(db: Db) {
 		.from(transferRule)
 		.orderBy(asc(transferRule.fromProgramId), asc(transferRule.toProgramId))
 		.all();
+}
+
+/** Finds the user with the address. The script of the invitation needs it. */
+export function findUserByEmail(db: Db, email: string) {
+	return db.select().from(user).where(eq(user.email, email)).get();
+}
+
+/** Writes an invitation. It gives the id of the new row. */
+export function createInvitation(
+	db: Db,
+	input: {
+		code: string;
+		createdByUserId: string;
+		email?: string | null;
+		expiresAt: string;
+	},
+): string {
+	const id = crypto.randomUUID();
+	db.insert(invitation)
+		.values({
+			id,
+			code: input.code,
+			createdByUserId: input.createdByUserId,
+			email: input.email ?? null,
+			expiresAt: input.expiresAt,
+		})
+		.run();
+	return id;
+}
+
+/** Finds the invitation with the code. It gives undefined for an unknown code. */
+export function findInvitation(db: Db, code: string) {
+	return db.select().from(invitation).where(eq(invitation.code, code)).get();
+}
+
+/**
+ * Marks the invitation as used by the user.
+ *
+ * The condition holds `used_at is null`. Therefore two sign-ups with the same
+ * code cannot both mark the invitation, and the result gives the number of the
+ * rows that changed. It gives true when this call marked the invitation.
+ *
+ * The name of this function does not start with `use`: Biome reads such a name
+ * as a hook of React and it gives an error at an early return.
+ */
+export function markInvitationUsed(
+	db: Db,
+	input: { code: string; userId: string; at: string },
+): boolean {
+	const result = db
+		.update(invitation)
+		.set({ usedAt: input.at, usedByUserId: input.userId })
+		.where(and(eq(invitation.code, input.code), isNull(invitation.usedAt)))
+		.run();
+	return result.changes === 1;
 }
 
 /** Adds an account of the user. It gives the id of the new account. */

@@ -1,13 +1,18 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
+import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
 	addSnapshot,
 	allPrograms,
 	allTransferRules,
 	createAccount,
+	createInvitation,
 	currentBalances,
 	findAccount,
+	findInvitation,
+	findUserByEmail,
+	markInvitationUsed,
 } from "./queries.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
@@ -20,6 +25,8 @@ beforeEach(() => {
 	db = openDatabase(":memory:");
 	migrate(db, { migrationsFolder: "drizzle" });
 	seedCatalogue(db);
+	insertUser(db, USER);
+	insertUser(db, OTHER_USER);
 });
 
 describe("currentBalances", () => {
@@ -138,6 +145,81 @@ describe("the catalogue queries", () => {
 			increment: 500,
 			validTo: null,
 		});
+	});
+});
+
+describe("the queries of the invitation", () => {
+	const EXPIRES = "2099-01-01T00:00:00.000Z";
+
+	function invite(code: string) {
+		return createInvitation(db, {
+			code,
+			createdByUserId: USER,
+			expiresAt: EXPIRES,
+		});
+	}
+
+	it("gives undefined for a code that no invitation has", () => {
+		expect(findInvitation(db, "NO-SUCH-CODE")).toBeUndefined();
+	});
+
+	it("finds the invitation with the code", () => {
+		invite("BUONO");
+		expect(findInvitation(db, "BUONO")).toMatchObject({
+			createdByUserId: USER,
+			expiresAt: EXPIRES,
+			usedAt: null,
+			usedByUserId: null,
+		});
+	});
+
+	it("marks the invitation with the user and the moment", () => {
+		invite("BUONO");
+		const marked = markInvitationUsed(db, {
+			code: "BUONO",
+			userId: OTHER_USER,
+			at: "2026-08-13T10:00:00.000Z",
+		});
+
+		expect(marked).toBe(true);
+		expect(findInvitation(db, "BUONO")).toMatchObject({
+			usedAt: "2026-08-13T10:00:00.000Z",
+			usedByUserId: OTHER_USER,
+		});
+	});
+
+	// The second call gives false. Thus two sign-ups with the same code cannot
+	// both mark the invitation.
+	it("does not mark an invitation that is already used", () => {
+		invite("BUONO");
+		const input = {
+			code: "BUONO",
+			userId: OTHER_USER,
+			at: "2026-08-13T10:00:00.000Z",
+		};
+		markInvitationUsed(db, input);
+
+		expect(markInvitationUsed(db, { ...input, userId: USER })).toBe(false);
+		expect(findInvitation(db, "BUONO")?.usedByUserId).toBe(OTHER_USER);
+	});
+
+	it("gives false for a code that no invitation has", () => {
+		const marked = markInvitationUsed(db, {
+			code: "NO-SUCH-CODE",
+			userId: USER,
+			at: "2026-08-13T10:00:00.000Z",
+		});
+		expect(marked).toBe(false);
+	});
+});
+
+describe("findUserByEmail", () => {
+	it("finds the user with the address", () => {
+		expect(findUserByEmail(db, `${USER}@example.com`)?.id).toBe(USER);
+	});
+
+	it("gives undefined for an address that no user has", () => {
+		expect(findUserByEmail(db, "no-such-user@example.com")).toBeUndefined();
 	});
 });
 
