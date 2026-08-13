@@ -157,8 +157,8 @@ export function Dashboard() {
 /**
  * The button of the sign-out.
  *
- * After the sign-out the router examines the session again. The route `/` then
- * finds no session and it sends the user to `/login`.
+ * After the sign-out the router examines the session again. The route
+ * `/dashboard` then finds no session and it sends the user to `/login`.
  */
 function SignOutButton() {
 	const router = useRouter();

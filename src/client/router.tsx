@@ -2,12 +2,12 @@
  * The routes of the client.
  *
  * The tree is in the code, not in the file names. The project needs no plugin
- * of the router and no step of generation. Two routes are sufficient now: the
- * dashboard and the access.
+ * of the router and no step of generation. Three routes are sufficient now: the
+ * public page, the dashboard and the access.
  *
- * The route `/` reads the session before the load. With no session it sends the
- * user to `/login`. Therefore the dashboard makes no request that gives the
- * status 401.
+ * Each route reads the session before the load. Therefore the dashboard makes
+ * no request that gives the status 401, and a user with a session reads the
+ * dashboard and not the public page.
  */
 
 import {
@@ -18,6 +18,7 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { Dashboard } from "./Dashboard.tsx";
+import { HomePage } from "./HomePage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchSession } from "./lib/api.ts";
 import { text } from "./text.ts";
@@ -33,9 +34,22 @@ const rootRoute = createRootRoute({
 	),
 });
 
-const indexRoute = createRoute({
+const homeRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/",
+	// The public page is for a visitor. A user with a session reads the
+	// dashboard.
+	beforeLoad: async () => {
+		if ((await fetchSession()) !== null) {
+			throw redirect({ to: "/dashboard" });
+		}
+	},
+	component: HomePage,
+});
+
+const dashboardRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/dashboard",
 	beforeLoad: async () => {
 		if ((await fetchSession()) === null) {
 			throw redirect({ to: "/login" });
@@ -50,14 +64,14 @@ const loginRoute = createRoute({
 	// A user with a session reads the dashboard, not the form of the access.
 	beforeLoad: async () => {
 		if ((await fetchSession()) !== null) {
-			throw redirect({ to: "/" });
+			throw redirect({ to: "/dashboard" });
 		}
 	},
 	component: LoginPage,
 });
 
 export const router = createRouter({
-	routeTree: rootRoute.addChildren([indexRoute, loginRoute]),
+	routeTree: rootRoute.addChildren([homeRoute, dashboardRoute, loginRoute]),
 });
 
 declare module "@tanstack/react-router" {

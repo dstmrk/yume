@@ -9,6 +9,9 @@
 export const text = {
 	appName: "Yume",
 
+	homeTagline:
+		"Tutti i tuoi punti su una schermata. Yume calcola quante miglia puoi avere in ogni valuta.",
+
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
 		"Valore calcolato, non un saldo. Il trasferimento è definitivo.",

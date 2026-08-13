@@ -44,6 +44,9 @@ TanStack Start also adds server-side rendering. Yume does not need server-side
 rendering, because Yume is a private dashboard behind a login. Search engines do not
 read it.
 
+The public page of paragraph 5.5.1 does not change this decision. Yume gives an account
+only with an invitation, thus a position in the results of a search engine has no value.
+
 The cost of TanStack Start is a smaller set of tools and a Docker build that is more
 difficult to examine. Vite with Hono gives two processes in development, but only **one
 process in production**. Hono supplies the files from `dist/`. You can replace each part
@@ -474,13 +477,22 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds two routes: `/` for the dashboard and `/login` for the access. The tree
-is in `src/client/router.tsx`, in the code. The project needs no plugin of the router and
-no step of generation.
+The client holds three routes: `/` for the public page, `/dashboard` for the dashboard
+and `/login` for the access. The tree is in `src/client/router.tsx`, in the code. The
+project needs no plugin of the router and no step of generation.
 
-The route `/` reads the session before the load. With no session it sends the user to
-`/login`, therefore the dashboard makes no request that gives the status 401. The route
-`/login` does the contrary operation: a user with a session reads the dashboard.
+The route `/dashboard` reads the session before the load. With no session it sends the
+user to `/login`, therefore the dashboard makes no request that gives the status 401. The
+routes `/` and `/login` do the contrary operation: a user with a session reads the
+dashboard.
+
+The route `/` is the only route that a visitor with no session reads. It gives the
+context that the form of the access does not give: what Yume calculates, and the two
+limits of that calculation. Yume gives an account only with an invitation, thus that page
+sells nothing.
+
+`start_url` of the manifest is `/dashboard`, not `/`. Thus the application on the home
+screen of a telephone opens the dashboard and not the public page.
 
 The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
