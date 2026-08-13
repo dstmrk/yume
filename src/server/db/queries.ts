@@ -15,6 +15,12 @@ export type AccountWithBalance = {
 	accountId: string;
 	programId: string;
 	nickname: string | null;
+	/**
+	 * The id of the most recent snapshot. The client sends this id to remove
+	 * that snapshot. Thus it removes the value that it shows, and no value that
+	 * an other device wrote after it.
+	 */
+	snapshotId: string | null;
 	/** It is null when the account has no snapshot. */
 	points: number | null;
 	observedAt: string | null;
@@ -33,6 +39,7 @@ export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
 			accountId: userAccount.id,
 			programId: userAccount.programId,
 			nickname: userAccount.nickname,
+			snapshotId: balanceSnapshot.id,
 			points: balanceSnapshot.points,
 			observedAt: balanceSnapshot.observedAt,
 		})
@@ -159,6 +166,49 @@ export function createAccount(
 		})
 		.run();
 	return id;
+}
+
+/**
+ * Removes an account of the user. It gives true when it removes a row.
+ *
+ * The condition holds the user, thus a request cannot remove the account of an
+ * other user. The column `balance_snapshot.account_id` holds
+ * `on delete cascade`, therefore this operation also removes the snapshots of
+ * the account.
+ */
+export function deleteAccount(
+	db: Db,
+	accountId: string,
+	userId: string,
+): boolean {
+	const result = db
+		.delete(userAccount)
+		.where(and(eq(userAccount.id, accountId), eq(userAccount.userId, userId)))
+		.run();
+	return result.changes > 0;
+}
+
+/**
+ * Removes one snapshot of an account. It gives true when it removes a row.
+ *
+ * The condition holds the account. The route reads the account of the user
+ * first, thus a request cannot remove the snapshot of an other user.
+ */
+export function deleteSnapshot(
+	db: Db,
+	snapshotId: string,
+	accountId: string,
+): boolean {
+	const result = db
+		.delete(balanceSnapshot)
+		.where(
+			and(
+				eq(balanceSnapshot.id, snapshotId),
+				eq(balanceSnapshot.accountId, accountId),
+			),
+		)
+		.run();
+	return result.changes > 0;
 }
 
 /**
