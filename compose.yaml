@@ -11,7 +11,9 @@
 # start.
 #
 # The image is on the registry of GitHub, for amd64 and for arm64. The workflow
-# publishes it at each push to main. To build the image of your own change:
+# publishes it at each tag `v*`. The tag `latest` holds the most recent release.
+# Write a tag of a release here, for example `v0.1.0`, to keep one version.
+# To build the image of your own change:
 #   docker build -t ghcr.io/dstmrk/yume:latest .
 # Docker Compose then finds that image and it pulls no other image.
 #

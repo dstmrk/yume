@@ -191,8 +191,8 @@ examine `.claude/`, because that directory belongs to the harness. Biome does no
 `drizzle/`, because drizzle-kit writes those files.
 
 The workflow `.github/workflows/ci.yml` runs these commands, the build and the test
-suites of the hooks. It runs them for each pull request and for each push to `main`.
-The workflow is the second defence: run the commands before the commit.
+suites of the hooks. It runs them for each pull request, for each push to `main` and for
+each tag `v*`. The workflow is the second defence: run the commands before the commit.
 
 The workflow also builds the image and starts the container. Then it reads
 `GET /api/health`, the catalogue and the page of the client. Vitest examines no file of
@@ -231,9 +231,15 @@ docker compose logs -f # it shows the log of the container
 docker compose pull && docker compose up -d # it takes the new image
 ```
 
-`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image
-after each push to `main`. Paragraph 7.0 of `docs/architecture.md` gives the reason. To
-examine a change of the `Dockerfile` on your machine, build the image with the same name:
+`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image after a
+push of a tag `v*` only. To make a release, write a tag on `main`:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Paragraph 7.0 of `docs/architecture.md` gives the reason. To examine a change of the
+`Dockerfile` on your machine, build the image with the same name:
 
 ```bash
 docker build -t ghcr.io/dstmrk/yume:latest .

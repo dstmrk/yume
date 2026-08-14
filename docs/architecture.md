@@ -570,9 +570,20 @@ times.
 
 ### 7.0 The image on the registry
 
-The workflow publishes the image on `ghcr.io/dstmrk/yume` after each push to `main`. The
-job `publish` needs the job of the tests and the job of the container: an image with a
-test that fails must not arrive on the registry.
+The workflow publishes the image on `ghcr.io/dstmrk/yume` after a push of a tag `v*`
+only. The job `publish` needs the job of the tests and the job of the container: an
+image with a test that fails must not arrive on the registry.
+
+A merge on `main` publishes no image. A release is a decision of a person. The home
+server holds the data of the user, therefore an update must arrive at a moment that the
+person selects, and not at each merge. To make a release, write a tag on `main`:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+The two jobs of the examination run again on the tag. Thus the publication examines the
+exact commit of the release.
 
 Therefore `compose.yaml` holds `image:` and it holds no `build:`. The installation
 on a home server needs that file and `.env` only, and it needs no clone of the
@@ -589,8 +600,9 @@ compiles nothing, because each `npm ci` of the `Dockerfile` holds `--ignore-scri
 `better-sqlite3` holds the binary of each platform. Thus the emulation only writes the
 files of the client with Vite.
 
-The job writes two tags: `latest` for `compose.yaml`, and the SHA of the commit for
-one image of each change. A person can then go back to the image before a defect.
+The job writes two tags: `latest` for `compose.yaml`, and the name of the git tag, for
+example `v0.1.0`. A person can then go back to the image of the release before a defect
+with `image: ghcr.io/dstmrk/yume:v0.1.0`.
 
 A package of GHCR that a workflow publishes with `GITHUB_TOKEN` takes the visibility of
 the repository. This repository is public, therefore `docker compose up` needs no
