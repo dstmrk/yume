@@ -63,6 +63,17 @@ export const text = {
 	removeError: "Rimozione non riuscita.",
 	confirm: "Conferma",
 
+	invitesTitle: "Inviti",
+	invitesBody: "Puoi invitare 2 persone. Ogni codice vale 24 ore.",
+	newInvite: "Crea invito",
+	invitesNoneLeft: "Hai usato tutti i tuoi inviti.",
+	inviteValidUntil: "Valido fino al",
+	inviteUsedState: "Usato",
+	inviteExpiredState: "Scaduto",
+	inviteLinkLabel: "Link di invito",
+	copy: "Copia",
+	copied: "Copiato",
+
 	save: "Salva",
 	saving: "Salvataggio…",
 	cancel: "Annulla",

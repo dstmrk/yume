@@ -11,10 +11,6 @@ import {
 const NOW = "2026-08-13T10:00:00.000Z";
 
 describe("invitationState", () => {
-	it("gives unknown when the code has no invitation", () => {
-		expect(invitationState(undefined, NOW)).toBe("unknown");
-	});
-
 	it("gives valid when the invitation expires later", () => {
 		const state = invitationState(
 			{ expiresAt: "2026-08-20T10:00:00.000Z", usedAt: null },

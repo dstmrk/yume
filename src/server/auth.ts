@@ -16,6 +16,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
+import type { InvitationState } from "../shared/api.ts";
 import type { Db } from "./db/index.ts";
 import {
 	countUsers,
@@ -23,14 +24,16 @@ import {
 	markInvitationUsed,
 } from "./db/queries.ts";
 import * as schema from "./db/schema.ts";
-import { type InvitationState, invitationState } from "./invitation.ts";
+import { invitationState } from "./invitation.ts";
 
 /** The path of the sign-up with an email address and a password. */
 const SIGN_UP = "/sign-up/email";
 
+/** The code of the error of a code that no invitation has. */
+const UNKNOWN = "INVITE_CODE_UNKNOWN";
+
 /** The code of the error for each state of an invitation that is not valid. */
 const errorCode: Record<Exclude<InvitationState, "valid">, string> = {
-	unknown: "INVITE_CODE_UNKNOWN",
 	expired: "INVITE_CODE_EXPIRED",
 	used: "INVITE_CODE_USED",
 };
@@ -102,17 +105,22 @@ export function createAuth(db: Db, options: AuthOptions) {
 				if (countUsers(db) === 0) {
 					if (options.setupCode === undefined || code !== options.setupCode) {
 						throw new APIError("BAD_REQUEST", {
-							code: errorCode.unknown,
+							code: UNKNOWN,
 							message: "The code of the setup is not correct.",
 						});
 					}
 					return;
 				}
 
-				const state = invitationState(
-					findInvitation(db, code),
-					new Date().toISOString(),
-				);
+				const found = findInvitation(db, code);
+				if (found === undefined) {
+					throw new APIError("BAD_REQUEST", {
+						code: UNKNOWN,
+						message: "The invitation code is unknown.",
+					});
+				}
+
+				const state = invitationState(found, new Date().toISOString());
 				if (state !== "valid") {
 					throw new APIError("BAD_REQUEST", {
 						code: errorCode[state],

@@ -6,6 +6,16 @@
  * function, and the form starts with that value.
  */
 
+/**
+ * Gives the link of the sign-up with the code.
+ *
+ * The user sends this link to a person. The origin comes from the page, thus
+ * the link holds the address of the installation.
+ */
+export function inviteLink(origin: string, code: string): string {
+	return `${origin}/signup?code=${encodeURIComponent(code)}`;
+}
+
 /** Gives the code of the parameter `code`, or undefined. */
 export function inviteCodeOf(
 	search: Record<string, unknown>,

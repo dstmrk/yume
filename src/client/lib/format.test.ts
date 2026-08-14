@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatPoints } from "./format.ts";
+import { formatDate, formatMoment, formatPoints } from "./format.ts";
 
 describe("formatPoints", () => {
 	it("writes the separator of the thousands of Italy", () => {
@@ -32,5 +32,19 @@ describe("formatDate", () => {
 
 	it("gives the value again when the date is not correct", () => {
 		expect(formatDate("non una data")).toBe("non una data");
+	});
+});
+
+describe("formatMoment", () => {
+	it("writes the day, the month and the hour", () => {
+		// The format uses the time zone of the machine, thus the test reads the
+		// shape and no fixed hour.
+		expect(formatMoment("2026-08-14T10:00:00.000Z")).toMatch(
+			/^\d{1,2} \w+,? \d{2}:\d{2}$/,
+		);
+	});
+
+	it("gives the value again when the moment is not correct", () => {
+		expect(formatMoment("non un momento")).toBe("non un momento");
 	});
 });

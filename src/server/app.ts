@@ -5,6 +5,7 @@ import {
 	addSnapshotSchema,
 	type CatalogueResponse,
 	createAccountSchema,
+	type InvitationsResponse,
 	type PotentialResponse,
 } from "../shared/api.ts";
 import { potentialMiles } from "../shared/potential.ts";
@@ -16,11 +17,14 @@ import {
 	allPrograms,
 	allTransferRules,
 	createAccount,
+	createInvitationForUser,
 	currentBalances,
 	deleteAccount,
 	deleteSnapshot,
 	findAccount,
+	invitationsOfUser,
 } from "./db/queries.ts";
+import { heldSlots, INVITATION_LIMIT, invitationState } from "./invitation.ts";
 
 /**
  * The routes with no session.
@@ -164,6 +168,44 @@ export function createApp(db: Db, auth: Auth) {
 			return c.json({ error: "unknown_snapshot" }, 404);
 		}
 		return c.body(null, 204);
+	});
+
+	/**
+	 * The invitations that the user wrote, with the quantity of free slots.
+	 *
+	 * The route gives no invitation of an other user: the query holds the user
+	 * in its condition. Paragraph 4 of `docs/architecture.md` gives the limit.
+	 */
+	app.get("/api/invitations", (c) => {
+		const at = new Date().toISOString();
+		const rows = invitationsOfUser(db, c.get("userId"));
+		const body: InvitationsResponse = {
+			invitations: rows.map((row) => ({
+				code: row.code,
+				expiresAt: row.expiresAt,
+				state: invitationState(row, at),
+			})),
+			left: INVITATION_LIMIT - heldSlots(rows, at),
+		};
+		return c.json(body);
+	});
+
+	/**
+	 * Writes an invitation of the user.
+	 *
+	 * The user has a maximum of two slots. A user with no free slot reads the
+	 * status 409: the button of the interface is already not active, thus this
+	 * answer arrives only with two requests at the same moment.
+	 */
+	app.post("/api/invitations", (c) => {
+		const written = createInvitationForUser(db, {
+			userId: c.get("userId"),
+			at: new Date().toISOString(),
+		});
+		if (written === null) {
+			return c.json({ error: "no_invitation_left" }, 409);
+		}
+		return c.json(written, 201);
 	});
 
 	/**

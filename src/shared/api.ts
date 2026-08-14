@@ -53,6 +53,27 @@ export type AccountRow = {
 	observedAt: string | null;
 };
 
+/**
+ * The state of an invitation at a moment. Only `valid` gives the sign-up.
+ *
+ * An invitation that a person used stays `used`, also after the date of the
+ * end. Refer to `src/server/invitation.ts`.
+ */
+export type InvitationState = "valid" | "expired" | "used";
+
+/** One invitation that the user wrote. */
+export type InvitationRow = {
+	code: string;
+	expiresAt: string;
+	state: InvitationState;
+};
+
+export type InvitationsResponse = {
+	invitations: InvitationRow[];
+	/** The quantity of invitations that the user can still write. */
+	left: number;
+};
+
 export type CatalogueResponse = {
 	currencies: Currency[];
 	programs: Program[];

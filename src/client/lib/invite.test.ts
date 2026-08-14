@@ -1,5 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { inviteCodeOf } from "./invite.ts";
+import { inviteCodeOf, inviteLink } from "./invite.ts";
+
+describe("inviteLink", () => {
+	it("gives the link of the sign-up with the code", () => {
+		expect(inviteLink("https://yume.example.com", "ABCD234567")).toBe(
+			"https://yume.example.com/signup?code=ABCD234567",
+		);
+	});
+
+	it("writes a character that a link cannot hold", () => {
+		expect(inviteLink("https://yume.example.com", "A B")).toBe(
+			"https://yume.example.com/signup?code=A%20B",
+		);
+	});
+});
 
 describe("inviteCodeOf", () => {
 	it("gives the code of the link", () => {

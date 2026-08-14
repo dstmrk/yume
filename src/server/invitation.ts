@@ -6,6 +6,8 @@
  * test gives each state without a database.
  */
 
+import type { InvitationState } from "../shared/api.ts";
+
 /**
  * The characters of a code.
  *
@@ -44,9 +46,6 @@ export function endOfValidity(at: string): string {
 	return new Date(Date.parse(at) + VALID_HOURS * 60 * 60 * 1000).toISOString();
 }
 
-/** The state of a code at a moment. Only `valid` gives access to the sign-up. */
-export type InvitationState = "valid" | "unknown" | "expired" | "used";
-
 /**
  * Gives the state of an invitation at the moment `at`.
  *
@@ -58,12 +57,9 @@ export type InvitationState = "valid" | "unknown" | "expired" | "used";
  * end. The user then reads the message of the correct cause.
  */
 export function invitationState(
-	invitation: { expiresAt: string; usedAt: string | null } | undefined,
+	invitation: { expiresAt: string; usedAt: string | null },
 	at: string,
 ): InvitationState {
-	if (invitation === undefined) {
-		return "unknown";
-	}
 	if (invitation.usedAt !== null) {
 		return "used";
 	}
