@@ -112,13 +112,11 @@ export function Dashboard() {
 			<AppTitle />
 
 			<section className="flex flex-col gap-3">
+				{/* The header holds the warning only. Each card already gives the
+				    label of the potential miles above its board, thus a title of the
+				    section repeats that same label. */}
 				<header>
-					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
-						{text.potentialTitle}
-					</h2>
-					<p className="mt-1 text-board-muted text-xs">
-						{text.potentialWarning}
-					</p>
+					<p className="text-board-muted text-xs">{text.potentialWarning}</p>
 				</header>
 
 				{cards.length === 0 ? (
