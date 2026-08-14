@@ -27,7 +27,8 @@ Yume has three pages:
 |---|---|---|
 | The public page | `/` | Each visitor. It says what Yume calculates and it gives the two limits of that value. |
 | The dashboard | `/dashboard` | A user with an account. |
-| The access | `/login` | A visitor with an account or with a code of invitation. |
+| The access | `/login` | A visitor with an account. |
+| The sign-up | `/signup` | A visitor with a link of invitation. |
 
 The application on the home screen of a telephone opens the dashboard.
 
@@ -56,8 +57,8 @@ installs on the home screen of a telephone.
 The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
 from Revolut. It also holds Miles & More, which no source can increase.
 
-Authentication is present. Registration is possible only with an invitation: a script
-makes the first user, and that user makes a code for each other person.
+Authentication is present. Registration is possible only with an invitation. The log of
+the container gives the link of the first user, and each user then has two invitations.
 
 ## Potential future functions
 
@@ -87,12 +88,16 @@ docker compose up -d
 The container applies the migrations, writes the catalogue and then starts the server.
 The directory `data/` holds the database. That directory stays outside the image.
 
-Then make the first user. The image holds no npm, thus this command calls node:
+Then make the first user. The server writes a link in the log while the database holds no
+user. Read that link and open it:
 
 ```bash
-docker compose exec yume node --experimental-strip-types \
-  src/server/scripts/user.ts <email> <name> <password>
+docker compose logs | grep signup
 ```
+
+The link holds a code of one use. That code dies with the first user, and a new start
+with no user gives a new code. Each user then has two invitations, with a code that is
+valid for 24 hours. The dashboard writes those invitations.
 
 Yume then listens on `127.0.0.1:3000`. Put TLS in front of that port: Tailscale, a
 Cloudflare Tunnel, or Caddy with a local certificate. A browser installs a progressive

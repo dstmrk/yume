@@ -102,8 +102,7 @@ jobs:
           done
           exit 1
 
-      # Each route of the data needs a session. The image holds no npm, thus
-      # the script of the user runs with node.
+      # Each route of the data needs a session.
       - name: Examine the protection of the routes
         run: |
           code="$(curl -s -o /dev/null -w '%{http_code}' \
@@ -113,13 +112,22 @@ jobs:
       # The catalogue shows that the migrations and the seed ran. The page
       # shows that the server supplies the files of the client from dist/.
       #
+      # The container holds no user, thus the log gives the code of the setup.
+      # This step is the only examination of that code with a real container.
+      #
       # The origin of the request is the value of BETTER_AUTH_URL, and the
       # default value of that variable holds the name localhost. Better Auth
       # refuses a request from an other origin.
       - name: Examine the catalogue and the page
         run: |
-          docker exec yume-ci node --experimental-strip-types \
-            src/server/scripts/user.ts ci@example.com CI una-parola-lunga
+          code="$(docker logs yume-ci 2>&1 | grep -o 'code=[A-Z0-9]*' | cut -d= -f2)"
+          test -n "$code"
+          curl -fsS -X POST \
+            http://127.0.0.1:3000/api/auth/sign-up/email \
+            -H 'content-type: application/json' \
+            -H 'origin: http://localhost:3000' \
+            -d "{\"name\":\"CI\",\"email\":\"ci@example.com\",\"password\":\"una-parola-lunga\",\"inviteCode\":\"$code\"}" \
+            > /dev/null
           curl -fsS -c cookies.txt -X POST \
             http://127.0.0.1:3000/api/auth/sign-in/email \
             -H 'content-type: application/json' \

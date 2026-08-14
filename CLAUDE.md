@@ -215,16 +215,20 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 The three commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
 
-Run these commands for the users. Paragraph 4.1 of `docs/architecture.md` gives the
-rules:
+The interface makes the first user. The server writes a code of setup in the log, but
+only while the database holds no user. Paragraph 4.1 of `docs/architecture.md` gives the
+rule. Do not write a default code in the code of the application.
+
+Each user has two invitations and each code is valid for 24 hours. The dashboard writes
+an invitation. The administrator has the same operation on the machine of the server.
+Paragraph 4.2 of `docs/architecture.md` gives the rules:
 
 ```bash
-npm run auth:user -- <email> <name> <password>   # the first user
-npm run auth:invite -- <email> [days] [email]    # it prints a code of invitation
+npm run auth:invite -- <email of the user who invites> [email]
 ```
 
-`npm run auth:user` and the server need `BETTER_AUTH_SECRET`. The server stops without
-that variable. `npm run dev:server` gives a value for development only.
+The server needs `BETTER_AUTH_SECRET`. The server stops without that variable.
+`npm run dev:server` gives a value for development only.
 
 Run these commands for the container:
 
