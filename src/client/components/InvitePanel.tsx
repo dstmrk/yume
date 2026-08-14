@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import type { InvitationRow } from "../../shared/api.ts";
 import { createInvitation, fetchInvitations } from "../lib/api.ts";
+import { copyText } from "../lib/clipboard.ts";
 import { formatMoment } from "../lib/format.ts";
 import { inviteLink } from "../lib/invite.ts";
 import { text } from "../text.ts";
@@ -111,6 +112,9 @@ function Invitation({ row }: { row: InvitationRow }) {
  * The field is not active: the person sends the link and writes nothing. The
  * clipboard of the browser is not available on a page with no TLS, thus the
  * field always shows the full link and the person can select it.
+ *
+ * The button shows the message of success only after a copy that the browser
+ * made. Refer to `copyText` of `lib/clipboard.ts`.
  */
 function LinkField({ code }: { code: string }) {
 	const [copied, setCopied] = useState(false);
@@ -126,8 +130,7 @@ function LinkField({ code }: { code: string }) {
 					variant="outline"
 					className="shrink-0"
 					onClick={async () => {
-						await navigator.clipboard?.writeText(link);
-						setCopied(true);
+						setCopied(await copyText(navigator.clipboard, link));
 					}}
 				>
 					{copied ? text.copied : text.copy}
