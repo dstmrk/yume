@@ -643,6 +643,11 @@ The image of runtime holds `drizzle/`, because the migrator reads
 `drizzle/meta/_journal.json` and the SQL files. The migrator also keeps a table of the
 migrations that ran. Therefore a second start applies no migration again.
 
+`drizzle/` holds one migration, `0000_initial.sql`. The application ran on no server
+before the first tag, thus no database held the two migrations of the first version. The
+project made those two migrations into one file. This operation is possible one time
+only: a migration that ran on a server is immutable. Add a new migration.
+
 ## 8. Appendix — the catalogue of programmes
 
 The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
