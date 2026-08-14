@@ -12,8 +12,13 @@
 		<!-- The installation on the home screen of the telephone. Refer to
 		     paragraph 5.5 of docs/architecture.md. -->
 		<link rel="manifest" href="/manifest.webmanifest" />
-		<link rel="icon" href="/icon-192.png" type="image/png" />
-		<link rel="apple-touch-icon" href="/icon-192.png" />
+		<!-- The SVG is the first icon: a browser that reads it holds one exact
+		     shape at each size. The PNG is for a browser that reads no SVG
+		     icon. iOS asks for 180 pixels and applies its own mask, thus that
+		     file holds no rounded corner. -->
+		<link rel="icon" href="/icon.svg" type="image/svg+xml" />
+		<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192" />
+		<link rel="apple-touch-icon" href="/icon-180.png" />
 		<meta name="mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta
