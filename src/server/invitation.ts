@@ -1,9 +1,9 @@
 /**
- * The examination of an invitation.
+ * The rules of an invitation.
  *
  * Registration is possible only with an invitation. Paragraph 4 of
- * `docs/architecture.md` gives the rule. This function is pure and does no I/O,
- * thus a test gives each state without a database.
+ * `docs/architecture.md` gives the rules. These functions do no I/O, thus a
+ * test gives each state without a database.
  */
 
 /**
@@ -15,9 +15,33 @@
  */
 const ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
+/** The quantity of characters of a code. */
+const CODE_LENGTH = 10;
+
+/** The quantity of invitations of one user. */
+export const INVITATION_LIMIT = 2;
+
+/** The time of validity of an invitation, in hours. */
+const VALID_HOURS = 24;
+
 /** Gives a code with one character for each byte. */
 export function makeCode(bytes: Uint8Array): string {
 	return Array.from(bytes, (byte) => ALPHABET[byte % ALPHABET.length]).join("");
+}
+
+/** Gives a new code from the generator of random values of the system. */
+export function newCode(): string {
+	return makeCode(crypto.getRandomValues(new Uint8Array(CODE_LENGTH)));
+}
+
+/**
+ * Gives the moment of the end of an invitation that starts at `at`.
+ *
+ * The time is the same for each invitation. A short time keeps the risk of a
+ * code in a message small, and an expired code gives its slot back.
+ */
+export function endOfValidity(at: string): string {
+	return new Date(Date.parse(at) + VALID_HOURS * 60 * 60 * 1000).toISOString();
 }
 
 /** The state of a code at a moment. Only `valid` gives access to the sign-up. */
@@ -50,4 +74,19 @@ export function invitationState(
 		return "expired";
 	}
 	return "valid";
+}
+
+/**
+ * Gives the quantity of slots that the invitations of one user hold.
+ *
+ * A user has `INVITATION_LIMIT` slots. An invitation that a person used holds
+ * its slot forever, thus one user brings a maximum of two users. An invitation
+ * that expired with no use gives its slot back.
+ */
+export function heldSlots(
+	invitations: readonly { expiresAt: string; usedAt: string | null }[],
+	at: string,
+): number {
+	return invitations.filter((one) => invitationState(one, at) !== "expired")
+		.length;
 }

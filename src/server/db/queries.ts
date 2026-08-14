@@ -1,4 +1,10 @@
 import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
+import {
+	endOfValidity,
+	heldSlots,
+	INVITATION_LIMIT,
+	newCode,
+} from "../invitation.ts";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
@@ -126,6 +132,43 @@ export function createInvitation(
 		})
 		.run();
 	return id;
+}
+
+/** Gives each invitation that the user wrote, from the first date of the end. */
+export function invitationsOfUser(db: Db, userId: string) {
+	return db
+		.select()
+		.from(invitation)
+		.where(eq(invitation.createdByUserId, userId))
+		.orderBy(asc(invitation.expiresAt))
+		.all();
+}
+
+/**
+ * Writes an invitation of the user. It gives null when the user has no slot.
+ *
+ * The limit is `INVITATION_LIMIT` slots. The two operations of this function
+ * hold no `await`, thus no other request writes a row between the examination
+ * and the insert.
+ */
+export function createInvitationForUser(
+	db: Db,
+	input: { userId: string; email?: string | null; at: string },
+): { code: string; expiresAt: string } | null {
+	const slots = heldSlots(invitationsOfUser(db, input.userId), input.at);
+	if (slots >= INVITATION_LIMIT) {
+		return null;
+	}
+
+	const code = newCode();
+	const expiresAt = endOfValidity(input.at);
+	createInvitation(db, {
+		code,
+		createdByUserId: input.userId,
+		email: input.email,
+		expiresAt,
+	});
+	return { code, expiresAt };
 }
 
 /** Finds the invitation with the code. It gives undefined for an unknown code. */
