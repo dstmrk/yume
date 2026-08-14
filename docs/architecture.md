@@ -29,13 +29,20 @@ These constraints control all the decisions in this document:
 | Runtime | Node 22 LTS | Long-term support. It includes `fetch`. |
 | HTTP server | Hono | Small and standard. It supplies the API and the client files from one origin. |
 | Client | Vite, React 19, TanStack Router, TanStack Query | Typed routes. TanStack Query controls the cache and the refresh of data. |
-| User interface | Tailwind CSS v4, shadcn/ui, lucide-react | The repository contains the components. No external design system at runtime. |
+| User interface | Tailwind CSS v4, shadcn/ui | The repository contains the components. No external design system at runtime. |
 | Database | SQLite with `better-sqlite3` | One node, few writes, backup of one file. |
 | Schema and migrations | Drizzle and drizzle-kit | SQL-first. The repository contains the generated migrations. |
 | Authentication | Better Auth with the Drizzle adapter | Sessions on your own server. No external identity provider. |
-| Validation | Zod, and `drizzle-zod` for the schemas of the tables | One source of truth for each data shape. |
+| Validation | Zod | `src/shared/api.ts` holds one schema for each shape, and both sides read it. |
 | Tests | Vitest | |
 | Lint and format | Biome | One tool in the place of ESLint and Prettier. |
+
+This table gives the packages that the project holds. An earlier version of this table
+also gave `lucide-react` and `drizzle-zod`. The project installed neither package and it
+imports no name of them: the interface shows the text of a letter in the place of an
+icon, and `src/shared/api.ts` writes each schema of Zod by hand. Rule 9 of the section
+Rules for the work in `CLAUDE.md` asks for the smallest change, thus the project adds a
+package with the requirement of that package and not before it.
 
 ### 2.1 Why not TanStack Start
 
