@@ -68,10 +68,43 @@ export function Dashboard() {
 	const name = (programId: string) => names.get(programId) ?? programId;
 
 	// Each list goes from the largest value to the smallest one.
-	const { cards, hidden } = cardsToShow(potential.data.potential, expanded);
 	const allAccounts = [...accounts.data.accounts].sort(
 		byValueDesc((account) => account.points),
 	);
+
+	// The first access. The user has no account, thus the list of the cards and
+	// the panel of the accounts are both empty. That page shows two empty
+	// surfaces and it puts the only button of the page after them.
+	//
+	// The quantity of the accounts is the signal of this state. Therefore the
+	// database keeps no flag of the onboarding, and the block goes away with
+	// the first account.
+	if (allAccounts.length === 0) {
+		return (
+			<div className="flex flex-col gap-6">
+				<AppTitle />
+
+				<section className="flex flex-col gap-2">
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+						{text.startTitle}
+					</h2>
+					{/* The block shows no value of the user, thus it gives no warning
+					    of the transfer. Refer to paragraph 5.5.1 of
+					    `docs/architecture.md`. */}
+					<p className="text-board-muted text-sm">{text.startBody}</p>
+				</section>
+
+				<NewAccountForm
+					programs={catalogue.data.programs}
+					currencies={catalogue.data.currencies}
+					defaultOpen
+				/>
+				<SignOutButton />
+			</div>
+		);
+	}
+
+	const { cards, hidden } = cardsToShow(potential.data.potential, expanded);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -117,50 +150,43 @@ export function Dashboard() {
 			</section>
 
 			<BoardPanel title={text.accountsTitle}>
-				{allAccounts.length === 0 ? (
-					<p className="text-board-muted text-sm">{text.noAccounts}</p>
-				) : (
-					<ul className="flex flex-col gap-4">
-						{allAccounts.map((account) => (
-							<li key={account.accountId} className="flex flex-col gap-2">
-								<div className="flex items-center justify-between gap-3">
-									<span className="min-w-0 text-sm">
-										<span className="block break-words">
-											{name(account.programId)}
+				<ul className="flex flex-col gap-4">
+					{allAccounts.map((account) => (
+						<li key={account.accountId} className="flex flex-col gap-2">
+							<div className="flex items-center justify-between gap-3">
+								<span className="min-w-0 text-sm">
+									<span className="block break-words">
+										{name(account.programId)}
+									</span>
+									{account.nickname !== null && (
+										<span className="block text-board-muted text-xs">
+											{account.nickname}
 										</span>
-										{account.nickname !== null && (
-											<span className="block text-board-muted text-xs">
-												{account.nickname}
+									)}
+								</span>
+								{account.points === null ? (
+									<span className="shrink-0 text-board-muted text-xs">
+										{text.noBalance}
+									</span>
+								) : (
+									<span className="flex shrink-0 flex-col items-end gap-1">
+										<SplitFlapNumber value={account.points} variant="balance" />
+										{account.observedAt !== null && (
+											<span className="text-board-muted text-xs">
+												{text.observedOn} {formatDate(account.observedAt)}
 											</span>
 										)}
 									</span>
-									{account.points === null ? (
-										<span className="shrink-0 text-board-muted text-xs">
-											{text.noBalance}
-										</span>
-									) : (
-										<span className="flex shrink-0 flex-col items-end gap-1">
-											<SplitFlapNumber
-												value={account.points}
-												variant="balance"
-											/>
-											{account.observedAt !== null && (
-												<span className="text-board-muted text-xs">
-													{text.observedOn} {formatDate(account.observedAt)}
-												</span>
-											)}
-										</span>
-									)}
-								</div>
-								<NewBalanceForm accountId={account.accountId} />
-								<AccountActions
-									accountId={account.accountId}
-									snapshotId={account.snapshotId}
-								/>
-							</li>
-						))}
-					</ul>
-				)}
+								)}
+							</div>
+							<NewBalanceForm accountId={account.accountId} />
+							<AccountActions
+								accountId={account.accountId}
+								snapshotId={account.snapshotId}
+							/>
+						</li>
+					))}
+				</ul>
 			</BoardPanel>
 
 			<NewAccountForm

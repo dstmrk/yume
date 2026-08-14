@@ -34,11 +34,14 @@ import {
 export function NewAccountForm({
 	programs,
 	currencies,
+	defaultOpen = false,
 }: {
 	programs: readonly Program[];
 	currencies: readonly Currency[];
+	/** The dashboard of a user with no account opens the form immediately. */
+	defaultOpen?: boolean;
 }) {
-	const [open, setOpen] = useState(false);
+	const [open, setOpen] = useState(defaultOpen);
 
 	if (!open) {
 		return (
