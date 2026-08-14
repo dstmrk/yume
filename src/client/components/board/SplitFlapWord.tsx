@@ -30,10 +30,9 @@ const wordCell = cva("text-board-amber", {
 /**
  * A word with one flap for each letter, as on a departure board.
  *
- * The flaps turn at the load, through the drum of the letters. A board of
- * Solari shows its name in the same way: the board starts at the empty position
- * and it turns until each letter arrives. Refer to paragraph 5.6 of
- * `docs/architecture.md`.
+ * The flaps do not turn. A flap turns when new data arrives, and a name is not
+ * data: it is the same word at each load. The drum of the board holds the
+ * digits only. Refer to paragraph 5.6 of `docs/architecture.md`.
  *
  * A screen reader reads the word one time, from the element that is not
  * visible, and in its normal form: a reader of four separate cells says "Y, U,
@@ -55,7 +54,7 @@ export function SplitFlapWord({
 						key={cell.position}
 						char={cell.char}
 						index={cell.position}
-						moves={true}
+						moves={false}
 						className={wordCell({ size })}
 					/>
 				))}

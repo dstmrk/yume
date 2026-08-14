@@ -183,7 +183,7 @@
  *
  * The element holds the full height of the flap, and the half cuts it. Thus the
  * top half and the bottom half of one card give one character. `white-space`
- * keeps the empty position of the drum: that character is a space.
+ * keeps a space: a word can hold a space, and that flap holds its width.
  */
 @utility flap-glyph {
 	position: absolute;
