@@ -20,6 +20,9 @@ export const text = {
 	homeScopeTitle: "Cosa copre",
 	homeScope:
 		"I partner di trasferimento di American Express Italia e di Revolut.",
+	homeScreenshotTitle: "Dopo l'accesso",
+	homeScreenshotAlt:
+		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:

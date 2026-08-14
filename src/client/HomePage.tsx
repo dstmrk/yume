@@ -16,6 +16,20 @@ import { text } from "./text.ts";
 const EXAMPLE_POINTS = 128_400;
 
 /**
+ * The image of the dashboard. The file is in `public/`, thus Vite copies it
+ * and the server supplies it from `dist/`.
+ *
+ * The image comes from the application, not from a program of design: a
+ * browser opens the dashboard with balances of an example and gives the
+ * picture. The cards hold the calculation of the real catalogue.
+ */
+const SCREENSHOT = {
+	src: "/screenshot-dashboard.png",
+	width: 780,
+	height: 1108,
+};
+
+/**
  * The public page of the application. A visitor with no session reads it.
  *
  * Yume gives an account only with an invitation, thus this page sells nothing.
@@ -56,6 +70,21 @@ export function HomePage() {
 			</dl>
 
 			<Rise index={5} className="flex w-full flex-col items-center gap-2">
+				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+					{text.homeScreenshotTitle}
+				</p>
+				{/* The size is the size of the file. Thus the page keeps the space of
+				    the image before the load, and the text below does not move. */}
+				<img
+					src={SCREENSHOT.src}
+					alt={text.homeScreenshotAlt}
+					width={SCREENSHOT.width}
+					height={SCREENSHOT.height}
+					className="h-auto w-full rounded-lg border border-board-line"
+				/>
+			</Rise>
+
+			<Rise index={6} className="flex w-full flex-col items-center gap-2">
 				<Link to="/login" className={cn(buttonVariants(), "w-full")}>
 					{text.signIn}
 				</Link>
