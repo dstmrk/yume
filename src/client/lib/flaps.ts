@@ -71,20 +71,21 @@ export type FlapTurn = {
 };
 
 /**
- * The drum of a flap: the separator of the thousands, then the digits.
+ * The drum of a flap: the empty position, the separator of the thousands, then
+ * the digits.
  *
  * A flap turns through each character of the drum: it cannot arrive at a
- * character with one turn. The separator is the first position, thus a board at
- * the start shows a separator at each place.
+ * character with one turn. The empty position is the first one, thus a board at
+ * the start shows no character, as a board with no data.
  *
  * The drum holds no letter. The board shows a letter in the name of the
  * application only, and that name does not turn. Refer to paragraph 5.6 of
  * `docs/architecture.md`.
  */
-const DRUM = ".0123456789";
+const DRUM = " .0123456789";
 
 /** The first position of the drum. Each flap starts at that character. */
-const REST = ".";
+const REST = " ";
 
 /**
  * Gives the turns of one flap, from the first position of the drum to a
@@ -99,8 +100,8 @@ const REST = ".";
  *
  * - A flap that does not move. Refer to paragraph 5.2 of
  *   `docs/architecture.md`.
- * - A flap at the first position of the drum, and a flap with a character that
- *   the drum does not hold. Such a flap is already at its place.
+ * - A flap at the empty position, and a flap with a character that the drum
+ *   does not hold. Such a flap is already at its place.
  */
 export function toFlapTurn(char: string, moves: boolean): FlapTurn {
 	const end = DRUM.indexOf(char);

@@ -107,37 +107,39 @@ describe("toFlapTurn", () => {
 		});
 	});
 
-	it("starts a flap that moves from the separator", () => {
+	it("starts a flap that moves from the empty position", () => {
 		const turn = toFlapTurn("2", true);
-		expect(turn.bottom).toBe(".");
+		expect(turn.bottom).toBe(" ");
 		expect(turn.top).toBe("2");
 	});
 
-	it("turns a digit through each digit before it", () => {
+	it("turns a digit through the separator and each digit before it", () => {
 		expect(toFlapTurn("2", true).folds).toEqual([
-			{ step: 0, from: ".", to: "0" },
-			{ step: 1, from: "0", to: "1" },
-			{ step: 2, from: "1", to: "2" },
+			{ step: 0, from: " ", to: "." },
+			{ step: 1, from: ".", to: "0" },
+			{ step: 2, from: "0", to: "1" },
+			{ step: 3, from: "1", to: "2" },
 		]);
 	});
 
-	it("gives one fold to the first digit of the drum", () => {
+	it("gives two folds to the first digit of the drum", () => {
 		expect(toFlapTurn("0", true).folds).toEqual([
-			{ step: 0, from: ".", to: "0" },
+			{ step: 0, from: " ", to: "." },
+			{ step: 1, from: ".", to: "0" },
 		]);
 	});
 
-	it("gives ten folds to the last digit of the drum", () => {
-		expect(toFlapTurn("9", true).folds).toHaveLength(10);
+	it("gives eleven folds to the last digit of the drum", () => {
+		expect(toFlapTurn("9", true).folds).toHaveLength(11);
 	});
 
-	it("gives no fold to the separator of the thousands", () => {
-		// The separator is the first position of the drum. Therefore that flap is
-		// already at its place, and it does not turn.
+	it("turns the separator of the thousands one time", () => {
+		// The separator is the second position of the drum, thus that flap turns
+		// from the empty position one time.
 		expect(toFlapTurn(".", true)).toEqual({
 			top: ".",
-			bottom: ".",
-			folds: [],
+			bottom: " ",
+			folds: [{ step: 0, from: " ", to: "." }],
 		});
 	});
 
@@ -149,7 +151,7 @@ describe("toFlapTurn", () => {
 		});
 	});
 
-	it("gives no fold to a space", () => {
+	it("gives no fold to the empty position", () => {
 		expect(toFlapTurn(" ", true)).toEqual({
 			top: " ",
 			bottom: " ",
