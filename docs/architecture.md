@@ -494,8 +494,42 @@ The first step gives only the installation:
 - A file `manifest.webmanifest` with the name, the icons, `display: standalone`, the
   colour of the theme and `start_url`.
 - The icons of 192 and 512 pixels, and one icon with the purpose `maskable`.
+- The icon of 180 pixels for `apple-touch-icon`. iOS asks for that size and it applies
+  its own mask, thus that file comes from the maskable SVG, which holds no rounded
+  corner.
 - The meta element `viewport` with `viewport-fit=cover`, and the padding of the safe area
   on iOS.
+
+### 5.5.2 The mark
+
+The mark of Yume is one flap of the departure board: the tile holds the gradient of a
+flap, the seam crosses the full width and the letter Y is on it. A flap of Solari is a
+full card with the seam at the middle. An earlier version put a small panel inside a
+frame, and that composition became noise at 16 pixels.
+
+The letter is the glyph Y of Departure Mono, as a path. That glyph is five rectangles on
+a grid of pixels. A path holds no text element, thus the icon needs no font and each
+rasteriser gives the same shape. The first version held `font-family: ui-monospace`, and
+each rasteriser then drew a different letter.
+
+`src/client/public/icon.svg` and `src/client/public/icon-maskable.svg` are the source of
+the mark. The files `icon-180.png`, `icon-192.png`, `icon-512.png` and
+`icon-maskable-512.png` come from those two files. The project has no command for that
+step: a rasteriser of SVG is a large dependency, and the mark changes rarely. Draw the
+PNG files again after each change of an SVG.
+
+`icon.svg` is also the favicon of the page. A browser that reads no SVG icon takes
+`icon-192.png`.
+
+The mark with the letter Y is only for a surface that asks for one square image: the icon
+of the tab and the icon of the home screen. The interface shows the full name instead,
+with one flap for each letter: `SplitFlapWord` in
+`src/client/components/board/SplitFlapWord.tsx`. The masthead of `AppTitle` and the title
+of the public page hold that component. A mark with one letter near the same name is the
+same letter two times.
+
+The flaps of the name do not fall at the load. A flap turns when new data arrives, and a
+name is not data. Refer to paragraph 5.6.
 
 Yume has no service worker now, thus Yume does not operate without a connection. A later
 session can add that file. A service worker that supplies old files is the most frequent

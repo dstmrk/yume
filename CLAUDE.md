@@ -141,6 +141,9 @@ only. Obey these rules:
   the dialogs.
 - Keep the font files in the repository. Do not use an external CDN. The font of the
   board is Departure Mono, in `src/client/fonts/`.
+- Do not write two hyphens together in a comment of an SVG file. XML stops at those two
+  characters, and each token of the theme starts with them. Write `color-flap-top`, not
+  the full name of the token. The mark is in `src/client/public/icon.svg`.
 - Show each number of a flap surface with `SplitFlapNumber`: one flap for one position.
   Do not put a full number on one flap. The separator of the thousands is also a flap.
 - Give a size of a multiple of 11 pixels to each text of the board: `text-[11px]`,

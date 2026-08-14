@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flapSize, toFlapCells } from "./flaps.ts";
+import { flapSize, toFlapCells, toWordCells } from "./flaps.ts";
 
 describe("toFlapCells", () => {
 	it("gives one flap for a value of one digit", () => {
@@ -53,5 +53,47 @@ describe("flapSize", () => {
 		// enters the 294 pixels of the panel. Refer to paragraph 5.3 of
 		// docs/architecture.md.
 		expect(flapSize(12345678)).toBe("md");
+	});
+});
+
+describe("toWordCells", () => {
+	it("gives one flap for each letter", () => {
+		const cells = toWordCells("Yume");
+		expect(cells).toHaveLength(4);
+		expect(cells.map((cell) => cell.char).join("")).toBe("YUME");
+	});
+
+	it("gives capital letters, because the board holds capital letters", () => {
+		expect(
+			toWordCells("yume")
+				.map((cell) => cell.char)
+				.join(""),
+		).toBe("YUME");
+	});
+
+	it("keeps a word that already holds capital letters", () => {
+		expect(
+			toWordCells("YUME")
+				.map((cell) => cell.char)
+				.join(""),
+		).toBe("YUME");
+	});
+
+	it("gives a different position to each flap", () => {
+		expect(toWordCells("Yume").map((cell) => cell.position)).toEqual([
+			0, 1, 2, 3,
+		]);
+	});
+
+	it("gives no flap to a word with no letter", () => {
+		expect(toWordCells("")).toEqual([]);
+	});
+
+	it("gives a flap also to a space", () => {
+		// A board of Solari holds one flap for each position. The separator of
+		// the thousands also holds a flap. Refer to toFlapCells.
+		const cells = toWordCells("a b");
+		expect(cells).toHaveLength(3);
+		expect(cells[1]).toEqual({ position: 1, char: " " });
 	});
 });

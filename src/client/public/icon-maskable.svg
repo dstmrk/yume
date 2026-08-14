@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+	<title>Yume</title>
+	<!--
+		The mark of Yume for a maskable icon. Refer to `icon.svg` for the
+		design.
+
+		The system of the telephone applies its own mask, thus this file gives
+		no rounded corner and the flap fills the full square. The letter is
+		smaller: a maskable icon keeps its content inside a circle with a
+		radius of 40 percent. The half diagonal of the letter is 141 pixels and
+		that radius is 204 pixels.
+
+		The seam stays at the middle and crosses the full width. A mask cuts
+		the ends of the seam, and the seam still reads.
+	-->
+	<defs>
+		<linearGradient id="flap" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#262a2f" />
+			<stop offset="1" stop-color="#1a1d21" />
+		</linearGradient>
+	</defs>
+	<rect width="512" height="512" fill="url(#flap)" />
+	<path
+		fill="#f5a623"
+		d="M181 136V226H211V136ZM301 136V226H331V136ZM241 256V376H271V256ZM211 226V256H241V226ZM271 226V256H301V226Z"
+	/>
+	<line x1="0" y1="256" x2="512" y2="256" stroke="#0b0c0e" stroke-width="14" />
+</svg>
