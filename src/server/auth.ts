@@ -17,7 +17,11 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import type { Db } from "./db/index.ts";
-import { findInvitation, markInvitationUsed } from "./db/queries.ts";
+import {
+	countUsers,
+	findInvitation,
+	markInvitationUsed,
+} from "./db/queries.ts";
 import * as schema from "./db/schema.ts";
 import { type InvitationState, invitationState } from "./invitation.ts";
 
@@ -47,6 +51,13 @@ export type AuthOptions = {
 	baseURL: string;
 	/** The other origins that can send a request. The client of Vite is one. */
 	trustedOrigins?: string[];
+	/**
+	 * The code of the first user. The server makes this code at the start and it
+	 * writes the code in the log, only while the database holds no user. The
+	 * sign-up accepts the code in the same condition. Thus the first user comes
+	 * from the interface and no code stays in the image.
+	 */
+	setupCode?: string;
 };
 
 export function createAuth(db: Db, options: AuthOptions) {
@@ -60,11 +71,12 @@ export function createAuth(db: Db, options: AuthOptions) {
 
 		hooks: {
 			/**
-			 * A sign-up from the network needs an invitation that is valid.
+			 * A sign-up from the network needs an invitation that is valid, or
+			 * the code of the setup for the first user.
 			 *
-			 * A call of `auth.api` from a script holds no `request`. That script
-			 * runs on the machine of the server and it already has the database.
-			 * Therefore it makes the first user, and the user interface does not.
+			 * A call of `auth.api` holds no `request`. That code runs on the
+			 * machine of the server and it already has the database, thus it
+			 * needs no invitation.
 			 */
 			before: createAuthMiddleware(async (ctx) => {
 				if (ctx.path !== SIGN_UP || ctx.request === undefined) {
@@ -77,6 +89,24 @@ export function createAuth(db: Db, options: AuthOptions) {
 						code: "INVITE_CODE_REQUIRED",
 						message: "This application needs an invitation code.",
 					});
+				}
+
+				/**
+				 * The first user. No person can write an invitation before this
+				 * user, thus the code of the setup gives the access one time. The
+				 * server writes that code in the log at the start.
+				 *
+				 * The condition reads the database at each request. Therefore the
+				 * code dies with the first user, also in the same process.
+				 */
+				if (countUsers(db) === 0) {
+					if (options.setupCode === undefined || code !== options.setupCode) {
+						throw new APIError("BAD_REQUEST", {
+							code: errorCode.unknown,
+							message: "The code of the setup is not correct.",
+						});
+					}
+					return;
 				}
 
 				const state = invitationState(
@@ -101,10 +131,12 @@ export function createAuth(db: Db, options: AuthOptions) {
 					 * The hook `before` examined the code. This hook needs the id of
 					 * the user, thus it writes the row after the creation. If the
 					 * sign-up stops between the two hooks, the code stays free.
+					 *
+					 * The code of the setup has no row: no user wrote it.
 					 */
 					after: async (created, context) => {
 						const code = readInviteCode(context?.body);
-						if (code === undefined) {
+						if (code === undefined || code === options.setupCode) {
 							return;
 						}
 						const marked = markInvitationUsed(db, {

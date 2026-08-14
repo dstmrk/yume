@@ -7,6 +7,7 @@ import {
 	addSnapshot,
 	allPrograms,
 	allTransferRules,
+	countUsers,
 	createAccount,
 	createInvitation,
 	currentBalances,
@@ -244,6 +245,20 @@ describe("the queries of the invitation", () => {
 			at: "2026-08-13T10:00:00.000Z",
 		});
 		expect(marked).toBe(false);
+	});
+});
+
+describe("countUsers", () => {
+	it("gives the quantity of users", () => {
+		expect(countUsers(db)).toBe(2);
+	});
+
+	// The hook of the sign-up reads this state. A database with no user accepts
+	// the code of the setup.
+	it("gives 0 with a database that holds no user", () => {
+		const empty = openDatabase(":memory:");
+		migrate(empty, { migrationsFolder: "drizzle" });
+		expect(countUsers(empty)).toBe(0);
 	});
 });
 

@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from "drizzle-orm";
+import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
@@ -88,6 +88,16 @@ export function allTransferRules(db: Db) {
 		.from(transferRule)
 		.orderBy(asc(transferRule.fromProgramId), asc(transferRule.toProgramId))
 		.all();
+}
+
+/**
+ * Gives the quantity of users.
+ *
+ * The hook of the sign-up reads this quantity. A database with no user accepts
+ * the code of the setup. Paragraph 4 of `docs/architecture.md` gives the rule.
+ */
+export function countUsers(db: Db): number {
+	return db.select({ value: count() }).from(user).get()?.value ?? 0;
 }
 
 /** Finds the user with the address. The script of the invitation needs it. */

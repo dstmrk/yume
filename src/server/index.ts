@@ -10,9 +10,14 @@ import { serveStatic } from "@hono/node-server/serve-static";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
+import { countUsers } from "./db/queries.ts";
+import { makeCode } from "./invitation.ts";
 
 const url = process.env.DATABASE_URL ?? "./data/yume.db";
 const port = Number(process.env.PORT ?? 3000);
+
+/** The quantity of characters of the code of the setup. */
+const SETUP_CODE_LENGTH = 10;
 
 /**
  * Better Auth signs the cookies and the tokens with this key. A new key at each
@@ -39,7 +44,26 @@ const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? "")
 	.filter((origin) => origin !== "");
 
 const db = openDatabase(url);
-const auth = createAuth(db, { secret, baseURL, trustedOrigins });
+
+/**
+ * The code of the first user.
+ *
+ * The server makes this code only while the database holds no user. Thus the
+ * image holds no fixed value, and no person on the network knows the code. The
+ * administrator reads the log and opens the link. A new start with no user
+ * gives a new code.
+ */
+const setupCode =
+	countUsers(db) === 0
+		? makeCode(crypto.getRandomValues(new Uint8Array(SETUP_CODE_LENGTH)))
+		: undefined;
+if (setupCode !== undefined) {
+	console.log(
+		`The database holds no user. Open ${baseURL}/signup?code=${setupCode} to make the first user.`,
+	);
+}
+
+const auth = createAuth(db, { secret, baseURL, trustedOrigins, setupCode });
 const app = createApp(db, auth);
 
 /**
