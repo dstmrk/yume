@@ -487,9 +487,13 @@ routes `/` and `/login` do the contrary operation: a user with a session reads t
 dashboard.
 
 The route `/` is the only route that a visitor with no session reads. It gives the
-context that the form of the access does not give: what Yume calculates, and the two
-limits of that calculation. Yume gives an account only with an invitation, thus that page
-sells nothing.
+context that the form of the access does not give: what Yume calculates, and that the
+value is a calculation and not a balance. Yume gives an account only with an invitation,
+thus that page sells nothing.
+
+That page does not say that a transfer of points is permanent. Yume moves no point, and
+the page shows the balance of no person: the value on it is an example. The dashboard
+gives that warning, because a person reads a real value there and then decides.
 
 `start_url` of the manifest is `/dashboard`, not `/`. Thus the application on the home
 screen of a telephone opens the dashboard and not the public page.

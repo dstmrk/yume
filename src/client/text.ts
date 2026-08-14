@@ -14,9 +14,9 @@ export const text = {
 	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
 	homeHowTitle: "Come funziona",
 	homeHow: "Scrivi i saldi a mano. Yume li converte valuta per valuta.",
-	homeLimitsTitle: "I limiti",
-	homeLimits:
-		"Il valore è calcolato, non un saldo. Il trasferimento è definitivo.",
+	homeValueTitle: "Il valore",
+	homeValue:
+		"È un calcolo, non un saldo. Yume mostra il massimo per ogni valuta.",
 	homeScopeTitle: "Cosa copre",
 	homeScope:
 		"I partner di trasferimento di American Express Italia e di Revolut.",

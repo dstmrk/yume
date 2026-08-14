@@ -117,7 +117,11 @@ Write a unit test for each new rule of the calculation.
 ## Rules for the user interface
 
 - The user interface shows that the potential miles are a calculation, not a balance.
-- The user interface shows that a transfer of points is permanent.
+  This rule applies also to a value of an example.
+- A surface that shows the potential miles of the user also shows that a transfer of
+  points is permanent. The public page does not show that warning: Yume moves no point,
+  and that page shows the balance of no person. The warning is on the surface where the
+  person reads a real value and then decides.
 - Do not show a potential value as a sum of all the currencies. The user cannot send the
   same points to two programmes.
 

@@ -34,8 +34,12 @@ const SCREENSHOT = {
  *
  * Yume gives an account only with an invitation, thus this page sells nothing.
  * It gives the context that the form of the access does not give: what Yume
- * calculates, and the two limits of that calculation. Refer to paragraph 5.5.1
- * of `docs/architecture.md`.
+ * calculates, and that the value is a calculation and not a balance. Refer to
+ * paragraph 5.5.1 of `docs/architecture.md`.
+ *
+ * The page does not say that a transfer of points is permanent. Yume moves no
+ * point, and this page shows the balance of no person. The dashboard gives
+ * that warning, because a person reads a real value there and then decides.
  *
  * The text is at the centre, and the board of the example is the first
  * surface. The blocks arrive one after the other, thus the page has the rhythm
@@ -65,7 +69,7 @@ export function HomePage() {
 
 			<dl className="flex w-full flex-col gap-5">
 				<Point index={2} title={text.homeHowTitle} body={text.homeHow} />
-				<Point index={3} title={text.homeLimitsTitle} body={text.homeLimits} />
+				<Point index={3} title={text.homeValueTitle} body={text.homeValue} />
 				<Point index={4} title={text.homeScopeTitle} body={text.homeScope} />
 			</dl>
 
