@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import type { AccountRow } from "../shared/api.ts";
+import type { AccountRow, FavoritesResponse } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { AccountActions } from "./components/AccountActions.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
+import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { InvitePanel } from "./components/InvitePanel.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
@@ -14,10 +15,13 @@ import { Button } from "./components/ui/button.tsx";
 import {
 	fetchAccounts,
 	fetchCatalogue,
+	fetchFavorites,
 	fetchPotential,
+	setFavorite,
 	signOut,
 } from "./lib/api.ts";
 import { cardsToShow } from "./lib/cards.ts";
+import { toggleFavorite } from "./lib/favorites.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import type { GroupedRoute } from "./lib/routes.ts";
 import { groupRoutes } from "./lib/routes.ts";
@@ -26,6 +30,7 @@ import { text } from "./text.ts";
 
 export function Dashboard() {
 	const [expanded, setExpanded] = useState(false);
+	const queryClient = useQueryClient();
 	const catalogue = useQuery({
 		queryKey: ["catalogue"],
 		queryFn: fetchCatalogue,
@@ -35,10 +40,47 @@ export function Dashboard() {
 		queryKey: ["potential"],
 		queryFn: fetchPotential,
 	});
+	const favorites = useQuery({
+		queryKey: ["favorites"],
+		queryFn: fetchFavorites,
+	});
+
+	/**
+	 * The mark of a currency, with the answer before the request.
+	 *
+	 * The cache holds the new state at the tap. Thus the heart and the sequence
+	 * of the cards change immediately, and no card waits for the server. An
+	 * error puts back the state of before.
+	 */
+	const mark = useMutation({
+		mutationFn: (input: { currencyId: string; favorite: boolean }) =>
+			setFavorite(input.currencyId, input.favorite),
+		onMutate: async (input) => {
+			await queryClient.cancelQueries({ queryKey: ["favorites"] });
+			const before = queryClient.getQueryData<FavoritesResponse>(["favorites"]);
+			queryClient.setQueryData<FavoritesResponse>(["favorites"], (old) => ({
+				currencyIds: toggleFavorite(
+					old?.currencyIds ?? [],
+					input.currencyId,
+					input.favorite,
+				),
+			}));
+			return { before };
+		},
+		onError: (_error, _input, context) => {
+			queryClient.setQueryData(["favorites"], context?.before);
+		},
+		onSettled: () => queryClient.invalidateQueries({ queryKey: ["favorites"] }),
+	});
 
 	// The masthead is present in each state of the page. Therefore the title
 	// does not arrive after the data.
-	if (catalogue.isPending || accounts.isPending || potential.isPending) {
+	if (
+		catalogue.isPending ||
+		accounts.isPending ||
+		potential.isPending ||
+		favorites.isPending
+	) {
 		return (
 			<>
 				<AppTitle />
@@ -47,7 +89,12 @@ export function Dashboard() {
 		);
 	}
 
-	if (catalogue.isError || accounts.isError || potential.isError) {
+	if (
+		catalogue.isError ||
+		accounts.isError ||
+		potential.isError ||
+		favorites.isError
+	) {
 		return (
 			<>
 				<AppTitle />
@@ -105,7 +152,12 @@ export function Dashboard() {
 		);
 	}
 
-	const { cards, hidden } = cardsToShow(potential.data.potential, expanded);
+	const marked = new Set(favorites.data.currencyIds);
+	const { cards, hidden } = cardsToShow(
+		potential.data.potential,
+		expanded,
+		marked,
+	);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -133,6 +185,13 @@ export function Dashboard() {
 									account.points !== null,
 							)}
 							name={name}
+							favorite={marked.has(row.currencyId)}
+							onToggleFavorite={() =>
+								mark.mutate({
+									currencyId: row.currencyId,
+									favorite: !marked.has(row.currencyId),
+								})
+							}
 						/>
 					))
 				)}
@@ -229,19 +288,33 @@ function SignOutButton() {
 	);
 }
 
+/**
+ * The card of one currency.
+ *
+ * The heart of the header marks the currency, and not a programme. Six
+ * programmes use Avios, thus one card holds one mark. Refer to the rule 2 of
+ * the data in `CLAUDE.md`.
+ */
 function CurrencyCard({
 	row,
 	title,
 	holdings,
 	name,
+	favorite,
+	onToggleFavorite,
 }: {
 	row: PotentialMiles;
 	title: string;
 	holdings: AccountRow[];
 	name: (programId: string) => string;
+	favorite: boolean;
+	onToggleFavorite: () => void;
 }) {
 	return (
-		<BoardPanel title={title}>
+		<BoardPanel
+			title={title}
+			action={<FavoriteHeart favorite={favorite} onToggle={onToggleFavorite} />}
+		>
 			{/* The label is above the board. Then the board holds the full width of
 			    the card, and a value of seven digits enters one line. Refer to
 			    paragraph 5.0 of `docs/architecture.md`. */}

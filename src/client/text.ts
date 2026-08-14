@@ -33,6 +33,7 @@ export const text = {
 	noPotential: "Aggiungi un saldo per vedere le miglia potenziali.",
 	showOthers: "Mostra le altre",
 	showLess: "Mostra meno",
+	favorite: "Preferito",
 
 	startTitle: "Inizia da qui",
 	startBody:
