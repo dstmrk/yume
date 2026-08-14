@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
-import type { Program } from "../../shared/catalogue.ts";
+import type { Currency, Program } from "../../shared/catalogue.ts";
 import { sortPrograms, toCreateAccountBody } from "../lib/account.ts";
 import { createAccount } from "../lib/api.ts";
 import { text } from "../text.ts";
@@ -26,7 +26,13 @@ import {
  * The form is a standard form of shadcn/ui, not a surface of the board. Refer
  * to paragraph 5 of `docs/architecture.md`.
  */
-export function NewAccountForm({ programs }: { programs: readonly Program[] }) {
+export function NewAccountForm({
+	programs,
+	currencies,
+}: {
+	programs: readonly Program[];
+	currencies: readonly Currency[];
+}) {
 	const [open, setOpen] = useState(false);
 
 	if (!open) {
@@ -37,14 +43,22 @@ export function NewAccountForm({ programs }: { programs: readonly Program[] }) {
 		);
 	}
 
-	return <Fields programs={programs} onClose={() => setOpen(false)} />;
+	return (
+		<Fields
+			programs={programs}
+			currencies={currencies}
+			onClose={() => setOpen(false)}
+		/>
+	);
 }
 
 function Fields({
 	programs,
+	currencies,
 	onClose,
 }: {
 	programs: readonly Program[];
+	currencies: readonly Currency[];
 	onClose: () => void;
 }) {
 	const fieldId = useId();
@@ -67,7 +81,7 @@ function Fields({
 		},
 	});
 
-	const options = sortPrograms(programs);
+	const options = sortPrograms(programs, currencies);
 
 	return (
 		<form

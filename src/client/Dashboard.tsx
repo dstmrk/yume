@@ -163,7 +163,10 @@ export function Dashboard() {
 				)}
 			</BoardPanel>
 
-			<NewAccountForm programs={catalogue.data.programs} />
+			<NewAccountForm
+				programs={catalogue.data.programs}
+				currencies={catalogue.data.currencies}
+			/>
 			<SignOutButton />
 		</div>
 	);
