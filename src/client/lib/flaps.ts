@@ -41,6 +41,92 @@ function toCells(text: string): FlapCell[] {
 	}));
 }
 
+/**
+ * One turn of a flap: the character that falls and the character that arrives.
+ *
+ * A flap of Solari is a card with two halves. At one turn, the top half of
+ * `from` falls forward, and the bottom half of `to` falls after it. Thus the
+ * two halves of one turn show two different characters.
+ *
+ * `step` is the place of the turn in the sequence. The animation gives a delay
+ * of that quantity of steps, thus the flap turns one time after the other.
+ */
+export type FlapFold = {
+	readonly step: number;
+	readonly from: string;
+	readonly to: string;
+};
+
+/**
+ * The two halves of a flap at rest, and each turn from the start to the value.
+ *
+ * `top` is the character of the top half after the last turn. `bottom` is the
+ * character of the bottom half before the first turn. The folds cover the two
+ * halves while the flap turns.
+ */
+export type FlapTurn = {
+	readonly top: string;
+	readonly bottom: string;
+	readonly folds: FlapFold[];
+};
+
+/** The empty position of a drum. A board at the start shows this character. */
+const REST = " ";
+
+/**
+ * The drums of the board. A real Solari holds an empty position, then the
+ * characters in this order. A flap turns through each character of its drum:
+ * it cannot arrive at a character with one turn.
+ */
+const DIGITS = "0123456789";
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+/**
+ * Gives the drum of a character, with the empty position at the start.
+ *
+ * A character that is not in a drum receives a drum of two positions. The
+ * separator of the thousands is such a character: a drum of the digits before
+ * that separator shows values that are not correct.
+ */
+function drumOf(char: string): string {
+	if (DIGITS.includes(char)) {
+		return REST + DIGITS;
+	}
+	if (LETTERS.includes(char)) {
+		return REST + LETTERS;
+	}
+	return REST + char;
+}
+
+/**
+ * Gives the turns of one flap, from the empty position to a character.
+ *
+ * A board of Solari turns the drum of each flap until the correct character
+ * arrives. The user sees the characters before it. Therefore this function
+ * gives one fold for each character of the drum, and the animation shows them
+ * one after the other.
+ *
+ * A flap that does not move receives no fold, and its two halves hold the
+ * character. Refer to paragraph 5.2 of `docs/architecture.md`.
+ */
+export function toFlapTurn(char: string, moves: boolean): FlapTurn {
+	if (!moves || char === REST) {
+		return { top: char, bottom: char, folds: [] };
+	}
+
+	const drum = drumOf(char);
+	const path = [...drum].slice(0, drum.indexOf(char) + 1);
+	let previous = REST;
+	const folds = path.slice(1).map((to, step) => {
+		const fold = { step, from: previous, to };
+		previous = to;
+		return fold;
+	});
+
+	// The bottom half stays at the empty position: the first fold covers it.
+	return { top: char, bottom: REST, folds };
+}
+
 /** The size of the flaps of a potential. */
 export type FlapSize = "lg" | "md";
 
