@@ -402,7 +402,7 @@ product.
 |---|---|
 | Extent of the theme | The display surfaces only: the dashboard, the cards of the potential miles and the lists. |
 | Forms and dialogs | Standard shadcn/ui with the dark palette. |
-| Animation | The flaps turn at the load of the page, through the drum of the characters. Refer to paragraph 5.6. |
+| Animation | The flaps of a value turn at the load of the page, through the drum of the digits. Refer to paragraph 5.6. |
 | Palette | Dark only. There is no light theme. |
 | Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
 | Screen | Mobile first. Refer to paragraph 5.4. |
@@ -496,9 +496,9 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   `--color-board-line`, a colour that is more dark. The WCAG 2.2 ask for that contrast
   for the limits of a control, but not for decoration.
 - **Move the flaps of the potential only.** The potential is the value of the card, thus
-  its flaps turn at the load of the page. The name of the application also turns: it is
-  the masthead of the board. The list of the accounts holds many numbers. The movement of
-  all those flaps is noise, thus the variant `balance` does not move.
+  its flaps turn at the load of the page. The list of the accounts holds many numbers. The
+  movement of all those flaps is noise, thus the variant `balance` does not move. The name
+  of the application does not move: a name is not data.
 - **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
   move. Put the correct value in a second element. That element is not visible, but a
   screen reader finds it.
@@ -608,9 +608,9 @@ with one flap for each letter: `SplitFlapWord` in
 of the public page hold that component. A mark with one letter near the same name is the
 same letter two times.
 
-The flaps of the name turn at the load, through the drum of the letters. A board of
-Solari shows its name in the same way: the board starts at the empty position and it
-turns until each letter arrives. Refer to paragraph 5.6.
+The flaps of the name do not turn at the load. A flap turns when new data arrives, and a
+name is not data. The name keeps the two halves of a card, thus the flap of a letter and
+the flap of a digit hold the same appearance. Refer to paragraph 5.6.
 
 Yume has no service worker now, thus Yume does not operate without a connection. A later
 session can add that file. A service worker that supplies old files is the most frequent
@@ -673,15 +673,18 @@ bottom half of the character that arrives falls from the same axis. Thus the two
 show two different characters while the card turns. A surface that turns one time, with
 one character, is not a Solari.
 
-**A flap turns through its drum.** The drum of a digit holds the empty position and the
-digits from 0 to 9. The drum of a letter holds the empty position and the letters from A
-to Z. The flap starts at the empty position and it turns until the correct character
-arrives, thus the user sees each character before it. An earlier version showed the
-correct character with one movement, and the board then read as a card that appears, not
-as a board of Solari.
+**A flap turns through its drum.** The drum holds the separator of the thousands, then
+the digits from 0 to 9. The flap starts at the separator and it turns until the correct
+digit arrives, thus the user sees each digit before it. An earlier version showed the
+correct digit with one movement, and the board then read as a card that appears, not as a
+board of Solari.
 
-The separator of the thousands is not in a drum, thus that flap turns one time. A drum of
-the digits before the separator shows values that are not correct.
+The board at the load shows a separator at each place. The flap of a separator does not
+turn: that flap is already at its place.
+
+**The drum holds no letter.** The board shows a letter in the name of the application
+only, and that name does not turn. Refer to paragraph 5.5.2. A drum of the letters gives
+26 cards for one flap, and the name is the same word at each load.
 
 The pure function `toFlapTurn` of `src/client/lib/flaps.ts` gives the two halves at rest
 and one fold for each turn. The component `SplitFlapCell` of
