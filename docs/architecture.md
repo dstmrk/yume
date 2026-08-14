@@ -751,6 +751,13 @@ cp .env.example .env      # then write the values
 docker compose up -d
 ```
 
+The first command is necessary. Docker makes `./data` with the owner `root` when that
+directory is absent. The image runs as the user 1000, thus that user then writes no file
+in `/data`, and SQLite gives the error `SQLITE_CANTOPEN`. `openDatabase` in
+`src/server/db/index.ts` reads that error and writes the command of the correction. The
+same error arrives when the owner of `./data` is an other user, for example after a copy
+of the directory.
+
 The job publishes two platforms, `linux/amd64` and `linux/arm64`, with QEMU. The build
 compiles nothing, because each `npm ci` of the `Dockerfile` holds `--ignore-scripts` and
 `better-sqlite3` holds the binary of each platform. Thus the emulation only writes the
