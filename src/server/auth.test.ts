@@ -1,6 +1,6 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
-import { type Auth, createAuth } from "./auth.ts";
+import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { findInvitation } from "./db/queries.ts";
 import { invitation } from "./db/schema.ts";
@@ -272,5 +272,73 @@ describe("the sign-in", () => {
 		);
 
 		expect(response.status).toBe(401);
+	});
+});
+
+describe("needsSecureCookies", () => {
+	it("gives false for the machine itself", () => {
+		expect(needsSecureCookies("http://localhost:3000")).toBe(false);
+		expect(needsSecureCookies("http://127.0.0.1:3000")).toBe(false);
+		expect(needsSecureCookies("http://[::1]:3000")).toBe(false);
+	});
+
+	it("gives true for a host of the network with no TLS", () => {
+		expect(needsSecureCookies("http://nas.local:3000")).toBe(true);
+		expect(needsSecureCookies("http://192.168.1.20:3000")).toBe(true);
+	});
+
+	it("gives true for an origin with TLS", () => {
+		expect(needsSecureCookies("https://yume.example.com")).toBe(true);
+	});
+
+	// A defect in the value of the variable must not remove the protection.
+	it("gives true for a value that it cannot read", () => {
+		expect(needsSecureCookies("nas.local:3000")).toBe(true);
+		expect(needsSecureCookies("")).toBe(true);
+	});
+});
+
+/**
+ * The cookie of the session holds the attribute `secure` on each origin of the
+ * network. Then a browser removes that cookie on a plain HTTP connection, and
+ * the session of the user does not travel in clear text.
+ */
+describe("the cookie of the session", () => {
+	/** Signs in the first user and gives the header `set-cookie`. */
+	async function cookieOf(baseURL: string): Promise<string> {
+		const instance = createAuth(db, { secret: SECRET, baseURL });
+		await instance.api.signUpEmail({
+			body: {
+				name: "Amministratore",
+				email: "primo@example.com",
+				password: PASSWORD,
+			},
+		});
+
+		const response = await instance.handler(
+			new Request(`${baseURL}/api/auth/sign-in/email`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: baseURL },
+				body: JSON.stringify({
+					email: "primo@example.com",
+					password: PASSWORD,
+				}),
+			}),
+		);
+		expect(response.status).toBe(200);
+		return response.headers.get("set-cookie") ?? "";
+	}
+
+	it("holds the attribute Secure on a host of the network with no TLS", async () => {
+		expect(await cookieOf("http://nas.local:3000")).toContain("Secure");
+	});
+
+	it("holds the attribute Secure on an origin with TLS", async () => {
+		expect(await cookieOf("https://yume.example.com")).toContain("Secure");
+	});
+
+	// The client of Vite operates on the machine itself with no certificate.
+	it("holds no attribute Secure on the machine itself", async () => {
+		expect(await cookieOf("http://localhost:3000")).not.toContain("Secure");
 	});
 });

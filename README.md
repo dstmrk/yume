@@ -8,7 +8,8 @@ Japanese word 夢. The word means "dream".
 Yume shows all your loyalty balances on one screen:
 
 - flexible points: American Express Membership Rewards and Revolut RevPoints
-- airline programmes: 19 programmes, with 14 different point currencies
+- airline programmes: 20 programmes, with 15 different point currencies. A source sends
+  points to 19 of them.
 
 Yume then calculates the **potential miles**. The potential miles are the miles that you
 can have in one airline currency, if you transfer all your flexible points to that

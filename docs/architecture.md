@@ -29,13 +29,20 @@ These constraints control all the decisions in this document:
 | Runtime | Node 22 LTS | Long-term support. It includes `fetch`. |
 | HTTP server | Hono | Small and standard. It supplies the API and the client files from one origin. |
 | Client | Vite, React 19, TanStack Router, TanStack Query | Typed routes. TanStack Query controls the cache and the refresh of data. |
-| User interface | Tailwind CSS v4, shadcn/ui, lucide-react | The repository contains the components. No external design system at runtime. |
+| User interface | Tailwind CSS v4, shadcn/ui | The repository contains the components. No external design system at runtime. |
 | Database | SQLite with `better-sqlite3` | One node, few writes, backup of one file. |
 | Schema and migrations | Drizzle and drizzle-kit | SQL-first. The repository contains the generated migrations. |
 | Authentication | Better Auth with the Drizzle adapter | Sessions on your own server. No external identity provider. |
-| Validation | Zod, and `drizzle-zod` for the schemas of the tables | One source of truth for each data shape. |
+| Validation | Zod | `src/shared/api.ts` holds one schema for each shape, and both sides read it. |
 | Tests | Vitest | |
 | Lint and format | Biome | One tool in the place of ESLint and Prettier. |
+
+This table gives the packages that the project holds. An earlier version of this table
+also gave `lucide-react` and `drizzle-zod`. The project installed neither package and it
+imports no name of them: the interface shows the text of a letter in the place of an
+icon, and `src/shared/api.ts` writes each schema of Zod by hand. Rule 9 of the section
+Rules for the work in `CLAUDE.md` asks for the smallest change, thus the project adds a
+package with the requirement of that package and not before it.
 
 ### 2.1 Why not TanStack Start
 
@@ -96,7 +103,10 @@ Thus the system calculates the potential **for each currency**, not for each pro
 If the system calculates the potential for each programme, it counts the same balance
 six times.
 
-The 19 airline programmes use 14 different currencies.
+The catalogue holds 20 airline programmes and 15 airline currencies. A source sends
+points to 19 of those programmes, and those 19 programmes use 14 currencies. The
+programme Miles & More holds the currency that no source reaches. Appendix 8 gives that
+programme.
 
 ### 3.2 Snapshots, not a record of changes
 
@@ -342,6 +352,22 @@ docker compose exec yume node --experimental-strip-types \
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
 
+`BETTER_AUTH_URL` also controls the attribute `secure` of the cookie of the session.
+Better Auth reads the protocol of that value, and it gives the attribute to an origin
+with `https` only. An installation on `http://nas.local:3000` thus sent the session of
+each user in clear text on the network of the home, and no message told that to the
+administrator.
+
+Therefore the function `needsSecureCookies` of `src/server/auth.ts` gives that attribute
+to each origin that is not the machine itself, and `advanced.useSecureCookies` of Better
+Auth receives that value. A browser then removes the cookie on a plain HTTP connection,
+and the sign-in is not possible. Paragraph 7 gives the three tools for the TLS.
+
+The machine itself is the exception: a browser accepts a `secure` cookie from
+`localhost`, from `127.0.0.1` and from `[::1]` on a plain HTTP connection. Thus
+`npm run dev:server` needs no certificate. A value that the function cannot read gives
+the attribute: a defect in the variable must not remove the protection.
+
 The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
@@ -424,7 +450,7 @@ Two rules make the first entry of the data short:
 - **Put the sources first in the list of the programmes.** A source is a programme of a
   currency with the kind `flexible`. The potential of a currency grows only with a
   source. Refer to paragraph 3.5. A user who adds only airline programmes reads a
-  potential that is equal to each balance. The two sources are in the middle of 19 names
+  potential that is equal to each balance. The two sources are in the middle of 22 names
   in the order of the alphabet, thus `sortPrograms` reads the currencies and moves each
   source to the top.
 - **Write the first balance in the form of the account.** The user made an account and
@@ -759,13 +785,13 @@ Obey these rules on a home server with arm64:
   no binary for 32-bit armv7. On armv7, the installation compiles the module. This
   operation is slow and it needs much memory. Build the image with
   `docker buildx --platform linux/arm64`, or build the image on the device.
-- **Use TLS.** Better Auth sends session cookies with the `secure` attribute. A browser
-  removes these cookies on a plain HTTP connection. Thus a login at
+- **Use TLS.** Yume sends the session cookie with the `secure` attribute. A browser
+  removes that cookie on a plain HTTP connection. Thus a login at
   `http://nas.local:3000` is not possible, and the browser shows no error message. Use
   Caddy with a local certificate, or a Cloudflare Tunnel, or Tailscale. Tailscale
   supplies HTTPS. Do not set `secure` to false. `compose.yaml` holds no service for the
   TLS: it gives the port to the local machine only, thus one of these three tools
-  supplies the access from the network.
+  supplies the access from the network. Paragraph 4.3 gives the rule of that attribute.
 - **Make backups.** Use `VACUUM INTO` in a cron job. Write the file to the mounted
   volume. Remove the old files.
 
@@ -791,9 +817,11 @@ only: a migration that ran on a server is immutable. Add a new migration.
 
 ## 8. Appendix — the catalogue of programmes
 
-The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
-Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*. Each rule
-holds the country `IT`. Paragraph 3.3.2 gives the rule for an other country.
+The catalogue contains 20 airline programmes. 19 of them are the transfer partners of
+Amex MR Italy and Revolut RevPoints in August 2026. The last section of this appendix
+gives Miles & More, the programme that no source reaches. Each ratio is *source :
+target*. Each rule holds the country `IT`. Paragraph 3.3.2 gives the rule for an other
+country.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
 truth. That file holds the step of each transfer and, in a comment, the official page of
@@ -823,6 +851,9 @@ Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
 
 ### Transfer rules — Amex Membership Rewards Italy
 
+A dash in the column Minimum shows that the catalogue holds no rule for that target. The
+seed file holds the hotel partners and the rail partners of no country now.
+
 | Target | Ratio | Minimum |
 |---|---|---|
 | Flying Blue | 3 : 2 | 750 |
@@ -832,7 +863,7 @@ Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
 | Cathay (Asia Miles) | 5 : 4 | 1 000 |
 | Delta SkyMiles | 3 : 2 | 3 |
 | Singapore KrisFlyer | 3 : 2 | 1 500 |
-| Emirates Skywards | 5 : 2 (5 : 4 for Centurion) | — |
+| Emirates Skywards | 5 : 2 (5 : 4 for Centurion) | 500 |
 | Hilton Honors | 1 : 1 | — |
 | Marriott Bonvoy | 5 : 4 | — |
 | Radisson Rewards | 2 : 5 | — |

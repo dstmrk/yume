@@ -244,5 +244,21 @@ export function createApp(db: Db, auth: Auth) {
 		return c.json(body);
 	});
 
+	/**
+	 * A path of the API that no route above matches.
+	 *
+	 * The server supplies the files of the client after this application, and a
+	 * path that no file matches gives `index.html`. Without this route, a path
+	 * of the API that holds an error gives that page with the status 200. Then
+	 * the client reads HTML in the place of JSON, and the cause of the defect
+	 * stays hidden.
+	 *
+	 * The route is the last one, thus it takes only a path that no route above
+	 * holds. The middleware of the session is before it: a path that is not
+	 * correct gives the status 401 with no session, and it says nothing about
+	 * the routes of the application.
+	 */
+	app.all("/api/*", (c) => c.json({ error: "not_found" }, 404));
+
 	return app;
 }

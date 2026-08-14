@@ -44,6 +44,33 @@ describe("the catalogue", () => {
 			expect(used).toContain(currency.id);
 		}
 	});
+
+	/**
+	 * The documents give these quantities: paragraph 3.1 and appendix 8 of
+	 * `docs/architecture.md`, the section What Yume does of `README.md`, and the
+	 * comments of `src/client/lib/account.ts` and `src/client/lib/cards.ts`.
+	 *
+	 * Those numbers came from a person, and they became old. This test makes them
+	 * mechanical: a new programme in the catalogue breaks it, and the person then
+	 * writes the new number in the documents.
+	 */
+	it("holds the quantities that the documents give", () => {
+		const airline = new Set(
+			currencies
+				.filter((currency) => currency.kind === "airline")
+				.map((currency) => currency.id),
+		);
+		const targets = new Set(transferRules.map((rule) => rule.toProgramId));
+		const reached = programs.filter((program) => targets.has(program.id));
+
+		expect(programs.length).toBe(22);
+		expect(airline.size).toBe(15);
+		expect(
+			programs.filter((program) => airline.has(program.currencyId)).length,
+		).toBe(20);
+		expect(reached.length).toBe(19);
+		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(14);
+	});
 });
 
 describe("the transfer rules", () => {

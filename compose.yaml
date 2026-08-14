@@ -18,9 +18,9 @@
 # Docker Compose then finds that image and it pulls no other image.
 #
 # This file gives no TLS. Put Yume behind Tailscale, behind a Cloudflare Tunnel
-# or behind a reverse proxy with a certificate. Better Auth sends the session
-# cookies with the attribute `secure`, thus a login on plain HTTP is not
-# possible.
+# or behind a reverse proxy with a certificate. Yume sends the cookie of the
+# session with the attribute `secure`, thus a login on plain HTTP is not
+# possible. Paragraph 4.3 of `docs/architecture.md` gives the rule.
 
 services:
   yume:

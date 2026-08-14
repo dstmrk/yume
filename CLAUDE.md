@@ -41,7 +41,7 @@ server code.
 - Node 22 LTS, TypeScript, Zod
 - Server: Hono. It supplies the API and the client files from one origin.
 - Client: Vite, React 19, TanStack Router, TanStack Query
-- User interface: Tailwind CSS v4, shadcn/ui, lucide-react
+- User interface: Tailwind CSS v4, shadcn/ui
 - Database: SQLite with `better-sqlite3`. Schema and migrations with Drizzle.
 - Authentication: Better Auth with the Drizzle adapter
 - Tests: Vitest. Lint and format: Biome.

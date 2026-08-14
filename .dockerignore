@@ -6,6 +6,8 @@ dist
 # each test file of the server enters the image. Vitest runs the tests before
 # the commit and in the workflow, not in the container.
 **/*.test.ts
+# The rows that a test needs. The application imports no name of this file.
+src/server/db/fixtures.ts
 
 # The private data of the user. It stays on the mounted volume.
 # Refer to the section Git of `CLAUDE.md`.

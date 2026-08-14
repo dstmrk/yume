@@ -38,6 +38,39 @@ const errorCode: Record<Exclude<InvitationState, "valid">, string> = {
 	used: "INVITE_CODE_USED",
 };
 
+/**
+ * The hosts of the machine itself.
+ *
+ * A browser accepts a cookie with the attribute `secure` from these hosts on a
+ * plain HTTP connection. Thus the development of the client needs no
+ * certificate.
+ */
+const LOOPBACK = new Set(["localhost", "127.0.0.1", "[::1]"]);
+
+/**
+ * Examines if the cookies of the session need the attribute `secure`.
+ *
+ * Better Auth reads the protocol of `baseURL`, and it gives that attribute to
+ * an origin with `https` only. Therefore an installation on
+ * `http://nas.local:3000` sends the session of each user in clear text on the
+ * network of the home, and no message tells that to the administrator.
+ *
+ * Yume gives that attribute to each origin that is not the machine itself. A
+ * browser then removes the cookie on a plain HTTP connection, and the sign-in
+ * is not possible. Paragraph 7 of `docs/architecture.md` gives the three tools
+ * for the TLS.
+ *
+ * A value that this function cannot read gives true: a defect in the variable
+ * of the environment must not remove the protection.
+ */
+export function needsSecureCookies(baseURL: string): boolean {
+	try {
+		return !LOOPBACK.has(new URL(baseURL).hostname);
+	} catch {
+		return true;
+	}
+}
+
 /** Reads the field `inviteCode` of a body that has an unknown shape. */
 function readInviteCode(body: unknown): string | undefined {
 	if (typeof body !== "object" || body === null) {
@@ -71,6 +104,13 @@ export function createAuth(db: Db, options: AuthOptions) {
 		basePath: "/api/auth",
 		trustedOrigins: options.trustedOrigins,
 		emailAndPassword: { enabled: true },
+
+		/**
+		 * The cookie of the session holds the attribute `secure` on each origin
+		 * of the network. Without this option, Better Auth gives that attribute
+		 * to an origin with `https` only.
+		 */
+		advanced: { useSecureCookies: needsSecureCookies(options.baseURL) },
 
 		hooks: {
 			/**
