@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
 import { currencies, programs, transferRules } from "./catalogue.ts";
 
 /**
@@ -73,11 +74,32 @@ describe("the transfer rules", () => {
 		}
 	});
 
-	it("does not hold two active rules for one pair of programmes", () => {
+	// The key holds the country. Two countries can give a different ratio to one
+	// pair of programmes, but one country gives one active rule.
+	it("does not hold two active rules for one pair in one country", () => {
 		const active = transferRules
 			.filter((rule) => rule.validTo === null)
-			.map((rule) => `${rule.fromProgramId}->${rule.toProgramId}`);
+			.map(
+				(rule) => `${rule.fromProgramId}->${rule.toProgramId}@${rule.country}`,
+			);
 		expect(new Set(active).size).toBe(active.length);
+	});
+
+	// A country in the ISO 3166-1 alpha-2 format holds two capital letters. A
+	// value with an other shape finds no rule: the comparison of `findRule` is
+	// exact.
+	it("holds a country of two capital letters", () => {
+		for (const rule of transferRules) {
+			expect(rule.country).toMatch(/^[A-Z]{2}$/);
+		}
+	});
+
+	// Yume shows the rules of one country. A rule of a second country in this
+	// file gives no value while no surface selects a country.
+	it("holds the rules of Italy only", () => {
+		for (const rule of transferRules) {
+			expect(rule.country).toBe(DEFAULT_COUNTRY);
+		}
 	});
 
 	it("sends points only to a programme that accepts a transfer", () => {

@@ -176,6 +176,7 @@ describe("the catalogue queries", () => {
 		);
 		expect(rule).toMatchObject({
 			fromProgramId: "amex-mr",
+			country: "IT",
 			ratioNum: 4,
 			ratioDen: 5,
 			minTransfer: 500,

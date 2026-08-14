@@ -2,8 +2,8 @@
  * The shapes of the catalogue.
  *
  * The catalogue holds application data, not user data. The seed file in
- * `src/server/db/seed/` holds the values. This file holds only the types,
- * because the client and the server both use them.
+ * `src/server/db/seed/` holds the values. This file holds the types, because
+ * the client and the server both use them.
  */
 
 /**
@@ -13,6 +13,22 @@
  * same result as a comparison of two dates.
  */
 export type IsoDate = string;
+
+/**
+ * A country in the ISO 3166-1 alpha-2 format, for example `IT`.
+ *
+ * A transfer rule applies to one country. Amex Italia and Amex France give
+ * different partners and different ratios for the same pair of programmes.
+ */
+export type CountryCode = string;
+
+/**
+ * The country of the rules that the application uses.
+ *
+ * The catalogue holds the rules of Italy only, and no surface selects a
+ * country. A second country in the catalogue needs a country of the user.
+ */
+export const DEFAULT_COUNTRY: CountryCode = "IT";
 
 /**
  * The kind of a currency.
@@ -57,12 +73,19 @@ export type Program = {
  * belong to the pair of programmes. Paragraph 3.3.1 of `docs/architecture.md`
  * gives the reason.
  *
+ * The rule also refers to one country. Paragraph 3.3.2 gives the reason.
+ *
  * A rule is historical data. To change a ratio, write the date in `validTo` of
  * the old rule. Then add a new rule.
  */
 export type TransferRule = {
 	readonly fromProgramId: string;
 	readonly toProgramId: string;
+	/**
+	 * The country of the rule. Each rule holds a country: a rule without a
+	 * country does not exist.
+	 */
+	readonly country: CountryCode;
 	/** The quantity of target points. It is more than 0. */
 	readonly ratioNum: number;
 	/** The quantity of source points. It is more than 0. */

@@ -141,9 +141,15 @@ export const program = sqliteTable("program", {
 /**
  * A rule for a transfer from one programme to one other programme.
  *
- * The key is the pair of programmes with `valid_from`. Thus one pair cannot
- * have two rules that start on the same day. A rule is historical data: to
- * change a ratio, write a date in `valid_to` and add a new rule.
+ * The key is the pair of programmes with `country` and with `valid_from`. Thus
+ * one pair in one country cannot have two rules that start on the same day, and
+ * two countries can hold a different rule for the same pair. A rule is
+ * historical data: to change a ratio, write a date in `valid_to` and add a new
+ * rule.
+ *
+ * The column `country` holds a country in the ISO 3166-1 alpha-2 format. The
+ * catalogue holds `IT` only now. Paragraph 3.3.2 of `docs/architecture.md`
+ * gives the reason.
  */
 export const transferRule = sqliteTable(
 	"transfer_rule",
@@ -154,6 +160,7 @@ export const transferRule = sqliteTable(
 		toProgramId: text("to_program_id")
 			.notNull()
 			.references(() => program.id),
+		country: text("country").notNull(),
 		ratioNum: integer("ratio_num").notNull(),
 		ratioDen: integer("ratio_den").notNull(),
 		minTransfer: integer("min_transfer").notNull(),
@@ -163,7 +170,12 @@ export const transferRule = sqliteTable(
 	},
 	(table) => [
 		primaryKey({
-			columns: [table.fromProgramId, table.toProgramId, table.validFrom],
+			columns: [
+				table.fromProgramId,
+				table.toProgramId,
+				table.country,
+				table.validFrom,
+			],
 		}),
 	],
 );

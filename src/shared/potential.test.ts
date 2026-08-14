@@ -44,6 +44,7 @@ const programs: Program[] = [
 const amexToBritishAirways: TransferRule = {
 	fromProgramId: "amex-mr",
 	toProgramId: "ba-club",
+	country: "IT",
 	ratioNum: 4,
 	ratioDen: 5,
 	minTransfer: 800,
@@ -56,6 +57,7 @@ const amexToBritishAirways: TransferRule = {
 const amexToIberia: TransferRule = {
 	fromProgramId: "amex-mr",
 	toProgramId: "iberia-club",
+	country: "IT",
 	ratioNum: 4,
 	ratioDen: 5,
 	minTransfer: 500,
@@ -68,6 +70,7 @@ const amexToIberia: TransferRule = {
 const revolutToBritishAirways: TransferRule = {
 	fromProgramId: "revolut",
 	toProgramId: "ba-club",
+	country: "IT",
 	ratioNum: 1,
 	ratioDen: 1,
 	minTransfer: 1,
@@ -78,9 +81,17 @@ const revolutToBritishAirways: TransferRule = {
 
 const rules = [amexToBritishAirways, amexToIberia, revolutToBritishAirways];
 const TODAY = "2026-08-11";
+const COUNTRY = "IT";
 
-function avios(balances: AccountBalance[], at = TODAY) {
-	return potentialMiles({ currencyId: "avios", balances, programs, rules, at });
+function avios(balances: AccountBalance[], at = TODAY, country = COUNTRY) {
+	return potentialMiles({
+		currencyId: "avios",
+		balances,
+		programs,
+		rules,
+		country,
+		at,
+	});
 }
 
 describe("potentialMiles", () => {
@@ -173,6 +184,36 @@ describe("potentialMiles", () => {
 		).toBe(0);
 	});
 
+	it("does not use a rule of an other country", () => {
+		expect(
+			avios([{ programId: "amex-mr", points: 900 }], TODAY, "FR").total,
+		).toBe(0);
+	});
+
+	// A country selects its own rule for the same pair of programmes. The rules of
+	// the two countries stay in one list, thus the function must not read the
+	// first rule of the pair.
+	it("uses the rule of the country of the request", () => {
+		const french: TransferRule = {
+			...amexToBritishAirways,
+			country: "FR",
+			ratioNum: 1,
+			ratioDen: 2,
+			minTransfer: 100,
+			increment: 100,
+		};
+		const both = [french, amexToBritishAirways];
+		const result = potentialMiles({
+			currencyId: "avios",
+			balances: [{ programId: "amex-mr", points: 900 }],
+			programs,
+			rules: both,
+			country: "IT",
+			at: TODAY,
+		});
+		expect(result.total).toBe(640);
+	});
+
 	it("ignores a source that has no rule to the currency", () => {
 		expect(avios([{ programId: "flying-blue", points: 5000 }]).total).toBe(0);
 	});
@@ -241,6 +282,7 @@ describe("potentialMiles", () => {
 			balances: [{ programId: "amex-mr", points: 90000 }],
 			programs,
 			rules,
+			country: COUNTRY,
 			at: TODAY,
 		});
 		expect(result.total).toBe(0);

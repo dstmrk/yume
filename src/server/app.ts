@@ -8,6 +8,7 @@ import {
 	type InvitationsResponse,
 	type PotentialResponse,
 } from "../shared/api.ts";
+import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { potentialMiles } from "../shared/potential.ts";
 import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
@@ -214,6 +215,9 @@ export function createApp(db: Db, auth: Auth) {
 	 * A flexible currency is a source, thus it has no potential. The client must
 	 * not add the values of two currencies: the user cannot send the same points
 	 * to two currencies.
+	 *
+	 * The route uses the rules of `DEFAULT_COUNTRY`. The user selects no country
+	 * now. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
 	 */
 	app.get("/api/potential", (c) => {
 		const programs = allPrograms(db);
@@ -231,6 +235,7 @@ export function createApp(db: Db, auth: Auth) {
 					balances,
 					programs,
 					rules,
+					country: DEFAULT_COUNTRY,
 					at,
 				}),
 			);
