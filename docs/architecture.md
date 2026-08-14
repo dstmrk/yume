@@ -683,6 +683,13 @@ git tag v0.1.0 && git push origin v0.1.0
 The two jobs of the examination run again on the tag. Thus the publication examines the
 exact commit of the release.
 
+The job `image` also builds the image, and that build takes minutes. Therefore that job
+runs on a tag `v*` and on a pull request that changes `Dockerfile`, `.dockerignore`,
+`package.json` or `package-lock.json`. A push to `main` builds no image: the pull request
+of that commit gave the same result. The job `changes` reads the names of the files of
+the pull request and gives that decision. Add a file to the list of `changes` when the
+`Dockerfile` copies a new path.
+
 Therefore `compose.yaml` holds `image:` and it holds no `build:`. The installation
 on a home server needs that file and `.env` only, and it needs no clone of the
 repository:
