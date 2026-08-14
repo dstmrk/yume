@@ -102,68 +102,167 @@
 }
 
 /**
- * The face of a flap: a dark card with the line between the two halves.
+ * The housing of one position of the board.
  *
- * The surface holds two layers. The first layer is the line between the two
- * halves. The second layer is the light: a flap of a board is a physical card,
- * thus its top catches the light and its base stays in the shade.
+ * A flap of Solari is a card with two halves, and the card turns on an axis at
+ * the middle of the housing. Therefore this surface holds no full card: it
+ * holds a top half and a bottom half, and the colour of the housing between the
+ * two halves makes the line of the axis.
  *
- * `background-color` gives the flat colour of the face. A browser with no
- * gradient shows that colour.
+ * `background-color` gives the colour of the housing. A browser that shows no
+ * gradient gives that colour to the full surface.
  *
- * The digits keep the same width, thus a number does not move when the value
- * changes.
+ * `perspective` makes the card fall toward the reader. With no perspective the
+ * movement is flat, and the eye reads no card.
+ *
+ * `overflow` keeps the card in its housing. A card that falls is larger than
+ * the housing, because that card comes toward the reader.
+ *
+ * The height is fixed, thus each half is one half of the character. The digits
+ * keep the same width, thus a number does not move when the value changes.
  */
 @utility flap {
-	background-color: var(--color-flap-face);
-	background-image:
-		linear-gradient(
-			to bottom,
-			transparent calc(50% - 1px),
-			var(--color-flap-edge) calc(50% - 1px),
-			var(--color-flap-edge) calc(50% + 1px),
-			transparent calc(50% + 1px)
-		),
-		linear-gradient(to bottom, var(--color-flap-top), var(--color-flap-base));
+	position: relative;
+	display: inline-block;
+	overflow: hidden;
+	height: var(--flap-h, 33px);
+	line-height: var(--flap-h, 33px);
+	border-radius: 0.25rem;
+	background-color: var(--color-flap-edge);
 	font-family: var(--font-board);
 	font-variant-numeric: tabular-nums;
-	border-radius: 0.25rem;
+	perspective: 200px;
+
+	/* One turn of the drum. The top half falls in the first half of that time,
+	   and the bottom half falls in the second half. */
+	--flap-turn: 66ms;
+
+	/* The moment of the first turn of this flap. A board turns from the left,
+	   thus each position waits for the position before it. */
+	--flap-start: calc(var(--flap-index, 0) * 33ms);
 }
 
 /**
- * A board turns its flaps when new data arrives. The page load is that moment.
+ * One half of a card.
  *
- * Each flap falls into its place with the correct digit. The flaps do not show
- * other digits first: this page shows a balance, and digits that change at
- * random read as data that is not correct.
+ * The half holds the full height of the flap and cuts the other half of the
+ * character. The height of `calc(50% - 1px)` leaves the line of the axis: the
+ * colour of the housing is between the two halves.
  *
- * The variable `--flap-index` gives the place of the flap. Thus the flaps fall
- * one after the other, from the left.
+ * The light comes from above, thus the top of a card catches the light and its
+ * base stays in the shade. The two gradients together make one card.
  */
-@keyframes flap-drop {
+@utility flap-half {
+	position: absolute;
+	inset-inline: 0;
+	height: calc(50% - 1px);
+	overflow: hidden;
+	backface-visibility: hidden;
+}
+
+@utility flap-half-top {
+	top: 0;
+	background-image: linear-gradient(
+		to bottom,
+		var(--color-flap-top),
+		var(--color-flap-face)
+	);
+}
+
+@utility flap-half-bottom {
+	bottom: 0;
+	background-image: linear-gradient(
+		to bottom,
+		var(--color-flap-face),
+		var(--color-flap-base)
+	);
+}
+
+/**
+ * The character in a half.
+ *
+ * The element holds the full height of the flap, and the half cuts it. Thus the
+ * top half and the bottom half of one card give one character. `white-space`
+ * keeps the empty position of the drum: that character is a space.
+ */
+@utility flap-glyph {
+	position: absolute;
+	inset-inline: 0;
+	height: var(--flap-h, 33px);
+	line-height: var(--flap-h, 33px);
+	text-align: center;
+	white-space: pre;
+}
+
+/**
+ * One turn of the drum: a card falls.
+ *
+ * The top half of the character that goes away turns on the axis and falls
+ * toward the reader. Then the bottom half of the character that arrives falls
+ * from the same axis. Thus the two halves show two different characters while
+ * the card turns, as a real Solari.
+ *
+ * The board holds one card for each character of the drum. The variable
+ * `--flap-step` gives the place of the card in that drum, thus the cards fall
+ * one after the other. The variable `--flap-index` gives the place of the flap
+ * on the board, thus the board turns from the left.
+ */
+@keyframes flap-fall-top {
 	from {
+		transform: rotateX(0deg);
+	}
+	to {
 		transform: rotateX(-90deg);
-		opacity: 0;
+	}
+}
+
+@keyframes flap-fall-bottom {
+	from {
+		transform: rotateX(90deg);
 	}
 	to {
 		transform: rotateX(0deg);
-		opacity: 1;
 	}
 }
 
-@utility flap-board {
-	perspective: 320px;
+/**
+ * The state with no animation is the state at the end of the turn: the top half
+ * is on the axis and shows nothing, and the bottom half is in its place.
+ * Therefore a user with `prefers-reduced-motion` reads the value immediately,
+ * and the animation needs no second rule for that user.
+ */
+@utility flap-fold-top {
+	transform-origin: bottom center;
+	transform: rotateX(-90deg);
+
+	@media (prefers-reduced-motion: no-preference) {
+		/* `backwards` holds the card in its place during the delay. Without it,
+		   each card of the drum goes away before its turn. */
+		animation: flap-fall-top calc(var(--flap-turn) / 2) ease-in backwards;
+		animation-delay: calc(
+			var(--flap-start) +
+			var(--flap-step, 0) *
+			var(--flap-turn)
+		);
+	}
 }
 
-@utility flap-drop {
-	/* The animation is present only for a user that accepts the movement. A
-	   user with prefers-reduced-motion sees the value immediately. */
+@utility flap-fold-bottom {
+	transform-origin: top center;
+	transform: rotateX(0deg);
+
 	@media (prefers-reduced-motion: no-preference) {
-		transform-origin: top center;
-		/* `backwards` keeps the flap hidden during the delay. Without it, each
-		   flap appears first and then turns. */
-		animation: flap-drop 260ms ease-out backwards;
-		animation-delay: calc(var(--flap-index, 0) * 60ms);
+		/* The bottom half falls after the top half, thus it waits one half of
+		   the turn. The card arrives at its place and stops: the movement is
+		   `linear`, because a card of a board falls and does not slow down. */
+		animation: flap-fall-bottom calc(var(--flap-turn) / 2) linear backwards;
+		animation-delay: calc(
+			var(--flap-start) +
+			var(--flap-step, 0) *
+			var(--flap-turn) +
+			var(--flap-turn) /
+			2
+		);
 	}
 }
 

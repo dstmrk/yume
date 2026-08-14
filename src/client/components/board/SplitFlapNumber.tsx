@@ -1,14 +1,14 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/cn.ts";
 import { flapSize, toFlapCells } from "../../lib/flaps.ts";
 import { formatPoints } from "../../lib/format.ts";
+import { SplitFlapCell } from "./SplitFlapCell.tsx";
 
 /**
  * One flap of the board.
  *
  * A board of Solari holds one flap for each position, and each flap has the
  * same size. The separator of the thousands holds a position, thus it is also a
- * flap. Then the line between the two halves crosses the full number.
+ * flap. Then the line of the axis crosses the full number.
  *
  * The size is a multiple of 11 pixels. Departure Mono is a pixel font, and the
  * author gives that grid for an exact result. A balance holds the medium size.
@@ -21,21 +21,25 @@ import { formatPoints } from "../../lib/format.ts";
  * thus `tailwind-merge` reads the two as a colour and removes the size. A class
  * `text-[33px]` holds a length, thus `tailwind-merge` reads it as a size.
  *
+ * The height of the housing is also a multiple of 11 pixels. `SplitFlapCell`
+ * makes the two halves at one half of that height, thus the value is fixed and
+ * not the height of a line.
+ *
  * The variant `potential` is the amber of a value that the system calculates,
- * and its flaps fall at the load of the page. The variant `balance` is a value
+ * and its flaps turn at the load of the page. The variant `balance` is a value
  * that the user wrote: it holds the colour of the text and it does not move.
  * The amber marks a calculation. Refer to paragraph 5.2 of
  * `docs/architecture.md`.
  */
-const flapCell = cva("flap", {
+const flapCell = cva("", {
 	variants: {
 		variant: {
-			potential: "flap-drop px-1.5 py-2 text-board-amber",
-			balance: "px-1 py-1 text-board-text",
+			potential: "text-board-amber",
+			balance: "text-board-text",
 		},
 		size: {
-			lg: "text-[33px]",
-			md: "text-[22px]",
+			lg: "px-1.5 text-[33px] [--flap-h:55px]",
+			md: "px-1 text-[22px] [--flap-h:33px]",
 		},
 	},
 	defaultVariants: {
@@ -47,11 +51,12 @@ const flapCell = cva("flap", {
 /**
  * A quantity of points with one flap for each digit, as on a departure board.
  *
- * The flaps of the potential fall into their place when the page loads, one
- * after the other. A board turns its flaps when new data arrives, and the page
- * load is that moment. The list of the accounts holds many numbers, thus its
- * flaps do not move: the movement of all those flaps is noise. A user with
- * `prefers-reduced-motion` sees each value immediately: the rules of the
+ * The flaps of the potential turn when the page loads, one after the other. A
+ * board turns its flaps when new data arrives, and the page load is that
+ * moment. Each flap turns through the drum of the digits until the correct
+ * digit arrives, as a real Solari. The list of the accounts holds many numbers,
+ * thus its flaps do not move: the movement of all those flaps is noise. A user
+ * with `prefers-reduced-motion` sees each value immediately: the rules of the
  * animation are in `styles/theme.css`.
  *
  * A screen reader reads the value one time, from the element that is not
@@ -73,18 +78,15 @@ export function SplitFlapNumber({
 	return (
 		<span className="inline-flex items-stretch gap-0.5">
 			<span className="sr-only">{formatPoints(value)}</span>
-			<span
-				aria-hidden="true"
-				className="flap-board inline-flex items-stretch gap-0.5"
-			>
+			<span aria-hidden="true" className="inline-flex items-stretch gap-0.5">
 				{toFlapCells(value).map((cell) => (
-					<span
+					<SplitFlapCell
 						key={cell.position}
-						style={{ "--flap-index": cell.position } as React.CSSProperties}
-						className={cn(flapCell({ variant, size }))}
-					>
-						{cell.char}
-					</span>
+						char={cell.char}
+						index={cell.position}
+						moves={variant !== "balance"}
+						className={flapCell({ variant, size })}
+					/>
 				))}
 			</span>
 		</span>
