@@ -54,11 +54,53 @@ jobs:
           bash .claude/hooks/test-block-push-to-main.sh
           bash .claude/hooks/test-block-private-data-commit.sh
 
+  # The build of the image takes minutes. The job `image` needs it only for a
+  # change of the container. This job reads the names of the files of the pull
+  # request. Then the job `image` reads this result.
+  #
+  # These four files give the content of the image. A change of `src/` arrives
+  # in the image, but the jobs `check` and the tests of Vitest examine that
+  # code. Add a file to this list when the `Dockerfile` copies a new path.
+  changes:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    outputs:
+      docker: ${{ steps.files.outputs.docker }}
+    steps:
+      - uses: actions/checkout@v6
+
+      # The checkout gives the merge commit with no history. The fetch takes
+      # the commit of the base, thus `git diff` reads the two trees.
+      - id: files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          names="$(git diff --name-only "$BASE_SHA" HEAD)"
+          pattern='^(Dockerfile|\.dockerignore|package\.json|package-lock\.json)$'
+          if printf '%s\n' "$names" | grep -qE "$pattern"; then
+            echo "docker=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "docker=false" >> "$GITHUB_OUTPUT"
+          fi
+
   # Vitest examines no file of the container. This job builds the image and
   # then it reads the application in the container. Thus a defect of the
   # Dockerfile stops the pull request, and not the deployment on the home
   # server.
+  #
+  # The job runs on a tag `v*` and on a pull request that changes a file of the
+  # image. A push to `main` builds no image: the pull request of that commit
+  # gave the same result.
+  #
+  # `!cancelled()` is necessary. On a tag the job `changes` does not run, and a
+  # job that waits for a job with no run also does not run.
   image:
+    needs: changes
+    if: >-
+      ${{ !cancelled()
+      && (startsWith(github.ref, 'refs/tags/v')
+      || needs.changes.outputs.docker == 'true') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -148,8 +190,9 @@ jobs:
 
   # The image of the home server. This job runs only after a push of a tag `v*`,
   # thus a pull request and a push to main publish no image. A release is then a
-  # decision of a person, and not each merge. `needs` holds the two other jobs:
-  # an image with a test that fails must not arrive on the registry.
+  # decision of a person, and not each merge. `needs` holds the job of the tests
+  # and the job of the container: an image with a test that fails must not
+  # arrive on the registry.
   #
   # A package of GHCR that a workflow publishes with GITHUB_TOKEN takes the
   # visibility of the repository. This repository is public, therefore

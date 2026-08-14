@@ -206,7 +206,9 @@ each tag `v*`. The workflow is the second defence: run the commands before the c
 
 The workflow also builds the image and starts the container. Then it reads
 `GET /api/health`, the catalogue and the page of the client. Vitest examines no file of
-the container, thus this job is the only examination of the `Dockerfile`.
+the container, thus this job is the only examination of the `Dockerfile`. That job runs
+on a tag `v*` and on a pull request that changes `Dockerfile`, `.dockerignore`,
+`package.json` or `package-lock.json`. A push to `main` builds no image.
 
 Run these commands for the database and for the server:
 
