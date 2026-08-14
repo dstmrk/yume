@@ -1,5 +1,6 @@
 import { useNavigate, useRouter } from "@tanstack/react-router";
 import { AccessForm } from "./components/AccessForm.tsx";
+import { AppTitle } from "./components/board/AppTitle.tsx";
 
 /**
  * The page of the access. It holds the sign-in and the sign-up.
@@ -12,11 +13,14 @@ export function LoginPage() {
 	const router = useRouter();
 
 	return (
-		<AccessForm
-			onAccess={async () => {
-				await router.invalidate();
-				await navigate({ to: "/dashboard" });
-			}}
-		/>
+		<>
+			<AppTitle />
+			<AccessForm
+				onAccess={async () => {
+					await router.invalidate();
+					await navigate({ to: "/dashboard" });
+				}}
+			/>
+		</>
 	);
 }

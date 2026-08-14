@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { AccountRow } from "../shared/api.ts";
 import type { PotentialMiles } from "../shared/potential.ts";
 import { AccountActions } from "./components/AccountActions.tsx";
+import { AppTitle } from "./components/board/AppTitle.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
@@ -34,12 +35,24 @@ export function Dashboard() {
 		queryFn: fetchPotential,
 	});
 
+	// The masthead is present in each state of the page. Therefore the title
+	// does not arrive after the data.
 	if (catalogue.isPending || accounts.isPending || potential.isPending) {
-		return <p className="text-board-muted text-sm">{text.loading}</p>;
+		return (
+			<>
+				<AppTitle />
+				<p className="text-board-muted text-sm">{text.loading}</p>
+			</>
+		);
 	}
 
 	if (catalogue.isError || accounts.isError || potential.isError) {
-		return <p className="text-board-muted text-sm">{text.loadError}</p>;
+		return (
+			<>
+				<AppTitle />
+				<p className="text-board-muted text-sm">{text.loadError}</p>
+			</>
+		);
 	}
 
 	const names = new Map(
@@ -62,6 +75,8 @@ export function Dashboard() {
 
 	return (
 		<div className="flex flex-col gap-6">
+			<AppTitle />
+
 			<section className="flex flex-col gap-3">
 				<header>
 					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
