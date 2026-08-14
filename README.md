@@ -69,7 +69,7 @@ of an account, and the change between two dates.
 
 **Hotel programmes and rail programmes in the catalogue.** These programmes also collect
 points, and some of them send those points to an airline programme. The database holds
-the two kinds already. Each new transfer rule needs the official page as `sourceUrl`, and
+the two kinds already. Each new transfer rule needs the official page in a comment, and
 the user confirms each ratio.
 
 ## Installation

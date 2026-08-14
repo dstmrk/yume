@@ -11,6 +11,9 @@ name: CI
 on:
   push:
     branches: [main]
+    # A tag `v*` publishes the image. The jobs `check` and `image` run again on
+    # that tag, thus the publication examines the exact commit of the release.
+    tags: ["v*"]
   pull_request:
 
 # The workflow reads the repository. It writes nothing.
@@ -135,15 +138,16 @@ jobs:
         if: always()
         run: docker rm -f yume-ci
 
-  # The image of the home server. This job runs only after a push to main, thus
-  # a pull request publishes no image. `needs` holds the two other jobs: an
-  # image with a test that fails must not arrive on the registry.
+  # The image of the home server. This job runs only after a push of a tag `v*`,
+  # thus a pull request and a push to main publish no image. A release is then a
+  # decision of a person, and not each merge. `needs` holds the two other jobs:
+  # an image with a test that fails must not arrive on the registry.
   #
   # A package of GHCR that a workflow publishes with GITHUB_TOKEN takes the
   # visibility of the repository. This repository is public, therefore
   # `docker compose up` needs no `docker login`.
   publish:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [check, image]
     runs-on: ubuntu-latest
     permissions:
@@ -168,9 +172,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # The tag `latest` is for compose.yaml. The tag of the commit gives
-      # one image for each change, thus a person can go back to the image
-      # before a defect.
+      # The tag `latest` is for compose.yaml. The name of the git tag gives one
+      # image for each release, thus a person can go back to the image before a
+      # defect.
       - name: Build the image and publish it
         uses: docker/build-push-action@v7
         with:
@@ -179,6 +183,6 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

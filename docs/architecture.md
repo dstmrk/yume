@@ -123,8 +123,7 @@ transfer_rule {
   fromProgramId, toProgramId, // refer to paragraph 3.3.1
   ratioNum, ratioDen,        // Amex: 5 MR gives 4 Avios  =>  num 4, den 5
   minTransfer, increment,
-  validFrom, validTo,        // validTo is null for an active rule
-  sourceUrl
+  validFrom, validTo         // validTo is null for an active rule
 }
 ```
 
@@ -571,9 +570,20 @@ times.
 
 ### 7.0 The image on the registry
 
-The workflow publishes the image on `ghcr.io/dstmrk/yume` after each push to `main`. The
-job `publish` needs the job of the tests and the job of the container: an image with a
-test that fails must not arrive on the registry.
+The workflow publishes the image on `ghcr.io/dstmrk/yume` after a push of a tag `v*`
+only. The job `publish` needs the job of the tests and the job of the container: an
+image with a test that fails must not arrive on the registry.
+
+A merge on `main` publishes no image. A release is a decision of a person. The home
+server holds the data of the user, therefore an update must arrive at a moment that the
+person selects, and not at each merge. To make a release, write a tag on `main`:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+The two jobs of the examination run again on the tag. Thus the publication examines the
+exact commit of the release.
 
 Therefore `compose.yaml` holds `image:` and it holds no `build:`. The installation
 on a home server needs that file and `.env` only, and it needs no clone of the
@@ -590,8 +600,9 @@ compiles nothing, because each `npm ci` of the `Dockerfile` holds `--ignore-scri
 `better-sqlite3` holds the binary of each platform. Thus the emulation only writes the
 files of the client with Vite.
 
-The job writes two tags: `latest` for `compose.yaml`, and the SHA of the commit for
-one image of each change. A person can then go back to the image before a defect.
+The job writes two tags: `latest` for `compose.yaml`, and the name of the git tag, for
+example `v0.1.0`. A person can then go back to the image of the release before a defect
+with `image: ghcr.io/dstmrk/yume:v0.1.0`.
 
 A package of GHCR that a workflow publishes with `GITHUB_TOKEN` takes the visibility of
 the repository. This repository is public, therefore `docker compose up` needs no
@@ -643,15 +654,20 @@ The image of runtime holds `drizzle/`, because the migrator reads
 `drizzle/meta/_journal.json` and the SQL files. The migrator also keeps a table of the
 migrations that ran. Therefore a second start applies no migration again.
 
+`drizzle/` holds one migration, `0000_initial.sql`. The application ran on no server
+before the first tag, thus no database held the two migrations of the first version. The
+project made those two migrations into one file. This operation is possible one time
+only: a migration that ran on a server is immutable. Add a new migration.
+
 ## 8. Appendix — the catalogue of programmes
 
 The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
 Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
-truth. That file holds the step of each transfer and a `sourceUrl` for each rule. This
-appendix gives no step. Do not copy a value from this appendix into the seed file. Read
-the official page again and write the link.
+truth. That file holds the step of each transfer and, in a comment, the official page of
+each rule. This appendix gives no step. Do not copy a value from this appendix into the
+seed file. Read the official page again and write the link in the comment.
 
 ### Shared currencies
 

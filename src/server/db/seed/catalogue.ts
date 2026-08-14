@@ -7,7 +7,7 @@
  * Rules for a change of this file:
  *
  * - Read the official page. Do not write a ratio from memory.
- * - Write the link of that page in `sourceUrl`.
+ * - Write the link of that page in a comment above the rule.
  * - Do not change a rule in its place. Write the date in `validTo` of the old
  *   rule. Then add a new rule with a new `validFrom`.
  * - Ask the user before you change a value here.
@@ -28,10 +28,6 @@ import type {
  */
 const VERIFIED_ON = "2026-08-11";
 const VERIFIED_ON_2 = "2026-08-12";
-
-/** The page of Revolut for the transfer of RevPoints into miles. */
-const REVOLUT_MILES_PAGE =
-	"https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -241,6 +237,7 @@ export const transferRules: readonly TransferRule[] = [
 		// "3 punti Membership Rewards = 2 Miglia Flying Blue",
 		// "Trasferimento minimo richiesto 750 Punti",
 		// "il trasferimento deve essere effettuato in blocchi o multipli di 3 punti"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Flying-Blue/flying-blue/AF02
 		fromProgramId: "amex-mr",
 		toProgramId: "flying-blue",
 		ratioNum: 2,
@@ -249,12 +246,11 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 3,
 		validFrom: VERIFIED_ON,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Flying-Blue/flying-blue/AF02",
 	},
 	{
 		// "5 punti Membership Rewards = 4 Avios", minimum "800 Punti",
 		// "il trasferimento deve essere effettuato in blocchi o multipli di 400 punti"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/British-Airways/award-cancelled-/BA-0001
 		fromProgramId: "amex-mr",
 		toProgramId: "ba-club",
 		ratioNum: 4,
@@ -263,12 +259,11 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 400,
 		validFrom: VERIFIED_ON,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/British-Airways/award-cancelled-/BA-0001",
 	},
 	{
 		// "5 Punti Membership Rewards = 4 Avios", minimum 500 points,
 		// "I punti devono essere trasferiti in blocchi da 500"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Iberia/Iberia-Plus/IBER-022
 		fromProgramId: "amex-mr",
 		toProgramId: "iberia-club",
 		ratioNum: 4,
@@ -277,13 +272,12 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 500,
 		validFrom: VERIFIED_ON,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Iberia/Iberia-Plus/IBER-022",
 	},
 	{
 		// "5 punti Membership Rewards = 4 EuroBonus punti",
 		// "Trasferimento minimo richiesto 500 Punti",
 		// "il trasferimento deve essere effettuato in blocchi o multipli di 500 punti"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/SAS/award-cancelled-/SAS-01
 		fromProgramId: "amex-mr",
 		toProgramId: "sas",
 		ratioNum: 4,
@@ -292,13 +286,12 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 500,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/SAS/award-cancelled-/SAS-01",
 	},
 	{
 		// "5 punti Membership Rewards = 4 Cathay",
 		// "Trasferimento minimo richiesto 1000 Punti",
 		// "il trasferimento deve essere effettuato in blocchi o multipli di 500 punti"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Cathay-Pacific/asia-miles/CATH-01
 		fromProgramId: "amex-mr",
 		toProgramId: "cathay",
 		ratioNum: 4,
@@ -307,13 +300,12 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 500,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Cathay-Pacific/asia-miles/CATH-01",
 	},
 	{
 		// "3 punti Membership Rewards = 2 SkyMiles®",
 		// "Trasferimento minimo richiesto 3 Punti",
 		// "il trasferimento deve essere effettuato in blocchi o multipli di 3 punti"
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Delta/delta-delta-skymiles/DL02
 		fromProgramId: "amex-mr",
 		toProgramId: "delta",
 		ratioNum: 2,
@@ -322,8 +314,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 3,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Delta/delta-delta-skymiles/DL02",
 	},
 	{
 		// "3 punti Membership Rewards = 2 Miglia KrisFlyer",
@@ -332,6 +322,7 @@ export const transferRules: readonly TransferRule[] = [
 		//
 		// The step is 300, but the ratio needs a multiple of 3. Amex gives 200
 		// miles for 300 points, thus the division is exact.
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Singapore/singapore-krisflyer/SING-01
 		fromProgramId: "amex-mr",
 		toProgramId: "singapore",
 		ratioNum: 2,
@@ -340,8 +331,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 300,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Singapore/singapore-krisflyer/SING-01",
 	},
 	{
 		// 5 punti Membership Rewards = 2 Miglia Skywards. The minimum is 500
@@ -355,6 +344,7 @@ export const transferRules: readonly TransferRule[] = [
 		// other card. Yume holds no card of the user, therefore the catalogue keeps
 		// the ratio of the other cards. A member with a Centurion card reads a
 		// value that is below the real value.
+		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Emirates/emirates-skywards/EK-02
 		fromProgramId: "amex-mr",
 		toProgramId: "emirates",
 		ratioNum: 2,
@@ -363,13 +353,12 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 500,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Emirates/emirates-skywards/EK-02",
 	},
 	{
 		// British Airways gives the ratio: "convert Revpoints into Avios at a
 		// conversion rate of 1:1". Revolut refuses a request from a machine, thus
 		// the source is the page of the airline.
+		// Source: https://www.britishairways.com/content/en/es/the-british-airways-club/avios/collecting-avios/lifestyle
 		fromProgramId: "revolut",
 		toProgramId: "ba-club",
 		ratioNum: 1,
@@ -378,13 +367,13 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON,
 		validTo: null,
-		sourceUrl:
-			"https://www.britishairways.com/content/en/es/the-british-airways-club/avios/collecting-avios/lifestyle",
 	},
 	{
 		// The ratio is 1 : 1, with the conditions of the route to Avios. Revolut
 		// refuses a request from a machine. Therefore the user read this ratio in
 		// the application on 11 August 2026 and confirmed it.
+		//
+		// Source: https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/
 		fromProgramId: "revolut",
 		toProgramId: "flying-blue",
 		ratioNum: 1,
@@ -393,7 +382,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 
 	// The other 15 routes of Revolut.
@@ -406,6 +394,8 @@ export const transferRules: readonly TransferRule[] = [
 	// ratio.
 	//
 	// The application accepts any quantity, thus the minimum and the step are 1.
+	//
+	// Source: https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/
 	{
 		fromProgramId: "revolut",
 		toProgramId: "iberia-club",
@@ -415,7 +405,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -426,7 +415,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -437,11 +425,11 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		// Qatar Airways gives the ratio: "Collect 1 Avios for every 1 RevPoint
 		// that you choose to convert".
+		// Source: https://www.qatarairways.com/en/Privilege-Club/offers/revolut-convert.html
 		fromProgramId: "revolut",
 		toProgramId: "qatar",
 		ratioNum: 1,
@@ -450,8 +438,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl:
-			"https://www.qatarairways.com/en/Privilege-Club/offers/revolut-convert.html",
 	},
 	{
 		fromProgramId: "revolut",
@@ -462,7 +448,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -473,7 +458,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -484,7 +468,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -495,7 +478,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -506,7 +488,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -517,7 +498,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -528,7 +508,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -539,7 +518,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		fromProgramId: "revolut",
@@ -550,7 +528,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		// 2 RevPoints give 1 mile.
@@ -562,7 +539,6 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 	{
 		// 2 RevPoints give 1 mile.
@@ -574,6 +550,5 @@ export const transferRules: readonly TransferRule[] = [
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
 		validTo: null,
-		sourceUrl: REVOLUT_MILES_PAGE,
 	},
 ];

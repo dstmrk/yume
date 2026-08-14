@@ -2,9 +2,6 @@ import { describe, expect, it } from "vitest";
 import type { AccountBalance, Program, TransferRule } from "./catalogue.ts";
 import { potentialMiles } from "./potential.ts";
 
-const AMEX_SOURCE = "https://www.americanexpress.com/it-it/rewards/";
-const REVOLUT_SOURCE = "https://help.revolut.com/it-IT/help/revpoints/";
-
 const programs: Program[] = [
 	{
 		id: "amex-mr",
@@ -53,7 +50,6 @@ const amexToBritishAirways: TransferRule = {
 	increment: 400,
 	validFrom: "2026-01-01",
 	validTo: null,
-	sourceUrl: AMEX_SOURCE,
 };
 
 /** 5 points give 4 Avios. The minimum is 500 points, in blocks of 500. */
@@ -66,7 +62,6 @@ const amexToIberia: TransferRule = {
 	increment: 500,
 	validFrom: "2026-01-01",
 	validTo: null,
-	sourceUrl: AMEX_SOURCE,
 };
 
 /** 1 RevPoint gives 1 Avios. */
@@ -79,7 +74,6 @@ const revolutToBritishAirways: TransferRule = {
 	increment: 1,
 	validFrom: "2026-01-01",
 	validTo: null,
-	sourceUrl: REVOLUT_SOURCE,
 };
 
 const rules = [amexToBritishAirways, amexToIberia, revolutToBritishAirways];

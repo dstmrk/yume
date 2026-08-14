@@ -44,7 +44,6 @@ describe("seedCatalogue", () => {
 			increment: 500,
 			validTo: null,
 		});
-		expect(toIberia?.sourceUrl).toMatch(/^https:\/\//);
 	});
 
 	it("stores transferable as a boolean", () => {

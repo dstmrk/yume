@@ -55,12 +55,6 @@ describe("the transfer rules", () => {
 		}
 	});
 
-	it("gives an official page to each rule", () => {
-		for (const rule of transferRules) {
-			expect(rule.sourceUrl).toMatch(/^https:\/\//);
-		}
-	});
-
 	it("holds each ratio as two integers above 0", () => {
 		for (const rule of transferRules) {
 			expect(Number.isInteger(rule.ratioNum)).toBe(true);

@@ -1,6 +1,6 @@
 ---
 name: conversion-math
-description: Use this skill for the conversion of points and for the potential miles. Use it for the pure functions in src/shared/ and for the catalogue in src/server/db/seed/. Use it for the tables transfer_rule, currency, program, user_account and balance_snapshot. Use it for the fields ratioNum, ratioDen, minTransfer, increment, validFrom, validTo and sourceUrl. Use it when you add a transfer rule, when you change a ratio, or when you close a rule that is not valid. Use it when you write or change the function that calculates the potential miles of a currency. Use it for a currency that more than one programme uses, for example Avios or Flying Blue miles. Use it when the user interface shows a potential value, a balance or a conversion.
+description: Use this skill for the conversion of points and for the potential miles. Use it for the pure functions in src/shared/ and for the catalogue in src/server/db/seed/. Use it for the tables transfer_rule, currency, program, user_account and balance_snapshot. Use it for the fields ratioNum, ratioDen, minTransfer, increment, validFrom and validTo. Use it when you add a transfer rule, when you change a ratio, or when you close a rule that is not valid. Use it when you write or change the function that calculates the potential miles of a currency. Use it for a currency that more than one programme uses, for example Avios or Flying Blue miles. Use it when the user interface shows a potential value, a balance or a conversion.
 ---
 
 # conversion-math — the calculation of the potential miles
@@ -92,8 +92,7 @@ first.
 
 ## 3. The transfer rules have versions
 
-Each rule has `validFrom`, `validTo` and `sourceUrl`. An active rule has
-`validTo = null`.
+Each rule has `validFrom` and `validTo`. An active rule has `validTo = null`.
 
 ### To select a rule
 
@@ -105,7 +104,8 @@ Select the rule where `validFrom <= at` and where `validTo` is null or
 Do not change a rule in its place. Do these two operations in one transaction:
 
 1. Write the date of the change in the `validTo` field of the old rule.
-2. Add a new rule with a new `validFrom` and a new `sourceUrl`.
+2. Add a new rule with a new `validFrom` and with the link of the new source in a
+   comment.
 
 **A closed rule is not dead code. Do not remove it.** An old snapshot needs the
 rule of its date. This is not compatibility with an old version of the code. It
@@ -113,9 +113,11 @@ is historical data of the application.
 
 ### The source
 
-Do not add a rule without a `sourceUrl`. Do not write a ratio from memory. Ask
-the user before you change a value in the catalogue or in the rules. This
-instruction is in `CLAUDE.md`, in the section Questions.
+Read the official page. Do not write a ratio from memory. Write the link of that
+page in a comment above the rule, in `src/server/db/seed/catalogue.ts`. The
+database keeps no link: the source is a note for the author of the catalogue,
+and no surface shows it. Ask the user before you change a value in the catalogue
+or in the rules. This instruction is in `CLAUDE.md`, in the section Questions.
 
 ---
 

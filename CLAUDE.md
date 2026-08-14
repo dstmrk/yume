@@ -105,11 +105,12 @@ These rules prevent the most dangerous defects in this application:
    count the same balance more than one time.
 3. **Keep snapshots.** The table `balance_snapshot` holds the balance at a date. The
    current balance is the most recent snapshot. Do not keep a record of the changes.
-4. **Make the transfer rules versioned.** Each rule has `validFrom`, `validTo` and
-   `sourceUrl`. Do not change a rule in its place. Close the old rule and add a new
-   rule.
-5. **Give a source for each ratio.** Do not add a transfer rule without a `sourceUrl`.
-   Do not write a ratio from memory.
+4. **Make the transfer rules versioned.** Each rule has `validFrom` and `validTo`. Do
+   not change a rule in its place. Close the old rule and add a new rule.
+5. **Give a source for each ratio.** Read the official page. Do not write a ratio from
+   memory. Write the link of that page in a comment above the rule, in
+   `src/server/db/seed/catalogue.ts`. The database keeps no link: the source is a note
+   for the author of the catalogue, and no surface shows it.
 
 The conversion logic is in `src/shared/`. The functions must be pure and must do no I/O.
 Write a unit test for each new rule of the calculation.
@@ -190,8 +191,8 @@ examine `.claude/`, because that directory belongs to the harness. Biome does no
 `drizzle/`, because drizzle-kit writes those files.
 
 The workflow `.github/workflows/ci.yml` runs these commands, the build and the test
-suites of the hooks. It runs them for each pull request and for each push to `main`.
-The workflow is the second defence: run the commands before the commit.
+suites of the hooks. It runs them for each pull request, for each push to `main` and for
+each tag `v*`. The workflow is the second defence: run the commands before the commit.
 
 The workflow also builds the image and starts the container. Then it reads
 `GET /api/health`, the catalogue and the page of the client. Vitest examines no file of
@@ -230,9 +231,15 @@ docker compose logs -f # it shows the log of the container
 docker compose pull && docker compose up -d # it takes the new image
 ```
 
-`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image
-after each push to `main`. Paragraph 7.0 of `docs/architecture.md` gives the reason. To
-examine a change of the `Dockerfile` on your machine, build the image with the same name:
+`compose.yaml` holds `image:` and no `build:`. The workflow publishes the image after a
+push of a tag `v*` only. To make a release, write a tag on `main`:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+Paragraph 7.0 of `docs/architecture.md` gives the reason. To examine a change of the
+`Dockerfile` on your machine, build the image with the same name:
 
 ```bash
 docker build -t ghcr.io/dstmrk/yume:latest .
