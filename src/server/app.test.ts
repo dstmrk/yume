@@ -5,10 +5,12 @@ import { createAuth } from "./auth.ts";
 import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import {
+	addFavorite,
 	addSnapshot,
 	createAccount,
 	createInvitation,
 	currentBalances,
+	favoriteCurrencies,
 	findInvitation,
 } from "./db/queries.ts";
 import { currencies } from "./db/seed/catalogue.ts";
@@ -101,6 +103,9 @@ describe("the session", () => {
 		["GET", "/api/potential"],
 		["GET", "/api/invitations"],
 		["POST", "/api/invitations"],
+		["GET", "/api/favorites"],
+		["PUT", "/api/favorites/avios"],
+		["DELETE", "/api/favorites/avios"],
 	] as const;
 
 	for (const [method, path] of routes) {
@@ -523,5 +528,63 @@ describe("GET /api/potential", () => {
 		createAccount(db, { userId, programId: "amex-mr" });
 		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
 		expect(body.potential.every((row) => row.total === 0)).toBe(true);
+	});
+});
+
+describe("the routes of the favourites", () => {
+	type Body = { currencyIds: string[] };
+
+	function put(path: string) {
+		return app.request(path, { method: "PUT", headers: { cookie } });
+	}
+
+	it("gives no currency for a user with no favourite", async () => {
+		expect(await getJson<Body>("/api/favorites")).toEqual({ currencyIds: [] });
+	});
+
+	it("marks a currency and then gives it", async () => {
+		expect((await put("/api/favorites/avios")).status).toBe(204);
+		expect(await getJson<Body>("/api/favorites")).toEqual({
+			currencyIds: ["avios"],
+		});
+	});
+
+	// The user taps the heart on two devices. The second request gives the same
+	// answer, and the list holds one currency.
+	it("gives the status 204 for a second mark of the same currency", async () => {
+		await put("/api/favorites/avios");
+		expect((await put("/api/favorites/avios")).status).toBe(204);
+		expect((await getJson<Body>("/api/favorites")).currencyIds).toEqual([
+			"avios",
+		]);
+	});
+
+	it("gives the status 404 for a currency that does not exist", async () => {
+		const response = await put("/api/favorites/does-not-exist");
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ error: "unknown_currency" });
+	});
+
+	it("removes the mark", async () => {
+		await put("/api/favorites/avios");
+		expect((await remove("/api/favorites/avios")).status).toBe(204);
+		expect(await getJson<Body>("/api/favorites")).toEqual({ currencyIds: [] });
+	});
+
+	// The request asks for a state. A currency with no mark already holds that
+	// state, thus the answer is the same.
+	it("gives the status 204 for a currency with no mark", async () => {
+		expect((await remove("/api/favorites/avios")).status).toBe(204);
+	});
+
+	it("gives no favourite of an other user", async () => {
+		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
+		expect(await getJson<Body>("/api/favorites")).toEqual({ currencyIds: [] });
+	});
+
+	it("keeps the mark of an other user", async () => {
+		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
+		expect((await remove("/api/favorites/avios")).status).toBe(204);
+		expect(favoriteCurrencies(db, OTHER_USER)).toEqual(["avios"]);
 	});
 });

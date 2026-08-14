@@ -5,6 +5,7 @@ import {
 	addSnapshotSchema,
 	type CatalogueResponse,
 	createAccountSchema,
+	type FavoritesResponse,
 	type InvitationsResponse,
 	type PotentialResponse,
 } from "../shared/api.ts";
@@ -13,6 +14,7 @@ import { potentialMiles } from "../shared/potential.ts";
 import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
+	addFavorite,
 	addSnapshot,
 	allCurrencies,
 	allPrograms,
@@ -22,8 +24,10 @@ import {
 	currentBalances,
 	deleteAccount,
 	deleteSnapshot,
+	favoriteCurrencies,
 	findAccount,
 	invitationsOfUser,
+	removeFavorite,
 } from "./db/queries.ts";
 import { heldSlots, INVITATION_LIMIT, invitationState } from "./invitation.ts";
 
@@ -207,6 +211,48 @@ export function createApp(db: Db, auth: Auth) {
 			return c.json({ error: "no_invitation_left" }, 409);
 		}
 		return c.json(written, 201);
+	});
+
+	/**
+	 * The currencies that the user marks as a favourite.
+	 *
+	 * The dashboard reads this list and it puts those cards first. The route
+	 * gives no mark of an other user: the query holds the user in its condition.
+	 */
+	app.get("/api/favorites", (c) => {
+		const body: FavoritesResponse = {
+			currencyIds: favoriteCurrencies(db, c.get("userId")),
+		};
+		return c.json(body);
+	});
+
+	/**
+	 * Marks a currency as a favourite of the user.
+	 *
+	 * The method is `PUT`, because the operation is idempotent: two taps of the
+	 * heart on two devices give one mark and the same answer.
+	 */
+	app.put("/api/favorites/:currencyId", (c) => {
+		const currencyId = c.req.param("currencyId");
+		const known = allCurrencies(db).some(
+			(currency) => currency.id === currencyId,
+		);
+		if (!known) {
+			return c.json({ error: "unknown_currency" }, 404);
+		}
+		addFavorite(db, { userId: c.get("userId"), currencyId });
+		return c.body(null, 204);
+	});
+
+	/**
+	 * Removes the mark of a currency.
+	 *
+	 * A currency with no mark also gives the status 204. The request asks for a
+	 * state, and that state is the result. Thus a second tap gives no error.
+	 */
+	app.delete("/api/favorites/:currencyId", (c) => {
+		removeFavorite(db, c.get("userId"), c.req.param("currencyId"));
+		return c.body(null, 204);
 	});
 
 	/**
