@@ -121,6 +121,7 @@ Also keep the minimum quantity and the step of the transfer:
 ```ts
 transfer_rule {
   fromProgramId, toProgramId, // refer to paragraph 3.3.1
+  country,                   // refer to paragraph 3.3.2
   ratioNum, ratioDen,        // Amex: 5 MR gives 4 Avios  =>  num 4, den 5
   minTransfer, increment,
   validFrom, validTo         // validTo is null for an active rule
@@ -163,6 +164,30 @@ currencies cannot hold these two different limits.
 
 The currency stays necessary for the total. Avios from Iberia Club and Avios from The
 British Airways Club are the same currency. Paragraph 3.5 gives the calculation.
+
+### 3.3.2 A rule applies to one country
+
+The partners and the ratios change with the country. Amex Italia sends points to Iberia
+Club at the ratio 5 : 4. Amex France gives an other list of partners. A rule with no
+country thus gives a value that is not correct to a user of an other country.
+
+Therefore `transfer_rule` holds the column `country`, in the ISO 3166-1 alpha-2 format.
+The key of the table holds that column. Thus two countries can hold a different rule for
+the same pair of programmes on the same day.
+
+The column is not null: a rule with no country does not exist. A second country writes
+its own rules in the catalogue, also when the ratio is the same. The application holds no
+rule that is valid in each country, because such a rule needs an order of precedence in
+the selection.
+
+`findRule` compares the country exactly. A rule of an other country gives no value to
+this country.
+
+The catalogue holds the rules of Italy only. No surface selects a country, therefore the
+server gives the constant `DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the
+calculation. A second country in the catalogue needs the country of the user: the
+sign-up must then ask for that value, and the table `user` must hold it. Yume adds that
+field with that requirement, and not before it.
 
 ### 3.4 Tables
 
@@ -760,7 +785,8 @@ only: a migration that ran on a server is immutable. Add a new migration.
 ## 8. Appendix — the catalogue of programmes
 
 The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
-Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*.
+Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*. Each rule
+holds the country `IT`. Paragraph 3.3.2 gives the rule for an other country.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
 truth. That file holds the step of each transfer and, in a comment, the official page of

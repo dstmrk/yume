@@ -111,6 +111,13 @@ These rules prevent the most dangerous defects in this application:
    memory. Write the link of that page in a comment above the rule, in
    `src/server/db/seed/catalogue.ts`. The database keeps no link: the source is a note
    for the author of the catalogue, and no surface shows it.
+6. **Give a country to each transfer rule.** The field `country` holds a country in the
+   ISO 3166-1 alpha-2 format, for example `IT`. The field is not null, and it is part of
+   the key with `validFrom`. The partners and the ratios change with the country, thus
+   `findRule` compares that value exactly. The catalogue holds the rules of Italy only,
+   and the server gives `DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the
+   calculation. Read the official page of the country of the rule. Paragraph 3.3.2 of
+   `docs/architecture.md` gives the reason.
 
 The conversion logic is in `src/shared/`. The functions must be pure and must do no I/O.
 Write a unit test for each new rule of the calculation.
