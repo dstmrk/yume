@@ -7,8 +7,11 @@ import { AppTitle } from "./components/board/AppTitle.tsx";
  *
  * After the access the router examines the session again, thus the route
  * `/dashboard` finds the new session and shows the dashboard.
+ *
+ * The route `/signup` gives the code of the link. Then the page opens the form
+ * of the sign-up.
  */
-export function LoginPage() {
+export function LoginPage({ code }: { code?: string }) {
 	const navigate = useNavigate();
 	const router = useRouter();
 
@@ -16,6 +19,7 @@ export function LoginPage() {
 		<>
 			<AppTitle />
 			<AccessForm
+				code={code}
 				onAccess={async () => {
 					await router.invalidate();
 					await navigate({ to: "/dashboard" });
