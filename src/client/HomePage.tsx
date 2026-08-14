@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
+import { BrandMark } from "./components/board/BrandMark.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
 import { cn } from "./lib/cn.ts";
@@ -56,6 +57,7 @@ export function HomePage() {
 	return (
 		<div className="flex flex-col items-center gap-8 text-center">
 			<Rise index={0} className="flex flex-col items-center gap-3">
+				<BrandMark className="size-[44px]" />
 				<h1 className="font-board text-[33px] text-board-amber tracking-widest">
 					{text.appName.toUpperCase()}
 				</h1>
