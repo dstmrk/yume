@@ -22,11 +22,14 @@ const EXAMPLE_POINTS = 128_400;
  * The image comes from the application, not from a program of design: a
  * browser opens the dashboard with balances of an example and gives the
  * picture. The cards hold the calculation of the real catalogue.
+ *
+ * The picture starts at the first card. The header of the dashboard holds the
+ * warning of the transfer, and this page does not give that warning.
  */
 const SCREENSHOT = {
 	src: "/screenshot-dashboard.png",
 	width: 780,
-	height: 1108,
+	height: 1010,
 };
 
 /**

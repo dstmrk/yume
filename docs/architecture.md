@@ -503,6 +503,9 @@ application: a browser opens the dashboard with balances of an example, and it g
 picture of the cards of the potential miles. No program of design writes that image. Take
 the picture again after a change of the cards.
 
+The picture starts at the first card. The header of the dashboard holds the warning of
+the transfer, and the public page does not give that warning.
+
 The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
 and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
