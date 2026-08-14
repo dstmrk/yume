@@ -107,15 +107,15 @@ describe("toFlapTurn", () => {
 		});
 	});
 
-	it("starts a flap that moves from the empty position", () => {
+	it("starts a flap that moves from the separator", () => {
 		const turn = toFlapTurn("2", true);
-		expect(turn.bottom).toBe(" ");
+		expect(turn.bottom).toBe(".");
 		expect(turn.top).toBe("2");
 	});
 
 	it("turns a digit through each digit before it", () => {
 		expect(toFlapTurn("2", true).folds).toEqual([
-			{ step: 0, from: " ", to: "0" },
+			{ step: 0, from: ".", to: "0" },
 			{ step: 1, from: "0", to: "1" },
 			{ step: 2, from: "1", to: "2" },
 		]);
@@ -123,7 +123,7 @@ describe("toFlapTurn", () => {
 
 	it("gives one fold to the first digit of the drum", () => {
 		expect(toFlapTurn("0", true).folds).toEqual([
-			{ step: 0, from: " ", to: "0" },
+			{ step: 0, from: ".", to: "0" },
 		]);
 	});
 
@@ -131,36 +131,25 @@ describe("toFlapTurn", () => {
 		expect(toFlapTurn("9", true).folds).toHaveLength(10);
 	});
 
-	it("turns a letter through each letter before it", () => {
-		const turn = toFlapTurn("C", true);
-		expect(turn.folds.map((fold) => fold.to).join("")).toBe("ABC");
+	it("gives no fold to the separator of the thousands", () => {
+		// The separator is the first position of the drum. Therefore that flap is
+		// already at its place, and it does not turn.
+		expect(toFlapTurn(".", true)).toEqual({
+			top: ".",
+			bottom: ".",
+			folds: [],
+		});
 	});
 
-	it("gives one fold to the first letter of the drum", () => {
-		expect(toFlapTurn("A", true).folds).toEqual([
-			{ step: 0, from: " ", to: "A" },
-		]);
+	it("gives no fold to a letter, because the drum holds no letter", () => {
+		expect(toFlapTurn("A", true)).toEqual({
+			top: "A",
+			bottom: "A",
+			folds: [],
+		});
 	});
 
-	it("gives twenty-six folds to the last letter of the drum", () => {
-		expect(toFlapTurn("Z", true).folds).toHaveLength(26);
-	});
-
-	it("turns the separator of the thousands one time", () => {
-		// The separator is not in a drum, thus the flap falls one time. A drum of
-		// the digits before a separator shows values that are not correct.
-		expect(toFlapTurn(".", true).folds).toEqual([
-			{ step: 0, from: " ", to: "." },
-		]);
-	});
-
-	it("turns a character that is not in a drum one time", () => {
-		expect(toFlapTurn("a", true).folds).toEqual([
-			{ step: 0, from: " ", to: "a" },
-		]);
-	});
-
-	it("gives no fold to the empty position", () => {
+	it("gives no fold to a space", () => {
 		expect(toFlapTurn(" ", true)).toEqual({
 			top: " ",
 			bottom: " ",

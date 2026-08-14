@@ -70,60 +70,52 @@ export type FlapTurn = {
 	readonly folds: FlapFold[];
 };
 
-/** The empty position of a drum. A board at the start shows this character. */
-const REST = " ";
-
 /**
- * The drums of the board. A real Solari holds an empty position, then the
- * characters in this order. A flap turns through each character of its drum:
- * it cannot arrive at a character with one turn.
- */
-const DIGITS = "0123456789";
-const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-/**
- * Gives the drum of a character, with the empty position at the start.
+ * The drum of a flap: the separator of the thousands, then the digits.
  *
- * A character that is not in a drum receives a drum of two positions. The
- * separator of the thousands is such a character: a drum of the digits before
- * that separator shows values that are not correct.
+ * A flap turns through each character of the drum: it cannot arrive at a
+ * character with one turn. The separator is the first position, thus a board at
+ * the start shows a separator at each place.
+ *
+ * The drum holds no letter. The board shows a letter in the name of the
+ * application only, and that name does not turn. Refer to paragraph 5.6 of
+ * `docs/architecture.md`.
  */
-function drumOf(char: string): string {
-	if (DIGITS.includes(char)) {
-		return REST + DIGITS;
-	}
-	if (LETTERS.includes(char)) {
-		return REST + LETTERS;
-	}
-	return REST + char;
-}
+const DRUM = ".0123456789";
+
+/** The first position of the drum. Each flap starts at that character. */
+const REST = ".";
 
 /**
- * Gives the turns of one flap, from the empty position to a character.
+ * Gives the turns of one flap, from the first position of the drum to a
+ * character.
  *
  * A board of Solari turns the drum of each flap until the correct character
  * arrives. The user sees the characters before it. Therefore this function
  * gives one fold for each character of the drum, and the animation shows them
  * one after the other.
  *
- * A flap that does not move receives no fold, and its two halves hold the
- * character. Refer to paragraph 5.2 of `docs/architecture.md`.
+ * These two flaps receive no fold, and their two halves hold the character:
+ *
+ * - A flap that does not move. Refer to paragraph 5.2 of
+ *   `docs/architecture.md`.
+ * - A flap at the first position of the drum, and a flap with a character that
+ *   the drum does not hold. Such a flap is already at its place.
  */
 export function toFlapTurn(char: string, moves: boolean): FlapTurn {
-	if (!moves || char === REST) {
+	const end = DRUM.indexOf(char);
+	if (!moves || end <= 0) {
 		return { top: char, bottom: char, folds: [] };
 	}
 
-	const drum = drumOf(char);
-	const path = [...drum].slice(0, drum.indexOf(char) + 1);
 	let previous = REST;
-	const folds = path.slice(1).map((to, step) => {
+	const folds = [...DRUM].slice(1, end + 1).map((to, step) => {
 		const fold = { step, from: previous, to };
 		previous = to;
 		return fold;
 	});
 
-	// The bottom half stays at the empty position: the first fold covers it.
+	// The bottom half stays at the first position: the first fold covers it.
 	return { top: char, bottom: REST, folds };
 }
 
