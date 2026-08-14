@@ -506,12 +506,6 @@ the picture again after a change of the cards.
 The picture starts at the first card. The header of the dashboard holds the warning of
 the transfer, and the public page does not give that warning.
 
-The browser holds a screen of 390 by 760 pixels for that picture. Then the page shows the
-picture in the frame of a telephone. That frame is code, not a part of the image file:
-thus the frame stays sharp on each screen, it holds the colours of the theme, and a new
-picture needs no program of design. The frame gives a band at the top for the camera and
-a band at the base for the bar of the system. The picture holds the content only.
-
 The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
 and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
