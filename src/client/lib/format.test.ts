@@ -33,6 +33,18 @@ describe("formatDate", () => {
 	it("gives the value again when the date is not correct", () => {
 		expect(formatDate("non una data")).toBe("non una data");
 	});
+
+	// A text with three parts passes the examination of the quantity, but a part
+	// that is not a number gives an invalid date. The format then stops the page
+	// with a RangeError.
+	it("gives the value again when a part is not a number", () => {
+		expect(formatDate("a-b-c")).toBe("a-b-c");
+		expect(formatDate("2026-ab-11")).toBe("2026-ab-11");
+	});
+
+	it("gives the value again when the date holds no part", () => {
+		expect(formatDate("")).toBe("");
+	});
 });
 
 describe("formatMoment", () => {

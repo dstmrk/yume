@@ -41,10 +41,23 @@ export function formatPoints(value: number): string {
  * The function reads the three parts of the date and makes a date in UTC. A
  * date from `new Date("2026-08-11")` is midnight in UTC, and a format in the
  * time of Italy can then give the day before.
+ *
+ * A date that the function cannot read gives the same text, as `formatMoment`.
+ * Thus a defect in the data shows a value and it stops no page. The
+ * examination of the quantity of the parts is not sufficient: `2026-ab-11`
+ * holds three parts, but one part is not a number and the format then gives a
+ * RangeError.
  */
 export function formatDate(iso: string): string {
 	const [year, month, date] = iso.split("-").map(Number);
-	if (year === undefined || month === undefined || date === undefined) {
+	if (
+		year === undefined ||
+		month === undefined ||
+		date === undefined ||
+		Number.isNaN(year) ||
+		Number.isNaN(month) ||
+		Number.isNaN(date)
+	) {
 		return iso;
 	}
 	return day.format(new Date(Date.UTC(year, month - 1, date)));
