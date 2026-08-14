@@ -7,6 +7,7 @@
 
 import type {
 	AccountBalance,
+	CountryCode,
 	IsoDate,
 	Program,
 	TransferRule,
@@ -68,6 +69,9 @@ export type PotentialMiles = {
  * 4. It ignores a balance of the currency C as a source. That balance is
  *    already in the current balance.
  *
+ * It uses the rules of the country `country` only. A rule of an other country
+ * gives an other ratio.
+ *
  * The result is a maximum for one currency. The user cannot send the same
  * points to two currencies. Do not add the results of two currencies.
  */
@@ -76,9 +80,10 @@ export function potentialMiles(input: {
 	balances: readonly AccountBalance[];
 	programs: readonly Program[];
 	rules: readonly TransferRule[];
+	country: CountryCode;
 	at: IsoDate;
 }): PotentialMiles {
-	const { currencyId, balances, programs, rules, at } = input;
+	const { currencyId, balances, programs, rules, country, at } = input;
 	const programById = new Map(programs.map((program) => [program.id, program]));
 	const targets = programs.filter(
 		(program) => program.currencyId === currencyId,
@@ -97,7 +102,14 @@ export function potentialMiles(input: {
 			current += balance.points;
 			continue;
 		}
-		const route = bestRoute(balance.points, source.id, targets, rules, at);
+		const route = bestRoute(
+			balance.points,
+			source.id,
+			targets,
+			rules,
+			country,
+			at,
+		);
 		if (route === undefined) {
 			continue;
 		}
@@ -130,6 +142,7 @@ function bestRoute(
 	fromProgramId: string,
 	targets: readonly Program[],
 	rules: readonly TransferRule[],
+	country: CountryCode,
 	at: IsoDate,
 ): BestRoute | undefined {
 	const options: RouteOption[] = [];
@@ -138,7 +151,7 @@ function bestRoute(
 	let bestMinTransfer = 0;
 
 	for (const target of targets) {
-		const rule = findRule(rules, fromProgramId, target.id, at);
+		const rule = findRule(rules, fromProgramId, target.id, country, at);
 		if (rule === undefined) {
 			continue;
 		}

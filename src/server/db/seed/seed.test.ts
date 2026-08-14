@@ -38,6 +38,7 @@ describe("seedCatalogue", () => {
 		const toIberia = rules.find((rule) => rule.toProgramId === "iberia-club");
 		expect(toIberia).toMatchObject({
 			fromProgramId: "amex-mr",
+			country: "IT",
 			ratioNum: 4,
 			ratioDen: 5,
 			minTransfer: 500,
@@ -51,6 +52,42 @@ describe("seedCatalogue", () => {
 		const rows = db.select().from(program).all();
 		expect(rows.find((row) => row.id === "ba-club")?.transferable).toBe(true);
 		expect(rows.find((row) => row.id === "amex-mr")?.transferable).toBe(false);
+	});
+});
+
+// The key of `transfer_rule` holds the country. Thus a second country can hold
+// its own ratio for a pair of programmes that Italy also holds.
+describe("the key of a transfer rule", () => {
+	const rule = {
+		fromProgramId: "amex-mr",
+		toProgramId: "ba-club",
+		country: "IT",
+		ratioNum: 4,
+		ratioDen: 5,
+		minTransfer: 800,
+		increment: 400,
+		validFrom: "2027-01-01",
+		validTo: null,
+	};
+
+	it("accepts one pair with two countries on the same day", () => {
+		seedCatalogue(db);
+		db.insert(transferRule).values(rule).run();
+		db.insert(transferRule)
+			.values({ ...rule, country: "FR" })
+			.run();
+		const rows = db
+			.select()
+			.from(transferRule)
+			.all()
+			.filter((row) => row.validFrom === "2027-01-01");
+		expect(rows.map((row) => row.country).sort()).toEqual(["FR", "IT"]);
+	});
+
+	it("refuses one pair with one country two times on the same day", () => {
+		seedCatalogue(db);
+		db.insert(transferRule).values(rule).run();
+		expect(() => db.insert(transferRule).values(rule).run()).toThrow();
 	});
 });
 

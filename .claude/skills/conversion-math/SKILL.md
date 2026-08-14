@@ -1,6 +1,6 @@
 ---
 name: conversion-math
-description: Use this skill for the conversion of points and for the potential miles. Use it for the pure functions in src/shared/ and for the catalogue in src/server/db/seed/. Use it for the tables transfer_rule, currency, program, user_account and balance_snapshot. Use it for the fields ratioNum, ratioDen, minTransfer, increment, validFrom and validTo. Use it when you add a transfer rule, when you change a ratio, or when you close a rule that is not valid. Use it when you write or change the function that calculates the potential miles of a currency. Use it for a currency that more than one programme uses, for example Avios or Flying Blue miles. Use it when the user interface shows a potential value, a balance or a conversion.
+description: Use this skill for the conversion of points and for the potential miles. Use it for the pure functions in src/shared/ and for the catalogue in src/server/db/seed/. Use it for the tables transfer_rule, currency, program, user_account and balance_snapshot. Use it for the fields ratioNum, ratioDen, minTransfer, increment, country, validFrom and validTo. Use it when you add a transfer rule, when you change a ratio, when you add a country, or when you close a rule that is not valid. Use it when you write or change the function that calculates the potential miles of a currency. Use it for a currency that more than one programme uses, for example Avios or Flying Blue miles. Use it when the user interface shows a potential value, a balance or a conversion.
 ---
 
 # conversion-math — the calculation of the potential miles
@@ -96,8 +96,31 @@ Each rule has `validFrom` and `validTo`. An active rule has `validTo = null`.
 
 ### To select a rule
 
-Select the rule where `validFrom <= at` and where `validTo` is null or
-`validTo > at`. Give the date `at` to the function as a parameter.
+Select the rule where `country` is equal, where `validFrom <= at` and where
+`validTo` is null or `validTo > at`. Give the country and the date to the
+function as parameters.
+
+```ts
+findRule(rules, fromProgramId, toProgramId, country, at);
+```
+
+### The country
+
+Each rule applies to one country. The field `country` holds a country in the ISO
+3166-1 alpha-2 format, for example `IT`. The partners and the ratios change with
+the country: Amex Italia and Amex France give a different list.
+
+**Compare the country exactly.** A rule of an other country must give no value to
+this country. The application holds no rule that is valid in each country.
+
+**Write the rules of the new country in the catalogue.** Do this operation also
+when the ratio is equal to the ratio of an other country. Read the official page
+of that country.
+
+The catalogue holds the rules of Italy only. The server gives the constant
+`DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the calculation, because no
+surface selects a country. Paragraph 3.3.2 of `docs/architecture.md` gives the
+rule for a second country.
 
 ### To change a ratio
 
@@ -147,6 +170,7 @@ conversion must contain these cases:
 | The ratio does not divide exactly. | The function gives the lower integer. |
 | The currency has more than one programme. | The function counts the balance one time. |
 | The rule is not valid at the date. | The function does not use the rule. |
+| The rule belongs to an other country. | The function does not use the rule. |
 | The balance is 0. | 0 |
 | Two routes go to the same currency. | The function keeps the largest result. |
 | Two routes give the same result. | The function keeps the smallest minimum. |

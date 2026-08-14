@@ -9,6 +9,7 @@ import { convert, findRule } from "./conversion.ts";
 const amexToBritishAirways: TransferRule = {
 	fromProgramId: "amex-mr",
 	toProgramId: "ba-club",
+	country: "IT",
 	ratioNum: 4,
 	ratioDen: 5,
 	minTransfer: 800,
@@ -65,28 +66,51 @@ describe("findRule", () => {
 	const rules = [oldRule, amexToBritishAirways];
 
 	it("finds the rule that is active at the date", () => {
-		expect(findRule(rules, "amex-mr", "ba-club", "2026-08-11")).toBe(
+		expect(findRule(rules, "amex-mr", "ba-club", "IT", "2026-08-11")).toBe(
 			amexToBritishAirways,
 		);
 	});
 
 	it("finds the old rule at an old date", () => {
-		expect(findRule(rules, "amex-mr", "ba-club", "2025-06-01")).toBe(oldRule);
+		expect(findRule(rules, "amex-mr", "ba-club", "IT", "2025-06-01")).toBe(
+			oldRule,
+		);
 	});
 
 	it("includes the first day of the rule", () => {
-		expect(findRule(rules, "amex-mr", "ba-club", "2026-01-01")).toBe(
+		expect(findRule(rules, "amex-mr", "ba-club", "IT", "2026-01-01")).toBe(
 			amexToBritishAirways,
 		);
 	});
 
 	it("does not find a rule before the first day", () => {
-		expect(findRule(rules, "amex-mr", "ba-club", "2024-12-31")).toBeUndefined();
+		expect(
+			findRule(rules, "amex-mr", "ba-club", "IT", "2024-12-31"),
+		).toBeUndefined();
 	});
 
 	it("does not find a rule for a pair of programmes that has no rule", () => {
 		expect(
-			findRule(rules, "revolut-revpoints", "ba-club", "2026-08-11"),
+			findRule(rules, "revolut-revpoints", "ba-club", "IT", "2026-08-11"),
 		).toBeUndefined();
+	});
+
+	// The catalogue holds the rules of one country now. A second country adds its
+	// own rules for the same pair of programmes.
+	it("does not find a rule of an other country", () => {
+		expect(
+			findRule(rules, "amex-mr", "ba-club", "FR", "2026-08-11"),
+		).toBeUndefined();
+	});
+
+	it("finds the rule of the country between two rules of one pair", () => {
+		const french = ruleWith({ country: "FR", ratioNum: 1, ratioDen: 2 });
+		const both = [french, amexToBritishAirways];
+		expect(findRule(both, "amex-mr", "ba-club", "IT", "2026-08-11")).toBe(
+			amexToBritishAirways,
+		);
+		expect(findRule(both, "amex-mr", "ba-club", "FR", "2026-08-11")).toBe(
+			french,
+		);
 	});
 });

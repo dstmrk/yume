@@ -72,13 +72,14 @@ CREATE UNIQUE INDEX `session_token_unique` ON `session` (`token`);--> statement-
 CREATE TABLE `transfer_rule` (
 	`from_program_id` text NOT NULL,
 	`to_program_id` text NOT NULL,
+	`country` text NOT NULL,
 	`ratio_num` integer NOT NULL,
 	`ratio_den` integer NOT NULL,
 	`min_transfer` integer NOT NULL,
 	`increment` integer NOT NULL,
 	`valid_from` text NOT NULL,
 	`valid_to` text,
-	PRIMARY KEY(`from_program_id`, `to_program_id`, `valid_from`),
+	PRIMARY KEY(`from_program_id`, `to_program_id`, `country`, `valid_from`),
 	FOREIGN KEY (`from_program_id`) REFERENCES `program`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`to_program_id`) REFERENCES `program`(`id`) ON UPDATE no action ON DELETE no action
 );

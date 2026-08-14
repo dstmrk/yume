@@ -45,6 +45,7 @@ export function seedCatalogue(db: Db): void {
 					target: [
 						transferRule.fromProgramId,
 						transferRule.toProgramId,
+						transferRule.country,
 						transferRule.validFrom,
 					],
 					set: {

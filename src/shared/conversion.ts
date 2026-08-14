@@ -5,7 +5,7 @@
  * The caller gives the rules and the date as parameters.
  */
 
-import type { IsoDate, TransferRule } from "./catalogue.ts";
+import type { CountryCode, IsoDate, TransferRule } from "./catalogue.ts";
 
 /**
  * Calculates the target points for a balance of source points.
@@ -36,21 +36,26 @@ export function isValidAt(rule: TransferRule, at: IsoDate): boolean {
 }
 
 /**
- * Finds the rule for a pair of programmes at a date.
+ * Finds the rule for a pair of programmes in a country at a date.
  *
- * The result is undefined when no rule exists at that date. A transfer between
- * the two programmes is then not possible.
+ * The result is undefined when no rule exists in that country at that date. A
+ * transfer between the two programmes is then not possible.
+ *
+ * The comparison of the country is exact. A rule of an other country gives an
+ * other ratio, thus it must give no value to this country.
  */
 export function findRule(
 	rules: readonly TransferRule[],
 	fromProgramId: string,
 	toProgramId: string,
+	country: CountryCode,
 	at: IsoDate,
 ): TransferRule | undefined {
 	return rules.find(
 		(rule) =>
 			rule.fromProgramId === fromProgramId &&
 			rule.toProgramId === toProgramId &&
+			rule.country === country &&
 			isValidAt(rule, at),
 	);
 }

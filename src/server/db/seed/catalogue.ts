@@ -10,10 +10,16 @@
  * - Write the link of that page in a comment above the rule.
  * - Do not change a rule in its place. Write the date in `validTo` of the old
  *   rule. Then add a new rule with a new `validFrom`.
+ * - Read the official page of the country of the rule. Amex Italia and Amex
+ *   France give different partners and different ratios.
  * - Ask the user before you change a value here.
  *
  * The field `validFrom` holds the date of the examination of the official page.
  * The rule can be older, but no person examined it before that date.
+ *
+ * The field `country` holds a country in the ISO 3166-1 alpha-2 format. Each
+ * rule of this file applies to Italy, because Yume shows the rules of one
+ * country only. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
  */
 
 import type {
@@ -240,6 +246,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Flying-Blue/flying-blue/AF02
 		fromProgramId: "amex-mr",
 		toProgramId: "flying-blue",
+		country: "IT",
 		ratioNum: 2,
 		ratioDen: 3,
 		minTransfer: 750,
@@ -253,6 +260,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/British-Airways/award-cancelled-/BA-0001
 		fromProgramId: "amex-mr",
 		toProgramId: "ba-club",
+		country: "IT",
 		ratioNum: 4,
 		ratioDen: 5,
 		minTransfer: 800,
@@ -266,6 +274,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Iberia/Iberia-Plus/IBER-022
 		fromProgramId: "amex-mr",
 		toProgramId: "iberia-club",
+		country: "IT",
 		ratioNum: 4,
 		ratioDen: 5,
 		minTransfer: 500,
@@ -280,6 +289,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/SAS/award-cancelled-/SAS-01
 		fromProgramId: "amex-mr",
 		toProgramId: "sas",
+		country: "IT",
 		ratioNum: 4,
 		ratioDen: 5,
 		minTransfer: 500,
@@ -294,6 +304,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Cathay-Pacific/asia-miles/CATH-01
 		fromProgramId: "amex-mr",
 		toProgramId: "cathay",
+		country: "IT",
 		ratioNum: 4,
 		ratioDen: 5,
 		minTransfer: 1000,
@@ -308,6 +319,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Delta/delta-delta-skymiles/DL02
 		fromProgramId: "amex-mr",
 		toProgramId: "delta",
+		country: "IT",
 		ratioNum: 2,
 		ratioDen: 3,
 		minTransfer: 3,
@@ -325,6 +337,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Singapore/singapore-krisflyer/SING-01
 		fromProgramId: "amex-mr",
 		toProgramId: "singapore",
+		country: "IT",
 		ratioNum: 2,
 		ratioDen: 3,
 		minTransfer: 1500,
@@ -347,6 +360,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/Emirates/emirates-skywards/EK-02
 		fromProgramId: "amex-mr",
 		toProgramId: "emirates",
+		country: "IT",
 		ratioNum: 2,
 		ratioDen: 5,
 		minTransfer: 500,
@@ -361,6 +375,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.britishairways.com/content/en/es/the-british-airways-club/avios/collecting-avios/lifestyle
 		fromProgramId: "revolut",
 		toProgramId: "ba-club",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -376,6 +391,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://help.revolut.com/it-IT/help/revpoints/airline-miles/questions-airline-miles-faq3/
 		fromProgramId: "revolut",
 		toProgramId: "flying-blue",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -399,6 +415,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "iberia-club",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -409,6 +426,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "aer-lingus",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -419,6 +437,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "finnair",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -432,6 +451,7 @@ export const transferRules: readonly TransferRule[] = [
 		// Source: https://www.qatarairways.com/en/Privilege-Club/offers/revolut-convert.html
 		fromProgramId: "revolut",
 		toProgramId: "qatar",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -442,6 +462,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "vueling",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -452,6 +473,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "sas",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -462,6 +484,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "turkish",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -472,6 +495,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "aegean",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -482,6 +506,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "avianca",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -492,6 +517,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "china-southern",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -502,6 +528,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "etihad",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -512,6 +539,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "icelandair",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -522,6 +550,7 @@ export const transferRules: readonly TransferRule[] = [
 	{
 		fromProgramId: "revolut",
 		toProgramId: "tap",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 1,
 		minTransfer: 1,
@@ -533,6 +562,7 @@ export const transferRules: readonly TransferRule[] = [
 		// 2 RevPoints give 1 mile.
 		fromProgramId: "revolut",
 		toProgramId: "emirates",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 2,
 		minTransfer: 1,
@@ -544,6 +574,7 @@ export const transferRules: readonly TransferRule[] = [
 		// 2 RevPoints give 1 mile.
 		fromProgramId: "revolut",
 		toProgramId: "singapore",
+		country: "IT",
 		ratioNum: 1,
 		ratioDen: 2,
 		minTransfer: 1,

@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "c674a369-314b-4acf-acec-b4a873302111",
+  "id": "41fa8a4e-ab11-4444-b9b5-2fc11436a26c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "account": {
@@ -499,6 +499,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "country": {
+          "name": "country",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "ratio_num": {
           "name": "ratio_num",
           "type": "integer",
@@ -572,13 +579,14 @@
         }
       },
       "compositePrimaryKeys": {
-        "transfer_rule_from_program_id_to_program_id_valid_from_pk": {
+        "transfer_rule_from_program_id_to_program_id_country_valid_from_pk": {
           "columns": [
             "from_program_id",
             "to_program_id",
+            "country",
             "valid_from"
           ],
-          "name": "transfer_rule_from_program_id_to_program_id_valid_from_pk"
+          "name": "transfer_rule_from_program_id_to_program_id_country_valid_from_pk"
         }
       },
       "uniqueConstraints": {},
