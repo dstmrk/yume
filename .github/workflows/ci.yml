@@ -197,8 +197,20 @@ jobs:
   # A package of GHCR that a workflow publishes with GITHUB_TOKEN takes the
   # visibility of the repository. This repository is public, therefore
   # `docker compose up` needs no `docker login`.
+  #
+  # The condition holds a function of the state. GitHub gives the skip of a job
+  # to each job that comes after it, and it gives that skip through the jobs in
+  # the middle. The job `changes` runs on a pull request only, thus a tag skips
+  # that job. The job `image` stops the skip with `!cancelled()`, but the skip
+  # arrives here through `image`. Therefore this job reads the result of the two
+  # jobs itself. Without these lines the tag `v0.1.0` published no image, and
+  # `latest` kept an image of an old commit.
   publish:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      ${{ !cancelled()
+      && startsWith(github.ref, 'refs/tags/v')
+      && needs.check.result == 'success'
+      && needs.image.result == 'success' }}
     needs: [check, image]
     runs-on: ubuntu-latest
     permissions:
