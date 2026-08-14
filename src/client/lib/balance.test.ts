@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { parsePoints, toAddSnapshotBody, todayIso } from "./balance.ts";
+import {
+	parsePoints,
+	readOptionalPoints,
+	toAddSnapshotBody,
+	todayIso,
+} from "./balance.ts";
 
 describe("parsePoints", () => {
 	it("reads a number with no separator", () => {
@@ -57,6 +62,32 @@ describe("parsePoints", () => {
 
 	it("reads a number with a zero at the start", () => {
 		expect(parsePoints("007")).toBe(7);
+	});
+});
+
+describe("readOptionalPoints", () => {
+	it("reads a quantity of points", () => {
+		expect(readOptionalPoints("1.900")).toEqual({ ok: true, points: 1900 });
+	});
+
+	// The field is not necessary. Then the form makes the account and it adds no
+	// snapshot. The user writes the balance later.
+	it("gives no points for an empty field", () => {
+		expect(readOptionalPoints("")).toEqual({ ok: true, points: null });
+		expect(readOptionalPoints("   ")).toEqual({ ok: true, points: null });
+	});
+
+	// A balance of 0 is a balance. The user has an account with no point.
+	it("reads a balance of 0", () => {
+		expect(readOptionalPoints("0")).toEqual({ ok: true, points: 0 });
+	});
+
+	// A text that is not a quantity of points is an error, not an empty field.
+	// The form shows the message and it makes no account.
+	it("refuses a text that is not a quantity of points", () => {
+		expect(readOptionalPoints("1.9")).toEqual({ ok: false });
+		expect(readOptionalPoints("molti")).toEqual({ ok: false });
+		expect(readOptionalPoints("-5")).toEqual({ ok: false });
 	});
 });
 

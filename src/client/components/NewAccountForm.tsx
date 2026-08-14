@@ -2,7 +2,12 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import { sortPrograms, toCreateAccountBody } from "../lib/account.ts";
-import { createAccount } from "../lib/api.ts";
+import { addSnapshot, createAccount } from "../lib/api.ts";
+import {
+	readOptionalPoints,
+	toAddSnapshotBody,
+	todayIso,
+} from "../lib/balance.ts";
 import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
@@ -63,22 +68,38 @@ function Fields({
 }) {
 	const fieldId = useId();
 	const [programId, setProgramId] = useState("");
+	const [points, setPoints] = useState("");
 	const [nickname, setNickname] = useState("");
 	const [membershipRef, setMembershipRef] = useState("");
+	const [invalid, setInvalid] = useState(false);
 
 	const queryClient = useQueryClient();
 	const save = useMutation({
-		mutationFn: () =>
-			createAccount(
+		mutationFn: async (balance: number | null) => {
+			const account = await createAccount(
 				toCreateAccountBody({ programId, nickname, membershipRef }),
-			),
-		onSuccess: async () => {
+			);
+			if (balance !== null) {
+				await addSnapshot(
+					account.id,
+					toAddSnapshotBody({
+						points: balance,
+						observedAt: todayIso(new Date()),
+						note: "",
+					}),
+				);
+			}
+		},
+		// The two requests are not one transaction. If the second one fails, the
+		// account exists with no balance. Therefore the lists refresh also after
+		// an error: then the user reads that account and adds the balance again.
+		onSettled: async () => {
 			// The new account changes the list and also the potential: a new
 			// balance of a source gives new miles.
 			await queryClient.invalidateQueries({ queryKey: ["accounts"] });
 			await queryClient.invalidateQueries({ queryKey: ["potential"] });
-			onClose();
 		},
+		onSuccess: onClose,
 	});
 
 	const options = sortPrograms(programs, currencies);
@@ -88,7 +109,11 @@ function Fields({
 			className="flex flex-col gap-4 rounded-lg border border-border bg-muted p-4"
 			onSubmit={(event) => {
 				event.preventDefault();
-				save.mutate();
+				const balance = readOptionalPoints(points);
+				setInvalid(!balance.ok);
+				if (balance.ok) {
+					save.mutate(balance.points);
+				}
 			}}
 		>
 			<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
@@ -109,6 +134,20 @@ function Fields({
 						))}
 					</SelectContent>
 				</Select>
+			</div>
+
+			<div className="flex flex-col gap-2">
+				<Label htmlFor={`${fieldId}-points`}>{text.firstBalanceLabel}</Label>
+				<Input
+					id={`${fieldId}-points`}
+					value={points}
+					// The keyboard of the telephone shows the digits, but the field
+					// stays a text: the user can write the separator of the thousands.
+					inputMode="numeric"
+					autoComplete="off"
+					aria-invalid={invalid}
+					onChange={(event) => setPoints(event.target.value)}
+				/>
 			</div>
 
 			<div className="flex flex-col gap-2">
@@ -133,6 +172,9 @@ function Fields({
 				/>
 			</div>
 
+			{invalid && (
+				<p className="text-destructive text-sm">{text.pointsError}</p>
+			)}
 			{save.isError && (
 				<p className="text-destructive text-sm">{text.saveError}</p>
 			)}

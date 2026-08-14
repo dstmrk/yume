@@ -43,6 +43,7 @@ export const text = {
 	newAccountTitle: "Nuovo conto",
 	programLabel: "Programma",
 	programPlaceholder: "Scegli un programma",
+	firstBalanceLabel: "Saldo (facoltativo)",
 	nicknameLabel: "Nome (facoltativo)",
 	membershipLabel: "Numero tessera (facoltativo)",
 
