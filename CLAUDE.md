@@ -124,8 +124,11 @@ Write a unit test for each new rule of the calculation.
 The theme is an airport departure board with split-flap displays. The palette is dark
 only. Obey these rules:
 
+- Use a component of `src/client/components/ui/` when one exists. Do not write the
+  classes of a standard component again in another file.
 - Keep the shadcn/ui components in `src/client/components/ui/`. Do not change these
-  files.
+  files. You can only add an export that shadcn/ui also gives, for example
+  `buttonVariants`. An element that is not a `button` then holds the same appearance.
 - Put the components of the theme in `src/client/components/board/`. These components
   use the components of `ui/`.
 - Keep all the tokens in one CSS file. Use the `@theme` directive of Tailwind CSS v4.
