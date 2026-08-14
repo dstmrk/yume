@@ -83,6 +83,16 @@ export type AccountsResponse = {
 	accounts: AccountRow[];
 };
 
+/**
+ * The currencies that the user marks as a favourite.
+ *
+ * The dashboard shows the cards of these currencies first. The list holds a
+ * currency and not a programme: one card shows one currency.
+ */
+export type FavoritesResponse = {
+	currencyIds: string[];
+};
+
 export type PotentialResponse = {
 	/** The date of the calculation. A rule has versions. */
 	at: string;

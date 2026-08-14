@@ -16,23 +16,32 @@ export type CardList<T> = {
  * balance of that currency, and no source reaches it. Thus the list removes
  * that currency.
  *
+ * The favourites of the user come first, then the other currencies. Each of the
+ * two groups goes from the largest value to the smallest one. The user marks
+ * the currencies of interest, and the value alone does not give that sequence.
+ *
  * The catalogue holds 15 airline currencies, but the user reads the dashboard
- * on a telephone. Therefore the first view holds the three largest values, and
- * a button opens the other ones.
+ * on a telephone. Therefore the first view holds the first three cards of that
+ * sequence, and a button opens the other ones. A favourite with a small value
+ * takes the place of a larger currency: that result is the reason of the mark.
  */
-export function cardsToShow<T extends { total: number }>(
+export function cardsToShow<T extends { currencyId: string; total: number }>(
 	rows: readonly T[],
 	expanded: boolean,
+	favorites: ReadonlySet<string>,
 ): CardList<T> {
-	const withValue = rows
-		.filter((row) => row.total > 0)
-		.sort(byValueDesc((row) => row.total));
+	const withValue = rows.filter((row) => row.total > 0);
+	const byValue = byValueDesc<T>((row) => row.total);
+	const sorted = [
+		...withValue.filter((row) => favorites.has(row.currencyId)).sort(byValue),
+		...withValue.filter((row) => !favorites.has(row.currencyId)).sort(byValue),
+	];
 
 	if (expanded) {
-		return { cards: withValue, hidden: 0 };
+		return { cards: sorted, hidden: 0 };
 	}
 	return {
-		cards: withValue.slice(0, HOME_CARDS),
-		hidden: Math.max(0, withValue.length - HOME_CARDS),
+		cards: sorted.slice(0, HOME_CARDS),
+		hidden: Math.max(0, sorted.length - HOME_CARDS),
 	};
 }

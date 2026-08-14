@@ -212,6 +212,7 @@ transfer_rule(...)                    -- refer to paragraph 3.3
 
 user_account(id, userId, programId, membershipRef?, nickname?)
 balance_snapshot(id, accountId, points, observedAt, note?)
+favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragraph 5.0.2
 ```
 
 The tables `currency`, `program` and `transfer_rule` contain application data, not user
@@ -460,6 +461,27 @@ Two rules make the first entry of the data short:
   form holds no field of the date. The two requests are not one transaction, therefore
   the lists refresh also after an error of the second request. Then the user reads that
   account and writes the balance again.
+
+### 5.0.2 The sequence of the cards
+
+Each card holds a heart at the right of its title. The user taps that heart, and the
+currency of the card becomes a favourite. The dashboard then shows the favourites first,
+then the other currencies. Each of the two groups goes from the largest value to the
+smallest one.
+
+The mark holds a currency, and not a programme. One card shows one currency, thus a mark
+of a programme gives six marks for the card of Avios. Refer to paragraph 3.1. The table
+`favorite_currency` holds the pair of the user and the currency as its key. Therefore a
+second tap of the heart changes no row, and two devices give one mark.
+
+The first view holds the first three cards of that sequence. A favourite with a small
+value takes the place of a larger currency: that result is the reason of the mark. A
+currency with a potential of 0 shows no card, also with a mark. Refer to paragraph 5.4.
+
+The client writes the answer in its cache before the request arrives. Thus the heart and
+the sequence of the cards change with the tap. An error puts back the state of before.
+The two requests of the mark are idempotent: `PUT` writes the mark and `DELETE` removes
+it, and both give the status 204.
 
 ### 5.1 Two layers of components
 
