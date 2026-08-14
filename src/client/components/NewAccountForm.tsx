@@ -1,13 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { Currency, Program } from "../../shared/catalogue.ts";
-import { sortPrograms, toCreateAccountBody } from "../lib/account.ts";
+import { sortPrograms } from "../lib/account.ts";
 import { addSnapshot, createAccount } from "../lib/api.ts";
-import {
-	readOptionalPoints,
-	toAddSnapshotBody,
-	todayIso,
-} from "../lib/balance.ts";
+import { readOptionalPoints, todayIso } from "../lib/balance.ts";
 import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
@@ -72,25 +68,17 @@ function Fields({
 	const fieldId = useId();
 	const [programId, setProgramId] = useState("");
 	const [points, setPoints] = useState("");
-	const [nickname, setNickname] = useState("");
-	const [membershipRef, setMembershipRef] = useState("");
 	const [invalid, setInvalid] = useState(false);
 
 	const queryClient = useQueryClient();
 	const save = useMutation({
 		mutationFn: async (balance: number | null) => {
-			const account = await createAccount(
-				toCreateAccountBody({ programId, nickname, membershipRef }),
-			);
+			const account = await createAccount({ programId });
 			if (balance !== null) {
-				await addSnapshot(
-					account.id,
-					toAddSnapshotBody({
-						points: balance,
-						observedAt: todayIso(new Date()),
-						note: "",
-					}),
-				);
+				await addSnapshot(account.id, {
+					points: balance,
+					observedAt: todayIso(new Date()),
+				});
 			}
 		},
 		// The two requests are not one transaction. If the second one fails, the
@@ -150,28 +138,6 @@ function Fields({
 					autoComplete="off"
 					aria-invalid={invalid}
 					onChange={(event) => setPoints(event.target.value)}
-				/>
-			</div>
-
-			<div className="flex flex-col gap-2">
-				<Label htmlFor={`${fieldId}-nickname`}>{text.nicknameLabel}</Label>
-				<Input
-					id={`${fieldId}-nickname`}
-					value={nickname}
-					maxLength={60}
-					autoComplete="off"
-					onChange={(event) => setNickname(event.target.value)}
-				/>
-			</div>
-
-			<div className="flex flex-col gap-2">
-				<Label htmlFor={`${fieldId}-membership`}>{text.membershipLabel}</Label>
-				<Input
-					id={`${fieldId}-membership`}
-					value={membershipRef}
-					maxLength={60}
-					autoComplete="off"
-					onChange={(event) => setMembershipRef(event.target.value)}
 				/>
 			</div>
 

@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-	parsePoints,
-	readOptionalPoints,
-	toAddSnapshotBody,
-	todayIso,
-} from "./balance.ts";
+import { parsePoints, readOptionalPoints, todayIso } from "./balance.ts";
 
 describe("parsePoints", () => {
 	it("reads a number with no separator", () => {
@@ -105,29 +100,5 @@ describe("todayIso", () => {
 	// then holds a date that the user did not select.
 	it("gives the date of the user in the first hour of a day", () => {
 		expect(todayIso(new Date(2026, 7, 13, 0, 30))).toBe("2026-08-13");
-	});
-});
-
-describe("toAddSnapshotBody", () => {
-	it("keeps the points, the date and the note", () => {
-		expect(
-			toAddSnapshotBody({
-				points: 1900,
-				observedAt: "2026-08-13",
-				note: "Dopo il bonus",
-			}),
-		).toEqual({
-			points: 1900,
-			observedAt: "2026-08-13",
-			note: "Dopo il bonus",
-		});
-	});
-
-	// The note is not necessary. The schema of the API asks for a text or for
-	// null, thus an empty field gives the status 400.
-	it("makes an empty note null", () => {
-		expect(
-			toAddSnapshotBody({ points: 0, observedAt: "2026-08-13", note: "  " }),
-		).toEqual({ points: 0, observedAt: "2026-08-13", note: null });
 	});
 });

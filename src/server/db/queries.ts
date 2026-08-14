@@ -20,7 +20,6 @@ import {
 export type AccountWithBalance = {
 	accountId: string;
 	programId: string;
-	nickname: string | null;
 	/**
 	 * The id of the most recent snapshot. The client sends this id to remove
 	 * that snapshot. Thus it removes the value that it shows, and no value that
@@ -44,7 +43,6 @@ export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
 		.select({
 			accountId: userAccount.id,
 			programId: userAccount.programId,
-			nickname: userAccount.nickname,
 			snapshotId: balanceSnapshot.id,
 			points: balanceSnapshot.points,
 			observedAt: balanceSnapshot.observedAt,
@@ -204,19 +202,11 @@ export function createAccount(
 	input: {
 		userId: string;
 		programId: string;
-		nickname?: string | null;
-		membershipRef?: string | null;
 	},
 ): string {
 	const id = crypto.randomUUID();
 	db.insert(userAccount)
-		.values({
-			id,
-			userId: input.userId,
-			programId: input.programId,
-			nickname: input.nickname ?? null,
-			membershipRef: input.membershipRef ?? null,
-		})
+		.values({ id, userId: input.userId, programId: input.programId })
 		.run();
 	return id;
 }
@@ -275,7 +265,6 @@ export function addSnapshot(
 		accountId: string;
 		points: number;
 		observedAt: string;
-		note?: string | null;
 	},
 ): string {
 	const id = crypto.randomUUID();
@@ -285,7 +274,6 @@ export function addSnapshot(
 			accountId: input.accountId,
 			points: input.points,
 			observedAt: input.observedAt,
-			note: input.note ?? null,
 		})
 		.run();
 	return id;

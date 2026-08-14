@@ -153,15 +153,8 @@ export function Dashboard() {
 					{allAccounts.map((account) => (
 						<li key={account.accountId} className="flex flex-col gap-2">
 							<div className="flex items-center justify-between gap-3">
-								<span className="min-w-0 text-sm">
-									<span className="block break-words">
-										{name(account.programId)}
-									</span>
-									{account.nickname !== null && (
-										<span className="block text-board-muted text-xs">
-											{account.nickname}
-										</span>
-									)}
+								<span className="min-w-0 break-words text-sm">
+									{name(account.programId)}
 								</span>
 								{account.points === null ? (
 									<span className="shrink-0 text-board-muted text-xs">

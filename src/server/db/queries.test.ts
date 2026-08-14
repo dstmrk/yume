@@ -97,16 +97,8 @@ describe("currentBalances", () => {
 	});
 
 	it("gives two accounts of the same programme", () => {
-		const first = createAccount(db, {
-			userId: USER,
-			programId: "amex-mr",
-			nickname: "Personale",
-		});
-		const second = createAccount(db, {
-			userId: USER,
-			programId: "amex-mr",
-			nickname: "Business",
-		});
+		const first = createAccount(db, { userId: USER, programId: "amex-mr" });
+		const second = createAccount(db, { userId: USER, programId: "amex-mr" });
 		addSnapshot(db, {
 			accountId: first,
 			points: 400,
@@ -120,10 +112,9 @@ describe("currentBalances", () => {
 
 		const rows = currentBalances(db, USER);
 		expect(rows).toHaveLength(2);
-		expect(rows.map((row) => row.nickname).sort()).toEqual([
-			"Business",
-			"Personale",
-		]);
+		expect(rows.map((row) => row.accountId).sort()).toEqual(
+			[first, second].sort(),
+		);
 	});
 
 	it("keeps one row for each account when the dates are equal", () => {

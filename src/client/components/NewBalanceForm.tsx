@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { addSnapshot } from "../lib/api.ts";
-import { parsePoints, toAddSnapshotBody, todayIso } from "../lib/balance.ts";
+import { parsePoints, todayIso } from "../lib/balance.ts";
 import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
@@ -43,16 +43,12 @@ function Fields({
 	const fieldId = useId();
 	const [points, setPoints] = useState("");
 	const [observedAt, setObservedAt] = useState(() => todayIso(new Date()));
-	const [note, setNote] = useState("");
 	const [invalid, setInvalid] = useState(false);
 
 	const queryClient = useQueryClient();
 	const save = useMutation({
 		mutationFn: (value: number) =>
-			addSnapshot(
-				accountId,
-				toAddSnapshotBody({ points: value, observedAt, note }),
-			),
+			addSnapshot(accountId, { points: value, observedAt }),
 		onSuccess: async () => {
 			// A new balance changes the list and also the potential of each
 			// currency that the account can reach.
@@ -95,17 +91,6 @@ function Fields({
 					type="date"
 					value={observedAt}
 					onChange={(event) => setObservedAt(event.target.value)}
-				/>
-			</div>
-
-			<div className="flex flex-col gap-2">
-				<Label htmlFor={`${fieldId}-note`}>{text.noteLabel}</Label>
-				<Input
-					id={`${fieldId}-note`}
-					value={note}
-					maxLength={200}
-					autoComplete="off"
-					onChange={(event) => setNote(event.target.value)}
 				/>
 			</div>
 

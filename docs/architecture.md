@@ -210,8 +210,8 @@ currency(id, code, name, kind)        -- 'airline' | 'flexible' | 'hotel' | 'rai
 program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
 transfer_rule(...)                    -- refer to paragraph 3.3
 
-user_account(id, userId, programId, membershipRef?, nickname?)
-balance_snapshot(id, accountId, points, observedAt, note?)
+user_account(id, userId, programId)
+balance_snapshot(id, accountId, points, observedAt)
 ```
 
 The tables `currency`, `program` and `transfer_rule` contain application data, not user

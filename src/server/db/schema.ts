@@ -194,8 +194,6 @@ export const userAccount = sqliteTable("user_account", {
 	programId: text("program_id")
 		.notNull()
 		.references(() => program.id),
-	membershipRef: text("membership_ref"),
-	nickname: text("nickname"),
 });
 
 /**
@@ -214,7 +212,6 @@ export const balanceSnapshot = sqliteTable(
 			.references(() => userAccount.id, { onDelete: "cascade" }),
 		points: integer("points").notNull(),
 		observedAt: text("observed_at").notNull(),
-		note: text("note"),
 	},
 	(table) => [
 		// The application reads the most recent snapshot of an account.
