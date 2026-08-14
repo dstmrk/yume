@@ -103,7 +103,10 @@ Thus the system calculates the potential **for each currency**, not for each pro
 If the system calculates the potential for each programme, it counts the same balance
 six times.
 
-The 19 airline programmes use 14 different currencies.
+The catalogue holds 20 airline programmes and 15 airline currencies. A source sends
+points to 19 of those programmes, and those 19 programmes use 14 currencies. The
+programme Miles & More holds the currency that no source reaches. Appendix 8 gives that
+programme.
 
 ### 3.2 Snapshots, not a record of changes
 
@@ -447,7 +450,7 @@ Two rules make the first entry of the data short:
 - **Put the sources first in the list of the programmes.** A source is a programme of a
   currency with the kind `flexible`. The potential of a currency grows only with a
   source. Refer to paragraph 3.5. A user who adds only airline programmes reads a
-  potential that is equal to each balance. The two sources are in the middle of 19 names
+  potential that is equal to each balance. The two sources are in the middle of 22 names
   in the order of the alphabet, thus `sortPrograms` reads the currencies and moves each
   source to the top.
 - **Write the first balance in the form of the account.** The user made an account and
@@ -814,9 +817,11 @@ only: a migration that ran on a server is immutable. Add a new migration.
 
 ## 8. Appendix — the catalogue of programmes
 
-The catalogue contains 19 airline programmes. These are the transfer partners of Amex MR
-Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*. Each rule
-holds the country `IT`. Paragraph 3.3.2 gives the rule for an other country.
+The catalogue contains 20 airline programmes. 19 of them are the transfer partners of
+Amex MR Italy and Revolut RevPoints in August 2026. The last section of this appendix
+gives Miles & More, the programme that no source reaches. Each ratio is *source :
+target*. Each rule holds the country `IT`. Paragraph 3.3.2 gives the rule for an other
+country.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
 truth. That file holds the step of each transfer and, in a comment, the official page of
