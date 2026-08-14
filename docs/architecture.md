@@ -673,14 +673,15 @@ bottom half of the character that arrives falls from the same axis. Thus the two
 show two different characters while the card turns. A surface that turns one time, with
 one character, is not a Solari.
 
-**A flap turns through its drum.** The drum holds the separator of the thousands, then
-the digits from 0 to 9. The flap starts at the separator and it turns until the correct
-digit arrives, thus the user sees each digit before it. An earlier version showed the
-correct digit with one movement, and the board then read as a card that appears, not as a
-board of Solari.
+**A flap turns through its drum.** The drum holds the empty position, then the separator
+of the thousands, then the digits from 0 to 9. The flap starts at the empty position and
+it turns until the correct digit arrives, thus the user sees each digit before it. An
+earlier version showed the correct digit with one movement, and the board then read as a
+card that appears, not as a board of Solari.
 
-The board at the load shows a separator at each place. The flap of a separator does not
-turn: that flap is already at its place.
+The board at the load shows empty flaps, because a board with no data shows no character.
+The flap of a separator turns one time: that character is the second position of the
+drum.
 
 **The drum holds no letter.** The board shows a letter in the name of the application
 only, and that name does not turn. Refer to paragraph 5.5.2. A drum of the letters gives
