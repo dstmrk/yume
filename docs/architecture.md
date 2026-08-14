@@ -851,6 +851,9 @@ Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
 
 ### Transfer rules — Amex Membership Rewards Italy
 
+A dash in the column Minimum shows that the catalogue holds no rule for that target. The
+seed file holds the hotel partners and the rail partners of no country now.
+
 | Target | Ratio | Minimum |
 |---|---|---|
 | Flying Blue | 3 : 2 | 750 |
@@ -860,7 +863,7 @@ Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
 | Cathay (Asia Miles) | 5 : 4 | 1 000 |
 | Delta SkyMiles | 3 : 2 | 3 |
 | Singapore KrisFlyer | 3 : 2 | 1 500 |
-| Emirates Skywards | 5 : 2 (5 : 4 for Centurion) | — |
+| Emirates Skywards | 5 : 2 (5 : 4 for Centurion) | 500 |
 | Hilton Honors | 1 : 1 | — |
 | Marriott Bonvoy | 5 : 4 | — |
 | Radisson Rewards | 2 : 5 | — |
