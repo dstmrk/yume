@@ -155,6 +155,40 @@ describe("GET /api/health", () => {
 	});
 });
 
+/**
+ * The server supplies the files of the client after the routes of the API. A
+ * path of the API that no route matches must give an error of the API, and not
+ * the page of the client.
+ */
+describe("a path of the API that no route matches", () => {
+	it("gives the status 404 and a body of JSON", async () => {
+		const response = await app.request("/api/nope", { headers: { cookie } });
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ error: "not_found" });
+	});
+
+	it("gives the status 404 with a method that the route does not hold", async () => {
+		const response = await app.request("/api/catalogue", {
+			method: "DELETE",
+			headers: { cookie },
+		});
+		expect(response.status).toBe(404);
+	});
+
+	// The path is under the exceptions of the session, thus the answer arrives
+	// with no cookie. It stays an answer of the API.
+	it("gives the status 404 on a path of the health with no cookie", async () => {
+		const response = await app.request("/api/health/nope");
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ error: "not_found" });
+	});
+
+	it("gives the status 401 with no cookie, and not the status 404", async () => {
+		const response = await app.request("/api/nope");
+		expect(response.status).toBe(401);
+	});
+});
+
 describe("GET /api/catalogue", () => {
 	it("gives the currencies and the programmes", async () => {
 		const body = await getJson<{
