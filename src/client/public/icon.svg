@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+	<title>Yume</title>
+	<!--
+		The mark of Yume: one flap of a departure board.
+
+		The tile is the flap. A flap of Solari is a full card with the seam at
+		the middle, thus the seam crosses the full width. An earlier version put
+		a small panel inside a frame: that composition became noise at 16
+		pixels.
+
+		The colours are the tokens of `styles/theme.css`: the gradient goes from
+		the token color-flap-top to the token color-flap-base, the seam is the
+		token color-flap-edge and the letter is the token color-board-amber.
+		The light comes from above, thus the top of the flap is lighter than
+		its base. A comment of XML holds no double hyphen, thus this text names
+		each token without its two first characters.
+
+		The letter is the glyph Y of Departure Mono, as a path. Departure Mono
+		is a pixel font, thus the glyph is five rectangles on a grid. The path
+		holds no text element: the icon needs no font, and each rasteriser
+		gives the same result. The file `../fonts/DepartureMono-LICENSE.txt`
+		holds the licence of the font.
+
+		This file is also the favicon of the page. Refer to paragraph 5.5 of
+		`docs/architecture.md`.
+	-->
+	<defs>
+		<linearGradient id="flap" x1="0" y1="0" x2="0" y2="1">
+			<stop offset="0" stop-color="#262a2f" />
+			<stop offset="1" stop-color="#1a1d21" />
+		</linearGradient>
+	</defs>
+	<rect width="512" height="512" rx="96" fill="url(#flap)" />
+	<path
+		fill="#f5a623"
+		d="M156 96V216H196V96ZM316 96V216H356V96ZM236 256V416H276V256ZM196 216V256H236V216ZM276 216V256H316V216Z"
+	/>
+	<line x1="0" y1="256" x2="512" y2="256" stroke="#0b0c0e" stroke-width="14" />
+</svg>
