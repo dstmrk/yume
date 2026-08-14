@@ -342,6 +342,22 @@ docker compose exec yume node --experimental-strip-types \
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
 
+`BETTER_AUTH_URL` also controls the attribute `secure` of the cookie of the session.
+Better Auth reads the protocol of that value, and it gives the attribute to an origin
+with `https` only. An installation on `http://nas.local:3000` thus sent the session of
+each user in clear text on the network of the home, and no message told that to the
+administrator.
+
+Therefore the function `needsSecureCookies` of `src/server/auth.ts` gives that attribute
+to each origin that is not the machine itself, and `advanced.useSecureCookies` of Better
+Auth receives that value. A browser then removes the cookie on a plain HTTP connection,
+and the sign-in is not possible. Paragraph 7 gives the three tools for the TLS.
+
+The machine itself is the exception: a browser accepts a `secure` cookie from
+`localhost`, from `127.0.0.1` and from `[::1]` on a plain HTTP connection. Thus
+`npm run dev:server` needs no certificate. A value that the function cannot read gives
+the attribute: a defect in the variable must not remove the protection.
+
 The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
@@ -759,13 +775,13 @@ Obey these rules on a home server with arm64:
   no binary for 32-bit armv7. On armv7, the installation compiles the module. This
   operation is slow and it needs much memory. Build the image with
   `docker buildx --platform linux/arm64`, or build the image on the device.
-- **Use TLS.** Better Auth sends session cookies with the `secure` attribute. A browser
-  removes these cookies on a plain HTTP connection. Thus a login at
+- **Use TLS.** Yume sends the session cookie with the `secure` attribute. A browser
+  removes that cookie on a plain HTTP connection. Thus a login at
   `http://nas.local:3000` is not possible, and the browser shows no error message. Use
   Caddy with a local certificate, or a Cloudflare Tunnel, or Tailscale. Tailscale
   supplies HTTPS. Do not set `secure` to false. `compose.yaml` holds no service for the
   TLS: it gives the port to the local machine only, thus one of these three tools
-  supplies the access from the network.
+  supplies the access from the network. Paragraph 4.3 gives the rule of that attribute.
 - **Make backups.** Use `VACUUM INTO` in a cron job. Write the file to the mounted
   volume. Remove the old files.
 
