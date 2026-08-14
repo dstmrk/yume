@@ -19,7 +19,23 @@ export type FlapCell = {
  * flap for each position, and each flap has the same size.
  */
 export function toFlapCells(value: number): FlapCell[] {
-	return [...formatPoints(value)].map((char, position) => ({
+	return toCells(formatPoints(value));
+}
+
+/**
+ * Divides a word into one flap for each letter.
+ *
+ * The board holds capital letters, thus this function gives capital letters.
+ * A space also receives a flap: a board of Solari holds one flap for each
+ * position.
+ */
+export function toWordCells(word: string): FlapCell[] {
+	return toCells(word.toUpperCase());
+}
+
+/** Gives one flap to each character of a text. */
+function toCells(text: string): FlapCell[] {
+	return [...text].map((char, position) => ({
 		position,
 		char,
 	}));
