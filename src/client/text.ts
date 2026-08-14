@@ -9,6 +9,21 @@
 export const text = {
 	appName: "Yume",
 
+	homeTagline:
+		"Tutti i tuoi punti su una schermata. Yume calcola quante miglia puoi avere in ogni valuta.",
+	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
+	homeHowTitle: "Come funziona",
+	homeHow: "Scrivi i saldi a mano. Yume li converte valuta per valuta.",
+	homeValueTitle: "Il valore",
+	homeValue:
+		"È un calcolo, non un saldo. Yume mostra il massimo per ogni valuta.",
+	homeScopeTitle: "Cosa copre",
+	homeScope:
+		"I partner di trasferimento di American Express Italia e di Revolut.",
+	homeScreenshotTitle: "Dopo l'accesso",
+	homeScreenshotAlt:
+		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",
+
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
 		"Valore calcolato, non un saldo. Il trasferimento è definitivo.",

@@ -7,8 +7,12 @@ import { cn } from "../../lib/cn.ts";
  *
  * The height is 44 pixels. That size is the smallest control for a finger.
  * Refer to paragraph 5.4 of `docs/architecture.md`.
+ *
+ * `buttonVariants` is public, as in shadcn/ui. An element that is not a
+ * `button` then holds the same appearance: a `Link` of the router gives an `a`
+ * element, and a navigation needs that element.
  */
-const buttonVariants = cva(
+export const buttonVariants = cva(
 	"inline-flex h-11 items-center justify-center gap-2 rounded-md px-4 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50",
 	{
 		variants: {

@@ -167,6 +167,35 @@
 	}
 }
 
+/**
+ * A block of the page arrives from below, at the load.
+ *
+ * The public page gives one block at a time, with the same rhythm of the
+ * flaps: the reader receives the title, then the board, then the text. The
+ * variable `--rise-index` gives the place of the block.
+ */
+@keyframes board-rise {
+	from {
+		transform: translateY(0.5rem);
+		opacity: 0;
+	}
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@utility board-rise {
+	/* The animation is present only for a user that accepts the movement. A
+	   user with prefers-reduced-motion reads each block immediately. */
+	@media (prefers-reduced-motion: no-preference) {
+		/* `backwards` keeps the block hidden during the delay. Without it, each
+		   block appears first and then it moves. */
+		animation: board-rise 400ms ease-out backwards;
+		animation-delay: calc(var(--rise-index, 0) * 90ms);
+	}
+}
+
 /** The space of the telephone below the screen, on iOS. */
 @utility pb-safe {
 	padding-bottom: calc(env(safe-area-inset-bottom) + --spacing(6));

@@ -17,6 +17,20 @@ currency.
 Yume does not connect to your bank or to your airline account. You write the balances
 manually.
 
+![The dashboard of Yume. One card for each currency, with the potential miles on a split-flap board.](src/client/public/screenshot-dashboard.png)
+
+## The pages
+
+Yume has three pages:
+
+| Page | Address | Who reads it |
+|---|---|---|
+| The public page | `/` | Each visitor. It says what Yume calculates and it gives the two limits of that value. |
+| The dashboard | `/dashboard` | A user with an account. |
+| The access | `/login` | A visitor with an account or with a code of invitation. |
+
+The application on the home screen of a telephone opens the dashboard.
+
 ## Scope
 
 Yume is for the Italian market. It contains only the transfer partners of American
@@ -35,9 +49,9 @@ The potential miles value is a calculation, not a balance. Two limits apply:
 ## Status
 
 The project is in the first stage of the development. The conversion logic, the database,
-the API and the dashboard are present. From the dashboard you add an account, you write a
-balance, you cancel a balance and you remove an account. Yume installs on the home screen
-of a telephone.
+the API, the public page and the dashboard are present. From the dashboard you add an
+account, you write a balance, you cancel a balance and you remove an account. Yume
+installs on the home screen of a telephone.
 
 The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
 from Revolut. It also holds Miles & More, which no source can increase.
