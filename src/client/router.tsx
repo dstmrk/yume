@@ -84,7 +84,9 @@ const signUpRoute = createRoute({
 			throw redirect({ to: "/dashboard" });
 		}
 	},
-	component: () => <LoginPage code={signUpRoute.useSearch().code} />,
+	// A link with no code opens the same form. The person then writes the code
+	// of the message in the field.
+	component: () => <LoginPage code={signUpRoute.useSearch().code ?? ""} />,
 });
 
 export const router = createRouter({

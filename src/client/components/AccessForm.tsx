@@ -24,7 +24,10 @@ export function AccessForm({
 	code,
 }: {
 	onAccess: () => void;
-	/** The code of the link. It opens the form of the sign-up. */
+	/**
+	 * The code of the link. A text opens the form of the sign-up, also an empty
+	 * text. The value undefined opens the form of the sign-in.
+	 */
 	code?: string;
 }) {
 	const fieldId = useId();
