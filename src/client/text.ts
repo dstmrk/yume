@@ -26,7 +26,7 @@ export const text = {
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
-		"Valore calcolato, non un saldo. Il trasferimento è definitivo.",
+		"Valore calcolato su un trasferimento totale. Ricorda: trasferire i punti è definitivo.",
 	currentBalance: "Saldo",
 	fromTransfers: "Dai trasferimenti",
 	routeDetail: "Dove puoi trasferire",
