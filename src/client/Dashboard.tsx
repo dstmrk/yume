@@ -7,6 +7,7 @@ import { AccountActions } from "./components/AccountActions.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
+import { InvitePanel } from "./components/InvitePanel.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { Button } from "./components/ui/button.tsx";
@@ -193,6 +194,7 @@ export function Dashboard() {
 				programs={catalogue.data.programs}
 				currencies={catalogue.data.currencies}
 			/>
+			<InvitePanel />
 			<SignOutButton />
 		</div>
 	);

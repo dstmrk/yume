@@ -9,6 +9,9 @@
  * no request that gives the status 401, and a user with a session reads the
  * dashboard and not the public page.
  *
+ * The route `/signup` is the link of an invitation. It gives the code to the
+ * form, and the person writes only the address and the password.
+ *
  * The root holds no title: the public page gives a title of the centre, and
  * the other two pages give the masthead `AppTitle`.
  */
@@ -24,6 +27,7 @@ import { Dashboard } from "./Dashboard.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchSession } from "./lib/api.ts";
+import { inviteCodeOf } from "./lib/invite.ts";
 
 const rootRoute = createRootRoute({
 	component: () => (
@@ -69,8 +73,29 @@ const loginRoute = createRoute({
 	component: LoginPage,
 });
 
+const signUpRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/signup",
+	validateSearch: (search: Record<string, unknown>) => ({
+		code: inviteCodeOf(search),
+	}),
+	beforeLoad: async () => {
+		if ((await fetchSession()) !== null) {
+			throw redirect({ to: "/dashboard" });
+		}
+	},
+	// A link with no code opens the same form. The person then writes the code
+	// of the message in the field.
+	component: () => <LoginPage code={signUpRoute.useSearch().code ?? ""} />,
+});
+
 export const router = createRouter({
-	routeTree: rootRoute.addChildren([homeRoute, dashboardRoute, loginRoute]),
+	routeTree: rootRoute.addChildren([
+		homeRoute,
+		dashboardRoute,
+		loginRoute,
+		signUpRoute,
+	]),
 });
 
 declare module "@tanstack/react-router" {

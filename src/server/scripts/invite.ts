@@ -2,33 +2,27 @@
  * Writes an invitation and prints the code.
  *
  * Registration is possible only with an invitation. Paragraph 4 of
- * `docs/architecture.md` gives the rule. The administrator sends the code to
- * the new user, and that person writes it in the form of the sign-up.
+ * `docs/architecture.md` gives the rule. The interface of the user writes an
+ * invitation, thus this script is the operation of the administrator on the
+ * machine of the server.
  *
- *   npm run auth:invite -- <email of the user who invites> [days] [email]
+ *   npm run auth:invite -- <email of the user who invites> [email]
  *
- * The default time is 7 days. The third argument is the address of the person
- * who receives the code. It is only a note in the row.
+ * The code is valid for 24 hours. The second argument is the address of the
+ * person who receives the code. It is only a note in the row.
+ *
+ * Each user has two invitations. The script gives an error when the user holds
+ * no free slot.
  */
 
 import { openDatabase } from "../db/index.ts";
-import { createInvitation, findUserByEmail } from "../db/queries.ts";
-import { makeCode } from "../invitation.ts";
+import { createInvitationForUser, findUserByEmail } from "../db/queries.ts";
 
-const DAY = 24 * 60 * 60 * 1000;
-const CODE_LENGTH = 10;
-
-const [author, time = "7", email] = process.argv.slice(2);
+const [author, email] = process.argv.slice(2);
 if (author === undefined) {
 	console.error(
-		"Use: npm run auth:invite -- <email of the user who invites> [days] [email]",
+		"Use: npm run auth:invite -- <email of the user who invites> [email]",
 	);
-	process.exit(1);
-}
-
-const days = Number(time);
-if (!Number.isInteger(days) || days < 1) {
-	console.error(`The quantity of days is not correct: ${time}`);
 	process.exit(1);
 }
 
@@ -42,14 +36,18 @@ if (found === undefined) {
 	process.exit(1);
 }
 
-const code = makeCode(crypto.getRandomValues(new Uint8Array(CODE_LENGTH)));
-const expiresAt = new Date(Date.now() + days * DAY).toISOString();
-createInvitation(db, {
-	code,
-	createdByUserId: found.id,
+const written = createInvitationForUser(db, {
+	userId: found.id,
 	email,
-	expiresAt,
+	at: new Date().toISOString(),
 });
 db.$client.close();
 
-console.log(`The code is ${code}. It is valid until ${expiresAt}.`);
+if (written === null) {
+	console.error(`The user ${author} has no free invitation.`);
+	process.exit(1);
+}
+
+console.log(
+	`The code is ${written.code}. It is valid until ${written.expiresAt}.`,
+);

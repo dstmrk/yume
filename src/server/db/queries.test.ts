@@ -7,14 +7,17 @@ import {
 	addSnapshot,
 	allPrograms,
 	allTransferRules,
+	countUsers,
 	createAccount,
 	createInvitation,
+	createInvitationForUser,
 	currentBalances,
 	deleteAccount,
 	deleteSnapshot,
 	findAccount,
 	findInvitation,
 	findUserByEmail,
+	invitationsOfUser,
 	markInvitationUsed,
 } from "./queries.ts";
 import { balanceSnapshot } from "./schema.ts";
@@ -244,6 +247,121 @@ describe("the queries of the invitation", () => {
 			at: "2026-08-13T10:00:00.000Z",
 		});
 		expect(marked).toBe(false);
+	});
+});
+
+describe("createInvitationForUser", () => {
+	const NOW = "2026-08-13T10:00:00.000Z";
+	const LATER = "2026-08-15T10:00:00.000Z";
+
+	it("gives a code that is valid for 24 hours", () => {
+		const written = createInvitationForUser(db, { userId: USER, at: NOW });
+
+		expect(written?.code).toHaveLength(10);
+		expect(written?.expiresAt).toBe("2026-08-14T10:00:00.000Z");
+	});
+
+	it("writes the invitation with the user and the address", () => {
+		const written = createInvitationForUser(db, {
+			userId: USER,
+			email: "amico@example.com",
+			at: NOW,
+		});
+
+		expect(findInvitation(db, written?.code ?? "")).toMatchObject({
+			createdByUserId: USER,
+			email: "amico@example.com",
+			usedAt: null,
+		});
+	});
+
+	it("gives two invitations to one user", () => {
+		expect(
+			createInvitationForUser(db, { userId: USER, at: NOW }),
+		).not.toBeNull();
+		expect(
+			createInvitationForUser(db, { userId: USER, at: NOW }),
+		).not.toBeNull();
+	});
+
+	it("gives null for the third invitation", () => {
+		createInvitationForUser(db, { userId: USER, at: NOW });
+		createInvitationForUser(db, { userId: USER, at: NOW });
+
+		expect(createInvitationForUser(db, { userId: USER, at: NOW })).toBeNull();
+		expect(invitationsOfUser(db, USER)).toHaveLength(2);
+	});
+
+	// The limit belongs to one user. The invitations of an other user hold no
+	// slot of this user.
+	it("counts only the invitations of the same user", () => {
+		createInvitationForUser(db, { userId: OTHER_USER, at: NOW });
+		createInvitationForUser(db, { userId: OTHER_USER, at: NOW });
+
+		expect(
+			createInvitationForUser(db, { userId: USER, at: NOW }),
+		).not.toBeNull();
+	});
+
+	// Two codes that expired give the two slots back.
+	it("gives a new invitation after the two codes expire", () => {
+		createInvitationForUser(db, { userId: USER, at: NOW });
+		createInvitationForUser(db, { userId: USER, at: NOW });
+
+		expect(
+			createInvitationForUser(db, { userId: USER, at: LATER }),
+		).not.toBeNull();
+	});
+
+	// A used code holds its slot also after the date of the end. Thus one user
+	// brings a maximum of two users.
+	it("gives no invitation when the two codes are used and expired", () => {
+		const first = createInvitationForUser(db, { userId: USER, at: NOW });
+		const second = createInvitationForUser(db, { userId: USER, at: NOW });
+		for (const written of [first, second]) {
+			markInvitationUsed(db, {
+				code: written?.code ?? "",
+				userId: OTHER_USER,
+				at: NOW,
+			});
+		}
+
+		expect(createInvitationForUser(db, { userId: USER, at: LATER })).toBeNull();
+	});
+});
+
+describe("invitationsOfUser", () => {
+	it("gives no invitation for a user who wrote no code", () => {
+		expect(invitationsOfUser(db, USER)).toEqual([]);
+	});
+
+	it("gives only the invitations of the user", () => {
+		createInvitation(db, {
+			code: "MIO",
+			createdByUserId: USER,
+			expiresAt: "2099-01-01T00:00:00.000Z",
+		});
+		createInvitation(db, {
+			code: "SUO",
+			createdByUserId: OTHER_USER,
+			expiresAt: "2099-01-01T00:00:00.000Z",
+		});
+
+		expect(invitationsOfUser(db, USER).map((one) => one.code)).toEqual(["MIO"]);
+	});
+});
+
+describe("countUsers", () => {
+	it("gives the quantity of users", () => {
+		expect(countUsers(db)).toBe(2);
+	});
+
+	// The hook of the sign-up reads this state. A database with no user accepts
+	// the code of the setup.
+	it("gives 0 with a database that holds no user", () => {
+		const empty = openDatabase(":memory:");
+		migrate(empty, { migrationsFolder: "drizzle" });
+		expect(countUsers(empty)).toBe(0);
 	});
 });
 

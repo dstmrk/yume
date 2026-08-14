@@ -246,39 +246,67 @@ field `inviteCode`. Two hooks control the operation:
 A sign-up that stops between the two hooks keeps the code free. Example: an address that
 an other user has.
 
-The closed model has two results:
+Email verification is OFF. There is no SMTP dependency. Thus the user cannot change a
+forgotten password without help. The administrator must do this operation.
 
-- Email verification is OFF. There is no SMTP dependency. Thus the user cannot change a
-  forgotten password without help. The administrator must do this operation.
-- A script makes the first user. The user interface does not make the first user.
+### 4.1 The first user
 
-### 4.1 The two scripts of the administrator
+The first user needs an invitation, and an invitation needs a user. Therefore the server
+makes a code of the setup at the start, but only while the table `user` holds no row. It
+writes that code in the log with the link of the sign-up:
 
-A sign-up from the network needs an invitation, and an invitation needs a user.
-Therefore the administrator runs two scripts on the machine of the server:
-
-```bash
-npm run auth:user -- <email> <name> <password>
-npm run auth:invite -- <email of the user who invites> [days] [email]
+```
+The database holds no user. Open http://localhost:3000/signup?code=XK47DYTNP2 to make
+the first user.
 ```
 
-The first script calls `auth.api.signUpEmail`, thus Better Auth writes the password with
-its own operation. A call of `auth.api` holds no `request`, and the hook of the
-invitation reads that difference: a sign-up with no request needs no code. A request from
-the network always holds a `Request`.
+The administrator reads the log with `docker compose logs`, opens the link and writes the
+address and the password. Thus a self-hosted installation needs no shell of the server.
 
-The second script prints a code of 10 characters. The alphabet holds 32 characters and no
-character that a person reads in a wrong way: no `I`, no `O`, no `0` and no `1`. One byte
-gives 8 values for each character, thus no character is more frequent.
+The code is not a fixed value of the image. Many self-hosted applications give a default
+user and a default password. Yume is on the public network and its image is public, thus
+a person who reads the repository knows that value and makes the first user before the
+administrator. A code that the server makes at each start has no such risk.
 
-The image of the container holds no npm. Run a script in the container with node:
+The hook `before` reads the quantity of users at each request. Therefore the code of the
+setup dies with the first user, also in the same process. A start with a user in the
+database makes no code.
+
+The setup writes no row in `invitation`: no user wrote that code.
+
+### 4.2 The invitations of a user
+
+Each user holds two slots of invitation. An invitation that a person used holds its slot
+forever, thus one user brings a maximum of two users. An invitation that expires with no
+use gives its slot back. The pure function `heldSlots` of `src/server/invitation.ts`
+counts the slots, and `createInvitationForUser` refuses a code above the limit.
+
+The examination at the moment of the creation is sufficient: a used invitation never
+gives its slot back. Therefore the sign-up needs no second examination of the limit.
+
+Each code is valid for 24 hours. A code travels in a message, thus a short time keeps the
+risk small. The user writes a new code after the end of the old one.
+
+Each code holds 10 characters. The alphabet holds 32 characters and no character that a
+person reads in a wrong way: no `I`, no `O`, no `0` and no `1`. One byte gives 8 values
+for each character, thus no character is more frequent.
+
+The user writes an invitation from the dashboard with `POST /api/invitations`, and the
+panel shows the link of each code that is valid. The administrator has the same operation
+on the machine of the server:
+
+```bash
+npm run auth:invite -- <email of the user who invites> [email]
+```
+
+The image of the container holds no npm. Run the script in the container with node:
 
 ```bash
 docker compose exec yume node --experimental-strip-types \
-  src/server/scripts/user.ts <email> <name> <password>
+  src/server/scripts/invite.ts <email of the user who invites>
 ```
 
-### 4.2 The variables of the environment
+### 4.3 The variables of the environment
 
 | Variable | Value |
 |---|---|
@@ -294,7 +322,7 @@ that file to `.env` and write the values. Docker Compose reads `.env` and it wri
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
 the origin of the client of Vite for development.
 
-### 4.3 The protection of the routes
+### 4.4 The protection of the routes
 
 The first middleware of the application reads the session. Each route under `/api` needs
 that session, thus a new route is closed and no person must remember the protection. Two
@@ -306,7 +334,7 @@ paths are the exceptions:
 Each route of the data reads the user with `c.get("userId")`. The application holds no
 user with a fixed value.
 
-### 4.4 The peer dependency of Better Auth
+### 4.5 The peer dependency of Better Auth
 
 Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12, and the
 project holds the version 13. That peer is optional: the library imports it only with its
@@ -541,14 +569,19 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds three routes: `/` for the public page, `/dashboard` for the dashboard
-and `/login` for the access. The tree is in `src/client/router.tsx`, in the code. The
-project needs no plugin of the router and no step of generation.
+The client holds four routes: `/` for the public page, `/dashboard` for the dashboard,
+`/login` for the access and `/signup` for the link of an invitation. The tree is in
+`src/client/router.tsx`, in the code. The project needs no plugin of the router and no
+step of generation.
 
 The route `/dashboard` reads the session before the load. With no session it sends the
 user to `/login`, therefore the dashboard makes no request that gives the status 401. The
-routes `/` and `/login` do the contrary operation: a user with a session reads the
-dashboard.
+three other routes do the contrary operation: a user with a session reads the dashboard.
+
+The route `/signup` reads the parameter `code` and gives that value to the form of the
+sign-up. Thus the person who receives the link writes only the address and the password.
+The pure function `inviteCodeOf` of `src/client/lib/invite.ts` examines the parameter,
+and `inviteLink` writes the link of a code in the dashboard.
 
 The route `/` is the only route that a visitor with no session reads. It gives the
 context that the form of the access does not give: what Yume calculates, and that the
@@ -607,8 +640,8 @@ yume/
       fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the hooks of the invitation
-      invitation.ts    # the pure examination of a code
-      scripts/         # the scripts of the administrator: the user and the invitation
+      invitation.ts    # the pure rules of a code: the state, the limit and the time
+      scripts/         # the script of the administrator: the invitation
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
     shared/            # Zod schemas and the conversion logic. Both sides use them.

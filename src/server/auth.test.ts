@@ -7,6 +7,9 @@ import { invitation } from "./db/schema.ts";
 
 const BASE_URL = "http://localhost:3000";
 const PASSWORD = "una-parola-lunga";
+const SECRET = "a-secret-for-the-test";
+/** The code that the server writes in the log while the database has no user. */
+const SETUP_CODE = "SETUP-2345";
 
 let db: Db;
 let auth: Auth;
@@ -14,8 +17,17 @@ let auth: Auth;
 beforeEach(() => {
 	db = openDatabase(":memory:");
 	migrate(db, { migrationsFolder: "drizzle" });
-	auth = createAuth(db, { secret: "a-secret-for-the-test", baseURL: BASE_URL });
+	auth = createAuth(db, { secret: SECRET, baseURL: BASE_URL });
 });
+
+/** An instance with the code of the setup, as the server makes it at the start. */
+function authWithSetup(): Auth {
+	return createAuth(db, {
+		secret: SECRET,
+		baseURL: BASE_URL,
+		setupCode: SETUP_CODE,
+	});
+}
 
 /** The sign-up of the script. It holds no request, thus it needs no code. */
 function signUpFromScript(email: string) {
@@ -25,8 +37,11 @@ function signUpFromScript(email: string) {
 }
 
 /** The sign-up of the network, with the handler of Better Auth. */
-function signUpFromNetwork(body: Record<string, string>) {
-	return auth.handler(
+function signUpFromNetwork(
+	body: Record<string, string>,
+	instance: Auth = auth,
+) {
+	return instance.handler(
 		new Request(`${BASE_URL}/api/auth/sign-up/email`, {
 			method: "POST",
 			headers: { "content-type": "application/json", origin: BASE_URL },
@@ -62,6 +77,70 @@ describe("the sign-up from a script", () => {
 	});
 });
 
+describe("the sign-up of the first user", () => {
+	it("makes the first user with the code of the setup", async () => {
+		const response = await signUpFromNetwork(
+			{ email: "primo@example.com", inviteCode: SETUP_CODE },
+			authWithSetup(),
+		);
+
+		expect(response.status).toBe(200);
+		const body = (await response.json()) as { user: { email: string } };
+		expect(body.user.email).toBe("primo@example.com");
+	});
+
+	it("refuses a code that is not the code of the setup", async () => {
+		const response = await signUpFromNetwork(
+			{ email: "primo@example.com", inviteCode: "UN-ALTRO" },
+			authWithSetup(),
+		);
+		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
+	});
+
+	// No user wrote the invitation of the first user. Therefore the setup writes
+	// no row, and the table holds only the invitations of the users.
+	it("writes no invitation for the first user", async () => {
+		await signUpFromNetwork(
+			{ email: "primo@example.com", inviteCode: SETUP_CODE },
+			authWithSetup(),
+		);
+		expect(db.select().from(invitation).all()).toEqual([]);
+	});
+
+	// The code of the setup dies with the first user, also in the same process.
+	it("refuses the code of the setup after the first user", async () => {
+		const setup = authWithSetup();
+		await signUpFromNetwork(
+			{ email: "primo@example.com", inviteCode: SETUP_CODE },
+			setup,
+		);
+
+		const response = await signUpFromNetwork(
+			{ email: "due@example.com", inviteCode: SETUP_CODE },
+			setup,
+		);
+		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
+	});
+
+	// The server gives no code of the setup when it starts with a user. A
+	// database that then loses each user gives access to no person.
+	it("refuses each code when the server gives no code of the setup", async () => {
+		const response = await signUpFromNetwork({
+			email: "primo@example.com",
+			inviteCode: SETUP_CODE,
+		});
+		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
+	});
+
+	it("refuses a sign-up with no code", async () => {
+		const response = await signUpFromNetwork(
+			{ email: "primo@example.com" },
+			authWithSetup(),
+		);
+		expect(await errorCodeOf(response)).toBe("INVITE_CODE_REQUIRED");
+	});
+});
+
 describe("the sign-up from the network", () => {
 	it("refuses a sign-up with no code", async () => {
 		const response = await signUpFromNetwork({ email: "due@example.com" });
@@ -77,6 +156,7 @@ describe("the sign-up from the network", () => {
 	});
 
 	it("refuses a code that no invitation has", async () => {
+		await signUpFromScript("primo@example.com");
 		const response = await signUpFromNetwork({
 			email: "due@example.com",
 			inviteCode: "NO-SUCH-CODE",

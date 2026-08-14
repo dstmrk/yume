@@ -3,6 +3,7 @@ import type {
 	AddSnapshotInput,
 	CatalogueResponse,
 	CreateAccountInput,
+	InvitationsResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
 
@@ -118,6 +119,23 @@ export function fetchAccounts(): Promise<AccountsResponse> {
 
 export function fetchPotential(): Promise<PotentialResponse> {
 	return get<PotentialResponse>("/api/potential");
+}
+
+export function fetchInvitations(): Promise<InvitationsResponse> {
+	return get<InvitationsResponse>("/api/invitations");
+}
+
+/**
+ * Writes an invitation of the user. It gives the code and the date of the end.
+ *
+ * The request holds no body: the server writes the code and the time of
+ * validity. A user with no free slot reads the status 409.
+ */
+export function createInvitation(): Promise<{
+	code: string;
+	expiresAt: string;
+}> {
+	return post<{ code: string; expiresAt: string }>("/api/invitations", {});
 }
 
 /** Adds an account of the user. It gives the id of the new account. */

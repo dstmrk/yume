@@ -15,14 +15,27 @@ import { Label } from "./ui/label.tsx";
  *
  * The form is a standard form of shadcn/ui, not a surface of the board. Refer
  * to paragraph 5 of `docs/architecture.md`.
+ *
+ * The link of an invitation holds the code. That link opens the form of the
+ * sign-up, and the person writes only the address and the password.
  */
-export function AccessForm({ onAccess }: { onAccess: () => void }) {
+export function AccessForm({
+	onAccess,
+	code,
+}: {
+	onAccess: () => void;
+	/**
+	 * The code of the link. A text opens the form of the sign-up, also an empty
+	 * text. The value undefined opens the form of the sign-in.
+	 */
+	code?: string;
+}) {
 	const fieldId = useId();
-	const [isNew, setIsNew] = useState(false);
+	const [isNew, setIsNew] = useState(code !== undefined);
 	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
-	const [inviteCode, setInviteCode] = useState("");
+	const [inviteCode, setInviteCode] = useState(code ?? "");
 
 	const send = useMutation({
 		mutationFn: () =>
