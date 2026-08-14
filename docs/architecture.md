@@ -491,9 +491,15 @@ PNG files again after each change of an SVG.
 `icon.svg` is also the favicon of the page. A browser that reads no SVG icon takes
 `icon-192.png`.
 
-The component `src/client/components/board/BrandMark.tsx` shows the same mark in the
-interface: the masthead of `AppTitle` and the title of the public page. That component
-holds the utility `flap` of `styles/theme.css`, thus it holds no colour.
+The mark with the letter Y is only for a surface that asks for one square image: the icon
+of the tab and the icon of the home screen. The interface shows the full name instead,
+with one flap for each letter: `SplitFlapWord` in
+`src/client/components/board/SplitFlapWord.tsx`. The masthead of `AppTitle` and the title
+of the public page hold that component. A mark with one letter near the same name is the
+same letter two times.
+
+The flaps of the name do not fall at the load. A flap turns when new data arrives, and a
+name is not data. Refer to paragraph 5.6.
 
 Yume has no service worker now, thus Yume does not operate without a connection. A later
 session can add that file. A service worker that supplies old files is the most frequent
