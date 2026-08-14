@@ -402,7 +402,7 @@ product.
 |---|---|
 | Extent of the theme | The display surfaces only: the dashboard, the cards of the potential miles and the lists. |
 | Forms and dialogs | Standard shadcn/ui with the dark palette. |
-| Animation | The flaps turn when the page loads and when a value changes. Refer to paragraph 5.6. |
+| Animation | The flaps of a value turn at the load of the page, through the drum of the digits. Refer to paragraph 5.6. |
 | Palette | Dark only. There is no light theme. |
 | Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
 | Screen | Mobile first. Refer to paragraph 5.4. |
@@ -488,16 +488,17 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 - **Give one flap to one position.** A board of Solari holds one flap for each position,
   and each flap has the same size. A number on one large flap is not a board. Therefore
   each number on a flap surface uses `SplitFlapNumber`. The separator of the thousands
-  holds a position, thus it is also a flap: then the line between the two halves crosses
-  the full number. The component gives the variant `potential` in amber and the variant
+  holds a position, thus it is also a flap: then the line of the axis crosses the full
+  number. The component gives the variant `potential` in amber and the variant
   `balance` in the colour of the text.
 - **Give the border of a control a contrast of 3:1.** A field, a select and a button with
   an outline use `--color-board-control`. A separator and the border of a panel use
   `--color-board-line`, a colour that is more dark. The WCAG 2.2 ask for that contrast
   for the limits of a control, but not for decoration.
 - **Move the flaps of the potential only.** The potential is the value of the card, thus
-  its flaps fall at the load of the page. The list of the accounts holds many numbers.
-  The movement of all those flaps is noise, thus the variant `balance` does not move.
+  its flaps turn at the load of the page. The list of the accounts holds many numbers. The
+  movement of all those flaps is noise, thus the variant `balance` does not move. The name
+  of the application does not move: a name is not data.
 - **Make the animation accessible.** Give the attribute `aria-hidden` to the digits that
   move. Put the correct value in a second element. That element is not visible, but a
   screen reader finds it.
@@ -607,8 +608,9 @@ with one flap for each letter: `SplitFlapWord` in
 of the public page hold that component. A mark with one letter near the same name is the
 same letter two times.
 
-The flaps of the name do not fall at the load. A flap turns when new data arrives, and a
-name is not data. Refer to paragraph 5.6.
+The flaps of the name do not turn at the load. A flap turns when new data arrives, and a
+name is not data. The name keeps the two halves of a card, thus the flap of a letter and
+the flap of a digit hold the same appearance. Refer to paragraph 5.6.
 
 Yume has no service worker now, thus Yume does not operate without a connection. A later
 session can add that file. A service worker that supplies old files is the most frequent
@@ -661,21 +663,48 @@ and the pure function `authMessage` of `src/client/lib/auth.ts` gives the messag
 ### 5.6 The movement of the flaps
 
 A board turns its flaps when new data arrives. The page load is that moment for Yume.
-Therefore the flaps of a potential value fall into their place at the load, one after the
-other, from the left.
+Therefore the flaps of a potential value turn at the load, one after the other, from the
+left. A change of a value turns no flap: the animation is in the CSS file and it holds no
+state.
 
-**A flap does not show a digit that is not correct.** The flap arrives with the correct
-digit. Some boards show other digits first, but this page shows a balance. Digits that
-change at random read as data that is not correct.
+**A flap is a card with two halves.** The card turns on an axis at the middle of its
+housing. The top half of the character that goes away falls toward the reader. Then the
+bottom half of the character that arrives falls from the same axis. Thus the two halves
+show two different characters while the card turns. A surface that turns one time, with
+one character, is not a Solari.
+
+**A flap turns through its drum.** The drum holds the empty position, then the separator
+of the thousands, then the digits from 0 to 9. The flap starts at the empty position and
+it turns until the correct digit arrives, thus the user sees each digit before it. An
+earlier version showed the correct digit with one movement, and the board then read as a
+card that appears, not as a board of Solari.
+
+The board at the load shows empty flaps, because a board with no data shows no character.
+The flap of a separator turns one time: that character is the second position of the
+drum.
+
+**The drum holds no letter.** The board shows a letter in the name of the application
+only, and that name does not turn. Refer to paragraph 5.5.2. A drum of the letters gives
+26 cards for one flap, and the name is the same word at each load.
+
+The pure function `toFlapTurn` of `src/client/lib/flaps.ts` gives the two halves at rest
+and one fold for each turn. The component `SplitFlapCell` of
+`src/client/components/board/` gives one element for each half of each card. The file
+`src/client/styles/theme.css` gives the delay of each card: `--flap-index` is the place of
+the flap on the board and `--flap-step` is the place of the card in the drum.
 
 The animation obeys these limits:
 
 - The animation is present only inside `@media (prefers-reduced-motion: no-preference)`.
-  Thus a user who refuses the movement sees the value immediately.
+  The state of a card with no animation is its state at the end of the turn. Thus a user
+  who refuses the movement sees the value immediately, and the animation needs no second
+  rule for that user.
 - The flaps hold `aria-hidden`. A screen reader reads the value from an element that is
   not visible, and it reads it one time.
 - The number of flaps comes from the last value. Therefore no flap enters or leaves
   during the animation, and the page does not move.
+- The housing holds a fixed height, in the grid of 11 pixels. Each half is one half of
+  that value. A height from the line of the text gives two halves that are not equal.
 
 ## 6. Repository layout
 

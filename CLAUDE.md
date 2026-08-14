@@ -153,6 +153,11 @@ only. Obey these rules:
   the full name of the token. The mark is in `src/client/public/icon.svg`.
 - Show each number of a flap surface with `SplitFlapNumber`: one flap for one position.
   Do not put a full number on one flap. The separator of the thousands is also a flap.
+- A flap is a card with two halves, and it turns through the drum. The drum holds the
+  empty position, the separator of the thousands, then the digits. It holds no letter: the
+  name of the application does not turn. `SplitFlapCell` gives the two halves and one card
+  for each character of the drum. A surface that turns one time is not a Solari. Paragraph
+  5.6 of `docs/architecture.md` gives the rules.
 - Give a size of a multiple of 11 pixels to each text of the board: `text-[11px]`,
   `text-[22px]`, `text-[33px]`. Departure Mono is a pixel font. Write the size as an
   arbitrary value with a length. A token `text-flap-lg` has the shape of a colour, thus

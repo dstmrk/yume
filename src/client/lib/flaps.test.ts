@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { flapSize, toFlapCells, toWordCells } from "./flaps.ts";
+import { flapSize, toFlapCells, toFlapTurn, toWordCells } from "./flaps.ts";
 
 describe("toFlapCells", () => {
 	it("gives one flap for a value of one digit", () => {
@@ -95,5 +95,82 @@ describe("toWordCells", () => {
 		const cells = toWordCells("a b");
 		expect(cells).toHaveLength(3);
 		expect(cells[1]).toEqual({ position: 1, char: " " });
+	});
+});
+
+describe("toFlapTurn", () => {
+	it("gives no fold to a flap that does not move", () => {
+		expect(toFlapTurn("7", false)).toEqual({
+			top: "7",
+			bottom: "7",
+			folds: [],
+		});
+	});
+
+	it("starts a flap that moves from the empty position", () => {
+		const turn = toFlapTurn("2", true);
+		expect(turn.bottom).toBe(" ");
+		expect(turn.top).toBe("2");
+	});
+
+	it("turns a digit through the separator and each digit before it", () => {
+		expect(toFlapTurn("2", true).folds).toEqual([
+			{ step: 0, from: " ", to: "." },
+			{ step: 1, from: ".", to: "0" },
+			{ step: 2, from: "0", to: "1" },
+			{ step: 3, from: "1", to: "2" },
+		]);
+	});
+
+	it("gives two folds to the first digit of the drum", () => {
+		expect(toFlapTurn("0", true).folds).toEqual([
+			{ step: 0, from: " ", to: "." },
+			{ step: 1, from: ".", to: "0" },
+		]);
+	});
+
+	it("gives eleven folds to the last digit of the drum", () => {
+		expect(toFlapTurn("9", true).folds).toHaveLength(11);
+	});
+
+	it("turns the separator of the thousands one time", () => {
+		// The separator is the second position of the drum, thus that flap turns
+		// from the empty position one time.
+		expect(toFlapTurn(".", true)).toEqual({
+			top: ".",
+			bottom: " ",
+			folds: [{ step: 0, from: " ", to: "." }],
+		});
+	});
+
+	it("gives no fold to a letter, because the drum holds no letter", () => {
+		expect(toFlapTurn("A", true)).toEqual({
+			top: "A",
+			bottom: "A",
+			folds: [],
+		});
+	});
+
+	it("gives no fold to the empty position", () => {
+		expect(toFlapTurn(" ", true)).toEqual({
+			top: " ",
+			bottom: " ",
+			folds: [],
+		});
+	});
+
+	it("gives the character of the last fold to the top half", () => {
+		const turn = toFlapTurn("5", true);
+		expect(turn.folds.at(-1)?.to).toBe(turn.top);
+	});
+
+	it("makes a chain of the folds, with one step for each place", () => {
+		const folds = toFlapTurn("8", true).folds;
+		for (const [index, fold] of folds.entries()) {
+			expect(fold.step).toBe(index);
+			if (index > 0) {
+				expect(fold.from).toBe(folds[index - 1]?.to);
+			}
+		}
 	});
 });
