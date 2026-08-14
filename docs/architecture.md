@@ -123,8 +123,7 @@ transfer_rule {
   fromProgramId, toProgramId, // refer to paragraph 3.3.1
   ratioNum, ratioDen,        // Amex: 5 MR gives 4 Avios  =>  num 4, den 5
   minTransfer, increment,
-  validFrom, validTo,        // validTo is null for an active rule
-  sourceUrl
+  validFrom, validTo         // validTo is null for an active rule
 }
 ```
 
@@ -654,9 +653,9 @@ The catalogue contains 19 airline programmes. These are the transfer partners of
 Italy and Revolut RevPoints in August 2026. Each ratio is *source : target*.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
-truth. That file holds the step of each transfer and a `sourceUrl` for each rule. This
-appendix gives no step. Do not copy a value from this appendix into the seed file. Read
-the official page again and write the link.
+truth. That file holds the step of each transfer and, in a comment, the official page of
+each rule. This appendix gives no step. Do not copy a value from this appendix into the
+seed file. Read the official page again and write the link in the comment.
 
 ### Shared currencies
 

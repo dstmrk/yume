@@ -160,7 +160,6 @@ export const transferRule = sqliteTable(
 		increment: integer("increment").notNull(),
 		validFrom: text("valid_from").notNull(),
 		validTo: text("valid_to"),
-		sourceUrl: text("source_url").notNull(),
 	},
 	(table) => [
 		primaryKey({

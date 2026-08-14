@@ -74,8 +74,6 @@ export type TransferRule = {
 	readonly validFrom: IsoDate;
 	/** The last date of the rule. It is null for an active rule. */
 	readonly validTo: IsoDate | null;
-	/** The official page that gives the ratio. It is never empty. */
-	readonly sourceUrl: string;
 };
 
 /** The current balance of one account of the user. */

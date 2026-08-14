@@ -105,11 +105,12 @@ These rules prevent the most dangerous defects in this application:
    count the same balance more than one time.
 3. **Keep snapshots.** The table `balance_snapshot` holds the balance at a date. The
    current balance is the most recent snapshot. Do not keep a record of the changes.
-4. **Make the transfer rules versioned.** Each rule has `validFrom`, `validTo` and
-   `sourceUrl`. Do not change a rule in its place. Close the old rule and add a new
-   rule.
-5. **Give a source for each ratio.** Do not add a transfer rule without a `sourceUrl`.
-   Do not write a ratio from memory.
+4. **Make the transfer rules versioned.** Each rule has `validFrom` and `validTo`. Do
+   not change a rule in its place. Close the old rule and add a new rule.
+5. **Give a source for each ratio.** Read the official page. Do not write a ratio from
+   memory. Write the link of that page in a comment above the rule, in
+   `src/server/db/seed/catalogue.ts`. The database keeps no link: the source is a note
+   for the author of the catalogue, and no surface shows it.
 
 The conversion logic is in `src/shared/`. The functions must be pure and must do no I/O.
 Write a unit test for each new rule of the calculation.

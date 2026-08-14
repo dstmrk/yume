@@ -15,8 +15,6 @@ const amexToBritishAirways: TransferRule = {
 	increment: 400,
 	validFrom: "2026-01-01",
 	validTo: null,
-	sourceUrl:
-		"https://www.americanexpress.com/it-it/rewards/membership-rewards/partner/British-Airways/award-cancelled-/BA-0001",
 };
 
 function ruleWith(changes: Partial<TransferRule>): TransferRule {

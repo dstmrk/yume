@@ -53,7 +53,6 @@ export function seedCatalogue(db: Db): void {
 						minTransfer: row.minTransfer,
 						increment: row.increment,
 						validTo: row.validTo,
-						sourceUrl: row.sourceUrl,
 					},
 				})
 				.run();

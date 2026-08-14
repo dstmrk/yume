@@ -78,7 +78,6 @@ CREATE TABLE `transfer_rule` (
 	`increment` integer NOT NULL,
 	`valid_from` text NOT NULL,
 	`valid_to` text,
-	`source_url` text NOT NULL,
 	PRIMARY KEY(`from_program_id`, `to_program_id`, `valid_from`),
 	FOREIGN KEY (`from_program_id`) REFERENCES `program`(`id`) ON UPDATE no action ON DELETE no action,
 	FOREIGN KEY (`to_program_id`) REFERENCES `program`(`id`) ON UPDATE no action ON DELETE no action
