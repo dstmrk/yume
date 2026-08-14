@@ -34,8 +34,11 @@ export const text = {
 	showOthers: "Mostra le altre",
 	showLess: "Mostra meno",
 
+	startTitle: "Inizia da qui",
+	startBody:
+		"Aggiungi il primo conto con il suo saldo. In cima alla lista trovi le carte punti: sono la fonte delle miglia potenziali.",
+
 	accountsTitle: "I tuoi conti",
-	noAccounts: "Nessun conto.",
 	noBalance: "Nessun saldo",
 	observedOn: "al",
 
@@ -43,6 +46,7 @@ export const text = {
 	newAccountTitle: "Nuovo conto",
 	programLabel: "Programma",
 	programPlaceholder: "Scegli un programma",
+	firstBalanceLabel: "Saldo (facoltativo)",
 	nicknameLabel: "Nome (facoltativo)",
 	membershipLabel: "Numero tessera (facoltativo)",
 

@@ -351,6 +351,37 @@ Each card holds three parts:
 The card shows the balance and the potential as two different values. Refer to paragraph
 3.5.
 
+### 5.0.1 The first access
+
+A new user has no account. The dashboard then holds an empty list of cards and an empty
+panel of the accounts. Therefore, with no account, the dashboard shows one instruction
+and the form of a new account. That form is already open. The page shows no card and no
+panel.
+
+The quantity of the accounts is the signal of that state. Thus the database keeps no
+flag of the onboarding, and the block goes away with the first account. Yume has no
+route of onboarding and no tour of the screens. The public page of paragraph 5.5.1 gives
+the context before the sign-in.
+
+The block shows no value of the user, thus it gives no warning of the transfer. The
+public page obeys the same rule.
+
+Two rules make the first entry of the data short:
+
+- **Put the sources first in the list of the programmes.** A source is a programme of a
+  currency with the kind `flexible`. The potential of a currency grows only with a
+  source. Refer to paragraph 3.5. A user who adds only airline programmes reads a
+  potential that is equal to each balance. The two sources are in the middle of 19 names
+  in the order of the alphabet, thus `sortPrograms` reads the currencies and moves each
+  source to the top.
+- **Write the first balance in the form of the account.** The user made an account and
+  then opened a second form in the row of that account. The form of the account now
+  holds a field of the balance. That field is not necessary: an empty field makes the
+  account with no snapshot. The date of that snapshot is the date of today, thus the
+  form holds no field of the date. The two requests are not one transaction, therefore
+  the lists refresh also after an error of the second request. Then the user reads that
+  account and writes the balance again.
+
 ### 5.1 Two layers of components
 
 The directory `src/client/components/ui/` holds the shadcn/ui components. Do not change

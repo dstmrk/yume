@@ -28,6 +28,29 @@ export function parsePoints(input: string): number | null {
 	return Number.isSafeInteger(value) ? value : null;
 }
 
+/** The result of the field of the balance of the form of a new account. */
+export type OptionalPoints =
+	| { readonly ok: true; readonly points: number | null }
+	| { readonly ok: false };
+
+/**
+ * Reads the balance from a field that is not necessary.
+ *
+ * The form of a new account holds this field. Thus the user makes the account
+ * and writes the first balance with one operation.
+ *
+ * An empty field gives `null`: the form makes the account and it adds no
+ * snapshot. A text that is not a quantity of points gives `ok: false`: the form
+ * shows the message and it sends no request.
+ */
+export function readOptionalPoints(input: string): OptionalPoints {
+	if (input.trim() === "") {
+		return { ok: true, points: null };
+	}
+	const points = parsePoints(input);
+	return points === null ? { ok: false } : { ok: true, points };
+}
+
 /**
  * The date of today, in the ISO 8601 format.
  *
