@@ -52,13 +52,13 @@ Paragraph 8 gives the reason.
 
 This block is the bridge of paragraph 1. It is the first block of the work.
 
-The catalogue receives a new table. The shape follows `transfer_rule`: integers only, one
-country, and the two fields of the version.
+The catalogue receives a new table. The shape follows `transfer_rule`: integers only, and
+the two fields of the version.
 
 ```
 award(
   programId,            -- the programme that gives the award
-  fromRegion, toRegion, -- the two regions of the route
+  fromZone, toZone,     -- the two zones of the route. Refer to 3.1.1
   cabin,                -- 'economy' | 'premium' | 'business' | 'first'
   season,               -- 'peak' | 'off-peak' | 'all'
   miles,                -- an integer
@@ -79,6 +79,67 @@ The dashboard then shows a sentence with a value:
 
 This block needs no external service. Therefore the self-hosted installation also holds
 it, with the catalogue of the repository.
+
+### 3.1.1 Three kinds of programme
+
+A programme does not always publish an award chart. The catalogue holds three kinds, and
+each kind needs a different quantity of data:
+
+| Kind | Examples | The data of the chart |
+|---|---|---|
+| Region | Turkish Miles&Smiles, Emirates Skywards, Aegean Miles+Bonus | A table of pairs of regions. The programme publishes it. |
+| Distance | The programmes of Avios | A table of bands of distance. It also needs the position of each airport. |
+| Dynamic | Flying Blue, Delta SkyMiles, British Airways on its own flights | No chart. The price follows the demand of each day. |
+
+**A dynamic programme holds no award in the catalogue.** Yume shows the state `dynamic`
+and it shows no quantity of miles. A number of an example is a number that is not true,
+and the user makes a decision on it.
+
+This rule is the same rule of the potential miles: Yume shows a value that it can defend,
+and it shows a warning in each other case. Refer to paragraph 8.
+
+A chart of distance needs the distance of the route. Therefore the catalogue also needs
+the position of each airport of the two lists. That table is a step of its own in
+paragraph 7. The programmes of Avios use that kind, and Avios is the first currency of a
+user of Amex Italia. Thus that step comes early.
+
+### 3.1.2 The season and the month
+
+A programme with a chart also publishes a calendar of the seasons. The catalogue holds
+that calendar:
+
+```
+award_season(programId, fromDate, toDate, season, validFrom, validTo)
+```
+
+The month is then no second source of data. A pure function reads the calendar and one
+date, and it gives the season of that date.
+
+The two accounts show a different quantity of precision:
+
+- The free account shows the two values, peak and off-peak.
+- The paid account asks for a month. The calendar then gives the season, and the answer
+  holds one value.
+
+One month can hold the two seasons. The answer then gives the dates of the off-peak days.
+It gives no mean value of the two seasons.
+
+The free account thus shows a value that is true, but it is less exact. A paid function
+that hides a correct value takes the trust of the user away.
+
+### 3.1.3 The source of each award
+
+The rule 5 of the section Rules for the data of `CLAUDE.md` applies to an award. Obey
+these five rules:
+
+1. Read the official page of the programme. A blog of miles is not a source.
+2. Write the link of that page in a comment above the award, in the seed file.
+3. Write the date of the examination.
+4. Write no award for a dynamic programme.
+5. Read each official page again before a release.
+
+A blog of miles can show a route with a good value. Then read the official page of that
+route and write the number from that page.
 
 ### 3.2 The transfer bonus
 
@@ -112,8 +173,16 @@ The plan breaks four constraints of `docs/architecture.md`:
 |---|---|
 | Cost zero. No external service. | A VPS, a service of email and a service of payment. |
 | One container on a home server. | The data of other people needs a VPS, not a home server. |
-| Registration only with an invitation. | The registration is open. The invitation can stay as a mark of trust. |
 | The data of one small group. | Yume becomes the controller of the data of each user. |
+
+The registration with an invitation stays. The owner wants a group that grows slowly.
+Therefore Yume needs no open registration, and a paid account also comes with an
+invitation.
+
+The limit of two invitations for each user is now the limit of the growth. Paragraph 4.2
+of `docs/architecture.md` gives that limit. The owner can need a quantity of invitations
+that is not limited, for the growth of the group. This plan makes no change of that
+limit: the owner takes that decision at the moment of the need.
 
 SQLite stays. One node with SQLite is sufficient for some hundreds of users, and the
 backup is one file. Paragraph 2.3 of `docs/architecture.md` keeps its reason. The tables
@@ -122,21 +191,32 @@ user.
 
 ### 4.1 The email
 
-The service is **useSend**. It is open source, and a person can install it on the same
-machine. Its free account gives 3 000 messages in one month, but a maximum of 100
-messages in one day.
+The service is **Resend**. The two candidates give the same free account: 3 000 messages
+in one month, a maximum of 100 messages in one day, and one domain.
 
-That maximum of one day is the limit that decides. One message of a transfer bonus goes
-to each user on the same day. Therefore the free account is sufficient until 100 paid
-users. Above that quantity, Yume moves to the paid account or to its own installation.
+| Item | Resend | useSend |
+|---|---|---|
+| Free account | 3 000 in one month, 100 in one day | 3 000 in one month, 100 in one day |
+| First paid account | 20 dollars in one month | 10 dollars in one month |
+| Installation of your own | No | Yes, but it needs Amazon SES |
 
-useSend sends each message with Amazon SES. Thus an installation of useSend also needs an
-account of AWS. SES costs about 0,10 dollars for 1 000 messages, but the account is a
-second external service.
+The free accounts are equal, therefore the price decides nothing now. The advantage of
+useSend is the installation of your own, and that advantage arrives above 100 users. A
+group that grows with an invitation reaches that quantity slowly.
+
+That installation is also not simple. useSend sends each message with Amazon SES, thus it
+needs an account of AWS, one more container and one more database. Resend needs one key.
+
+Therefore Resend is the decision. The server holds **one module for the email**, and that
+module holds the name of the service. Thus a change of the service touches one file.
+
+The maximum of 100 messages in one day is the limit that decides the next step. One
+message of a transfer bonus goes to each user on the same day. Above 100 paid users, Yume
+moves to a paid account.
 
 The self-hosted installation sends no message. The block 3.2 then shows the mark of the
-bonus on the card, and it sends no email. A person who installs Yume alone needs no
-account of AWS.
+bonus on the card, and it sends no email. Thus a person who installs Yume alone needs no
+account of Resend.
 
 ### 4.2 The payment
 
@@ -179,8 +259,8 @@ advantage to a project of one person.
 
 | Account | Price | Function |
 |---|---|---|
-| Free | 0 | The balances and the potential miles: the application of today. |
-| Paid | About 29 euros in one year | The goals, the transfer bonuses and the history. |
+| Free | 0 | The balances, the potential miles and a goal with the two seasons. |
+| Paid | About 29 euros in one year | The month of a goal, the transfer bonuses and the history. |
 
 The price of one year is the first price. A payment of one year removes the work of the
 churn, and it gives one commission of Stripe in the place of twelve.
@@ -198,7 +278,7 @@ This table gives the result with 30 paid accounts:
 | The VPS, at 5 euros in one month | −60 euros |
 | The name of the domain | −15 euros |
 | Stripe, about 1,5 per cent and 0,25 euros for each payment | −21 euros |
-| useSend, the free account | 0 |
+| Resend, the free account | 0 |
 | **Result before the tax** | **About 774 euros** |
 
 The partita IVA already exists. Therefore the plan adds no fixed cost of the
@@ -213,20 +293,32 @@ money.
 Each step obeys the rule 4 of `CLAUDE.md`: a step that changes more than 3 files becomes
 two steps. Each step obeys the rule 2: the test comes before the implementation.
 
-1. **The award charts in the catalogue.** The types, the seed of a small set of awards,
-   and the tests. The set holds Avios, Flying Blue and Miles&Smiles first.
-2. **The function of the goal.** The pure function in `src/shared/`, with its tests.
-3. **The surface of the goal.** The form of the destination and the card of the result.
-4. **The transfer bonus.** The mark on the card. The rules of the bonus enter the
+1. **The types of the award.** The types of the chart, of the zone and of the season, with
+   the kind of each programme. No award enters the catalogue in this step.
+2. **The first region chart.** Turkish Miles&Smiles, from the official page, with the
+   tests of the seed. A region chart needs no position of an airport.
+3. **The function of the goal.** The pure function in `src/shared/`, with its tests. It
+   reads the potential of a currency and one award.
+4. **The surface of the goal.** The form of the route and the card of the result. The
+   card shows the state `dynamic` for a programme with no chart.
+5. **The positions of the airports.** The table of the airports of the two lists, and the
+   pure function of the distance.
+6. **The charts of distance.** The programmes of Avios, with the bands of distance.
+7. **The calendar of the seasons.** The table `award_season` and its pure function.
+8. **The transfer bonus.** The mark on the card. The rules of the bonus enter the
    catalogue.
-5. **The hosted instance.** The VPS, the TLS, the backup and the page of the privacy
+9. **The hosted instance.** The VPS, the TLS, the backup and the page of the privacy
    policy.
-6. **The open registration.** The registration with no invitation, and the free account.
-7. **The payment.** Stripe, the webhook, the two fields and the pure function.
-8. **The message of the bonus.** useSend and the message to each paid user.
+10. **The payment.** Stripe, the webhook, the two fields and the pure function. The month
+    of a goal then becomes a function of the paid account.
+11. **The message of the bonus.** Resend and the message to each paid user.
 
-The steps 1 to 4 need no external service. Therefore the team can build the value before
-it takes one decision of cost.
+The steps 1 to 8 need no external service. Therefore the team builds the value before it
+takes one decision of cost.
+
+The step 2 comes before the step 6, because a region chart needs a smaller quantity of
+data. But Avios is the first currency of a user of Amex Italia. Therefore the steps 5 and
+6 must not wait for a long time.
 
 ## 8. The decisions that this plan refuses
 
@@ -241,16 +333,33 @@ cost for each request. The value in euros of one point is thus outside this plan
 **Yume collects no data from a web site of a bank.** Paragraph 1 of
 `docs/architecture.md` gives that decision, and this plan keeps it.
 
-## 9. The questions that stay open
+## 9. The risk of the zones
 
-The team must answer these questions before the step 1:
+Each programme uses its own map of the zones. Turkish Miles&Smiles and Emirates Skywards
+give a different name and a different limit to the zone of Europe. A programme of
+distance uses no zone of a map: it uses a band of distance.
 
-1. **Which awards enter the catalogue first?** The work of the catalogue is large. A
-   small set of routes from Italy is the first candidate.
-2. **Does a goal hold a date?** The cost of an award changes with the season. A goal with
-   no date shows the two values, peak and off-peak. A goal with a date shows one value,
-   but the form then asks for more data.
-3. **Does the invitation stay?** The registration becomes open, but the invitation can
-   stay as a mark of trust or as a free month.
-4. **Which regions does the award chart hold?** Each programme uses its own map of the
-   regions. A common map is more simple, but it gives a value that is not correct.
+**Therefore a zone belongs to the chart of one programme. A zone of the application does
+not exist.** A common map of the zones is more simple, and it gives a value that is not
+correct.
+
+This risk is the risk of the paragraph 3.1 of `docs/architecture.md`, one level above. A
+currency is different from a programme, and a zone of a programme is different from a
+zone of an other programme. The two errors give a number that looks correct.
+
+The catalogue holds each zone with the identifier of its chart. A route of a user holds
+two airports, and each chart gives its own zone to an airport. Thus one route gives a
+different pair of zones for each programme.
+
+## 10. The decisions of this plan
+
+The owner took these four decisions on the 15 August 2026:
+
+1. **The awards start with Italy.** The routes from the Italian airports enter the
+   catalogue first. Paragraph 3.1.3 gives the method of the source.
+2. **The month of a goal is a function of the paid account.** The free account shows the
+   two seasons. Paragraph 3.1.2 gives the rule.
+3. **The registration keeps the invitation.** The group grows slowly. Paragraph 4 gives
+   the limit of two invitations.
+4. **The catalogue can hold each zone,** but the zone belongs to one chart. Paragraph 9
+   gives that risk.
