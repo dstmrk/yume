@@ -31,7 +31,7 @@ import { inviteCodeOf } from "./lib/invite.ts";
 
 const rootRoute = createRootRoute({
 	component: () => (
-		<main className="mx-auto flex max-w-board flex-col gap-6 px-4 py-6 pb-safe">
+		<main className="mx-auto flex max-w-board flex-col gap-6 px-4 pt-safe pb-safe">
 			<Outlet />
 		</main>
 	),

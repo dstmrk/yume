@@ -295,6 +295,19 @@
 	}
 }
 
+/**
+ * The space of the status bar of the telephone, on iOS.
+ *
+ * The application starts with `display: standalone` and the status bar is
+ * translucent, thus the page starts at the top of the screen. Without this
+ * padding the masthead stays below the time and the battery of the system.
+ * The inset is 0 in a browser with a bar, thus the page then holds the space
+ * of `--spacing(6)` only.
+ */
+@utility pt-safe {
+	padding-top: calc(env(safe-area-inset-top) + --spacing(6));
+}
+
 /** The space of the telephone below the screen, on iOS. */
 @utility pb-safe {
 	padding-bottom: calc(env(safe-area-inset-bottom) + --spacing(6));

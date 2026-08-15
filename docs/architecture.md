@@ -600,7 +600,10 @@ The first step gives only the installation:
   its own mask, thus that file comes from the maskable SVG, which holds no rounded
   corner.
 - The meta element `viewport` with `viewport-fit=cover`, and the padding of the safe area
-  on iOS.
+  on iOS. The status bar of iOS is translucent, thus the page starts at the top of the
+  screen. The root of the router holds `pt-safe` and `pb-safe`, which add
+  `env(safe-area-inset-top)` and `env(safe-area-inset-bottom)`. Without the top padding
+  the masthead stays below the time of the system.
 
 ### 5.5.2 The mark
 
