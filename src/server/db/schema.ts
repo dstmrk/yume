@@ -197,6 +197,29 @@ export const userAccount = sqliteTable("user_account", {
 });
 
 /**
+ * A currency that the user marks as a favourite.
+ *
+ * The row marks a currency, not a programme. The dashboard shows one card for
+ * one currency, and the heart of that card writes this row. Six programmes use
+ * Avios, thus a favourite of a programme gives six marks for one card.
+ *
+ * The key is the pair of the user and the currency. Therefore one user marks
+ * one currency one time, and a second mark changes no row.
+ */
+export const favoriteCurrency = sqliteTable(
+	"favorite_currency",
+	{
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		currencyId: text("currency_id")
+			.notNull()
+			.references(() => currency.id),
+	},
+	(table) => [primaryKey({ columns: [table.userId, table.currencyId] })],
+);
+
+/**
  * The balance of an account at a date.
  *
  * The current balance is the most recent snapshot of the account. The database

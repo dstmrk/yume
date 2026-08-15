@@ -3,6 +3,7 @@ import type {
 	AddSnapshotInput,
 	CatalogueResponse,
 	CreateAccountInput,
+	FavoritesResponse,
 	InvitationsResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
@@ -39,6 +40,17 @@ async function post<T>(path: string, body: unknown): Promise<T> {
  */
 async function del(path: string): Promise<void> {
 	const response = await fetch(path, { method: "DELETE" });
+	if (!response.ok) {
+		throw new Error(`${path} gives the status ${response.status}`);
+	}
+}
+
+/**
+ * Writes a state. The answer holds no body, thus this function reads only the
+ * status.
+ */
+async function put(path: string): Promise<void> {
+	const response = await fetch(path, { method: "PUT" });
 	if (!response.ok) {
 		throw new Error(`${path} gives the status ${response.status}`);
 	}
@@ -119,6 +131,24 @@ export function fetchAccounts(): Promise<AccountsResponse> {
 
 export function fetchPotential(): Promise<PotentialResponse> {
 	return get<PotentialResponse>("/api/potential");
+}
+
+export function fetchFavorites(): Promise<FavoritesResponse> {
+	return get<FavoritesResponse>("/api/favorites");
+}
+
+/**
+ * Marks a currency as a favourite of the user, or it removes that mark.
+ *
+ * The two requests are idempotent. Thus the client sends the state that the
+ * heart shows, and a second tap gives no error.
+ */
+export function setFavorite(
+	currencyId: string,
+	favorite: boolean,
+): Promise<void> {
+	const path = `/api/favorites/${encodeURIComponent(currencyId)}`;
+	return favorite ? put(path) : del(path);
 }
 
 export function fetchInvitations(): Promise<InvitationsResponse> {

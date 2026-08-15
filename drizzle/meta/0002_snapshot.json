@@ -1,8 +1,8 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "dbb935ad-ee93-49c2-86de-a89867726531",
-  "prevId": "41fa8a4e-ab11-4444-b9b5-2fc11436a26c",
+  "id": "f7578685-cfc0-4d7f-a579-2efa2466ac4a",
+  "prevId": "dbb935ad-ee93-49c2-86de-a89867726531",
   "tables": {
     "account": {
       "name": "account",
@@ -148,13 +148,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "note": {
-          "name": "note",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         }
       },
@@ -740,20 +733,6 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "autoincrement": false
-        },
-        "membership_ref": {
-          "name": "membership_ref",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "autoincrement": false
-        },
-        "nickname": {
-          "name": "nickname",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
           "autoincrement": false
         }
       },

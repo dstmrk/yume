@@ -9,6 +9,7 @@ import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
 	currency,
+	favoriteCurrency,
 	invitation,
 	program,
 	transferRule,
@@ -248,6 +249,56 @@ export function deleteSnapshot(
 			and(
 				eq(balanceSnapshot.id, snapshotId),
 				eq(balanceSnapshot.accountId, accountId),
+			),
+		)
+		.run();
+	return result.changes > 0;
+}
+
+/** Gives the id of each currency that the user marked as a favourite. */
+export function favoriteCurrencies(db: Db, userId: string): string[] {
+	return db
+		.select({ currencyId: favoriteCurrency.currencyId })
+		.from(favoriteCurrency)
+		.where(eq(favoriteCurrency.userId, userId))
+		.orderBy(asc(favoriteCurrency.currencyId))
+		.all()
+		.map((row) => row.currencyId);
+}
+
+/**
+ * Marks a currency as a favourite of the user.
+ *
+ * The operation is idempotent: a second mark of the same currency changes no
+ * row. Thus two taps on two devices give one row and no error.
+ */
+export function addFavorite(
+	db: Db,
+	input: { userId: string; currencyId: string },
+): void {
+	db.insert(favoriteCurrency)
+		.values({ userId: input.userId, currencyId: input.currencyId })
+		.onConflictDoNothing()
+		.run();
+}
+
+/**
+ * Removes the mark of a currency. It gives true when it removes a row.
+ *
+ * The condition holds the user, thus a request changes no mark of an other
+ * user.
+ */
+export function removeFavorite(
+	db: Db,
+	userId: string,
+	currencyId: string,
+): boolean {
+	const result = db
+		.delete(favoriteCurrency)
+		.where(
+			and(
+				eq(favoriteCurrency.userId, userId),
+				eq(favoriteCurrency.currencyId, currencyId),
 			),
 		)
 		.run();

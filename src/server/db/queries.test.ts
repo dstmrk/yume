@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
+	addFavorite,
 	addSnapshot,
 	allPrograms,
 	allTransferRules,
@@ -14,13 +15,15 @@ import {
 	currentBalances,
 	deleteAccount,
 	deleteSnapshot,
+	favoriteCurrencies,
 	findAccount,
 	findInvitation,
 	findUserByEmail,
 	invitationsOfUser,
 	markInvitationUsed,
+	removeFavorite,
 } from "./queries.ts";
-import { balanceSnapshot } from "./schema.ts";
+import { balanceSnapshot, user } from "./schema.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
 const USER = "user-1";
@@ -510,5 +513,61 @@ describe("deleteSnapshot", () => {
 	it("gives false for a snapshot that does not exist", () => {
 		const account = createAccount(db, { userId: USER, programId: "ba-club" });
 		expect(deleteSnapshot(db, "does-not-exist", account)).toBe(false);
+	});
+});
+
+describe("the favourites of the user", () => {
+	it("gives no currency for a user with no favourite", () => {
+		expect(favoriteCurrencies(db, USER)).toEqual([]);
+	});
+
+	it("gives the currency that the user marked", () => {
+		addFavorite(db, { userId: USER, currencyId: "avios" });
+		expect(favoriteCurrencies(db, USER)).toEqual(["avios"]);
+	});
+
+	// The user taps the heart two times on two devices. The second mark must
+	// give the same result, and no error of the primary key.
+	it("keeps one row for a second mark of the same currency", () => {
+		addFavorite(db, { userId: USER, currencyId: "avios" });
+		addFavorite(db, { userId: USER, currencyId: "avios" });
+		expect(favoriteCurrencies(db, USER)).toEqual(["avios"]);
+	});
+
+	it("gives no favourite of an other user", () => {
+		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
+		expect(favoriteCurrencies(db, USER)).toEqual([]);
+	});
+
+	it("removes the mark and gives true", () => {
+		addFavorite(db, { userId: USER, currencyId: "avios" });
+		expect(removeFavorite(db, USER, "avios")).toBe(true);
+		expect(favoriteCurrencies(db, USER)).toEqual([]);
+	});
+
+	it("gives false for a currency that the user did not mark", () => {
+		expect(removeFavorite(db, USER, "avios")).toBe(false);
+	});
+
+	it("keeps the mark of an other user", () => {
+		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
+		expect(removeFavorite(db, USER, "avios")).toBe(false);
+		expect(favoriteCurrencies(db, OTHER_USER)).toEqual(["avios"]);
+	});
+
+	// The column `user_id` holds `on delete cascade`. Thus the removal of a user
+	// removes the marks of that user, and no row keeps a user that is absent.
+	it("removes the marks with the user", () => {
+		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
+		db.delete(user).where(eq(user.id, OTHER_USER)).run();
+		expect(favoriteCurrencies(db, OTHER_USER)).toEqual([]);
+	});
+
+	// The pragma `foreign_keys` is ON. A currency that is absent gives an error
+	// at the insert, thus no mark points to a currency that does not exist.
+	it("refuses a currency that does not exist", () => {
+		expect(() =>
+			addFavorite(db, { userId: USER, currencyId: "does-not-exist" }),
+		).toThrow();
 	});
 });
