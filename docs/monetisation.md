@@ -141,6 +141,82 @@ these five rules:
 A blog of miles can show a route with a good value. Then read the official page of that
 route and write the number from that page.
 
+### 3.1.4 No API gives this data
+
+The team examined the sources of an award. No API is possible for a paid product:
+
+| Source | Result |
+|---|---|
+| seats.aero | It holds the data of more than 20 programmes. Its terms refuse the commercial use of the API without a written agreement. |
+| Amadeus, Duffel, Kiwi | They give the price in cash. They give no award. |
+| ExpertFlyer | It gives the class of the reservation. It gives no quantity of miles. |
+| The airlines | They publish no API of the awards. |
+
+Yume is a paid product. Therefore the API of seats.aero needs a written agreement, and
+Yume is a product of the same kind. This plan holds no such agreement.
+
+### 3.1.5 The maintenance of the catalogue
+
+The team examined two ways to remove the manual work. One way is bad and one way is good.
+
+**A scraper of a chart is more work, not less.** A chart changes one time or two times in
+one year. The page of that chart changes more often. Thus the team maintains one scraper
+for each programme in the place of one table for each programme. A scraper that breaks
+writes a value that is not correct, or it writes nothing and no person sees the error. The
+user pays for a catalogue that is correct.
+
+**A watcher of a page is small and it gives much.** A script reads some official pages one
+time in one day. It calculates the hash of each page. The hash changes, and the script
+sends a message to the owner. The owner then reads the page and writes the new value by
+hand.
+
+The watcher holds no parser. Therefore the page can change its form, and the watcher
+continues to operate. One request in one day also obeys the terms of each site.
+
+The watcher gives the transfer bonus of the block 3.2 with no more work. The page of the
+partners of Amex changes at the start of a bonus.
+
+Yume thus automates the vigilance and it does not automate the value. A person writes each
+number, and each number holds its link and its date.
+
+**Yume reads no page of an airline with a program.** The pages of the availability of an
+award refuse the automatic access, and Yume sells its answer. That risk is too large for
+this project.
+
+### 3.1.6 A range for a dynamic programme
+
+A dynamic programme gives no quantity of miles. A range of two numbers is possible, but
+only from data that a person observed.
+
+The table follows the rule 3 of the section Rules for the data of `CLAUDE.md`: Yume keeps
+an observation at a date, and it keeps no record of the changes.
+
+```
+award_observation(
+  programId, fromAirport, toAirport, cabin,
+  miles,        -- the quantity that the programme asked on that day
+  observedAt,   -- the date of the observation
+  source        -- the person or the page of the observation
+)
+```
+
+A pure function reads those rows and one window of time. It gives the smallest value, the
+middle value and the largest value. The table starts with no row, and it grows each month.
+
+A paid user can write an observation. That user already searches those flights. Thus the
+data grows with the quantity of the users, and no API gives that data. A group with an
+invitation also knows each person who writes a row.
+
+**A range gives no green state.** The state of a dynamic programme is `not determinable`.
+It is never `reached`. A transfer of points is permanent: a user who reads 25 000, and
+who then finds 60 000 only, loses those points. A range looks exact, therefore it is more
+dangerous than the word `dynamic`.
+
+Until the table holds a sufficient quantity of rows, the card shows the floor of an
+official page. Flying Blue publishes its Promo Rewards each month, and that page gives a
+floor for the routes of that promotion. The card then shows the value, the date and the
+word `dynamic`.
+
 ### 3.2 The transfer bonus
 
 The current model of the data holds this function with no change of the schema. A bonus
@@ -301,24 +377,32 @@ two steps. Each step obeys the rule 2: the test comes before the implementation.
    reads the potential of a currency and one award.
 4. **The surface of the goal.** The form of the route and the card of the result. The
    card shows the state `dynamic` for a programme with no chart.
-5. **The positions of the airports.** The table of the airports of the two lists, and the
+5. **The watcher of the official pages.** The hash of each page and the message to the
+   owner. Paragraph 3.1.5 gives the rules. This step needs the step 11.
+6. **The positions of the airports.** The table of the airports of the two lists, and the
    pure function of the distance.
-6. **The charts of distance.** The programmes of Avios, with the bands of distance.
-7. **The calendar of the seasons.** The table `award_season` and its pure function.
-8. **The transfer bonus.** The mark on the card. The rules of the bonus enter the
+7. **The charts of distance.** The programmes of Avios, with the bands of distance.
+8. **The calendar of the seasons.** The table `award_season` and its pure function.
+9. **The transfer bonus.** The mark on the card. The rules of the bonus enter the
    catalogue.
-9. **The hosted instance.** The VPS, the TLS, the backup and the page of the privacy
-   policy.
-10. **The payment.** Stripe, the webhook, the two fields and the pure function. The month
+10. **The hosted instance.** The VPS, the TLS, the backup and the page of the privacy
+    policy.
+11. **The payment.** Stripe, the webhook, the two fields and the pure function. The month
     of a goal then becomes a function of the paid account.
-11. **The message of the bonus.** Resend and the message to each paid user.
+12. **The message of the bonus.** Resend and the message to each paid user.
+13. **The observations of an award.** The table `award_observation` and the pure function
+    of the range. Paragraph 3.1.6 gives the rules.
 
-The steps 1 to 8 need no external service. Therefore the team builds the value before it
-takes one decision of cost.
+The steps 1 to 4 and 6 to 9 need no external service. Therefore the team builds the value
+before it takes one decision of cost. The step 5 needs the email of the step 12, thus the
+owner can move the step 12 before the step 5.
 
-The step 2 comes before the step 6, because a region chart needs a smaller quantity of
-data. But Avios is the first currency of a user of Amex Italia. Therefore the steps 5 and
-6 must not wait for a long time.
+The step 2 comes before the step 7, because a region chart needs a smaller quantity of
+data. But Avios is the first currency of a user of Amex Italia. Therefore the steps 6 and
+7 must not wait for a long time.
+
+The step 13 is the last step, because the table starts with no row. The value of that
+table grows with the time and with the quantity of the users.
 
 ## 8. The decisions that this plan refuses
 
@@ -332,6 +416,17 @@ cost for each request. The value in euros of one point is thus outside this plan
 
 **Yume collects no data from a web site of a bank.** Paragraph 1 of
 `docs/architecture.md` gives that decision, and this plan keeps it.
+
+**Yume collects no data from a web site of an airline.** Those pages refuse the automatic
+access, and Yume sells its answer. Paragraph 3.1.5 gives the reason.
+
+**Yume writes no scraper of a chart.** A chart changes less often than its page. Thus a
+scraper is more work than a table, and it can write a value that is not correct.
+Paragraph 3.1.5 gives the reason.
+
+**Yume shows no range that a person did not observe.** A range from a blog or from an
+opinion looks exact, and the user then makes a decision that is permanent. Paragraph
+3.1.6 gives the rule.
 
 ## 9. The risk of the zones
 
