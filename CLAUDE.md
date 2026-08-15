@@ -173,7 +173,7 @@ only the elements and the state. These three examples are logic: the order of a 
 change of a field into the body of a request, and the examination of a text that a person
 writes.
 
-Obey these two rules in a form:
+Obey these three rules in a form:
 
 - **Read a quantity of points with `parsePoints`.** The interface writes each number with
   the locale `it-IT`. Thus the user reads `1.900` and can write the same text. A field of
@@ -181,6 +181,12 @@ Obey these two rules in a form:
   three digits: without that examination, `1.9` gives 19.
 - **Make an empty field null.** The schemas of `src/shared/api.ts` ask for one character
   or for null. An empty string gives the status 400.
+- **Give `appearance-none` to a field of the type `date`.** Safari on iOS gives the theme
+  of the system to that field. The theme makes the box `content-box` after the cascade,
+  thus `box-sizing: border-box` of Tailwind is not sufficient. The padding and the border
+  then go outside the width of 100 per cent: the field is 26 pixels wider than a field of
+  text and it goes outside the form. Chromium shows no such defect, thus a test on the
+  telephone is necessary.
 
 Biome examines one file. It cannot follow the properties through a component, thus the
 rule `noLabelWithoutControl` gives an error in a component that receives `htmlFor`. Make
