@@ -89,6 +89,13 @@ function Fields({
 				<Input
 					id={`${fieldId}-date`}
 					type="date"
+					// Safari on iOS gives the theme of the system to a field of the
+					// type `date`. That theme makes the box `content-box` after the
+					// cascade, thus the padding and the border go outside the width of
+					// 100 per cent. The field is then 26 pixels wider than the field of
+					// the balance, and it goes outside the form. `appearance-none`
+					// removes that theme, and the two fields hold the same size.
+					className="appearance-none"
 					value={observedAt}
 					onChange={(event) => setObservedAt(event.target.value)}
 				/>
