@@ -116,7 +116,7 @@ does not know the quantity of points of each transaction.
 Thus the basic record is a snapshot:
 
 ```
-balance_snapshot(account_id, points, observed_at, note)
+balance_snapshot(account_id, points, observed_at)
 ```
 
 The current balance is the most recent snapshot of the account. The system calculates
@@ -210,8 +210,8 @@ currency(id, code, name, kind)        -- 'airline' | 'flexible' | 'hotel' | 'rai
 program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
 transfer_rule(...)                    -- refer to paragraph 3.3
 
-user_account(id, userId, programId, membershipRef?, nickname?)
-balance_snapshot(id, accountId, points, observedAt, note?)
+user_account(id, userId, programId)
+balance_snapshot(id, accountId, points, observedAt)
 favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragraph 5.0.2
 ```
 

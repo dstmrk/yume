@@ -18,15 +18,12 @@ export const isoDateSchema = z
 
 export const createAccountSchema = z.object({
 	programId: z.string().min(1),
-	nickname: z.string().min(1).max(60).nullish(),
-	membershipRef: z.string().min(1).max(60).nullish(),
 });
 
 export const addSnapshotSchema = z.object({
 	/** Points are integers and no balance is below 0. */
 	points: z.number().int().min(0),
 	observedAt: isoDateSchema,
-	note: z.string().max(200).nullish(),
 });
 
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
@@ -42,7 +39,6 @@ export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
 export type AccountRow = {
 	accountId: string;
 	programId: string;
-	nickname: string | null;
 	/**
 	 * The id of the most recent snapshot. The client sends this id to remove the
 	 * balance that it shows. It is null when the account has no snapshot.

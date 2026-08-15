@@ -1,4 +1,3 @@
-import type { CreateAccountInput } from "../../shared/api.ts";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 
 /**
@@ -35,24 +34,4 @@ export function sortPrograms(
 	return [...programs].sort(
 		(a, b) => rank(a) - rank(b) || byName.compare(a.name, b.name),
 	);
-}
-
-/**
- * Makes the body of the request from the fields of the form.
- *
- * The nickname and the reference of the membership are not necessary. The
- * schema of the API asks for one character or for null. A form writes an empty
- * string, and that value gives the status 400. Therefore an empty field becomes
- * null here.
- */
-export function toCreateAccountBody(fields: {
-	programId: string;
-	nickname: string;
-	membershipRef: string;
-}): CreateAccountInput {
-	return {
-		programId: fields.programId,
-		nickname: fields.nickname.trim() || null,
-		membershipRef: fields.membershipRef.trim() || null,
-	};
 }

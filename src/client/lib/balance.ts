@@ -1,5 +1,3 @@
-import type { AddSnapshotInput } from "../../shared/api.ts";
-
 /**
  * A quantity of points, with the separator of the thousands of Italy or with
  * no separator. A group of the thousands holds three digits.
@@ -62,22 +60,4 @@ export function todayIso(now: Date): string {
 	const month = String(now.getMonth() + 1).padStart(2, "0");
 	const date = String(now.getDate()).padStart(2, "0");
 	return `${now.getFullYear()}-${month}-${date}`;
-}
-
-/**
- * Makes the body of the request from the fields of the form.
- *
- * The note is not necessary. The schema of the API asks for a text or for null,
- * thus an empty string gives the status 400.
- */
-export function toAddSnapshotBody(fields: {
-	points: number;
-	observedAt: string;
-	note: string;
-}): AddSnapshotInput {
-	return {
-		points: fields.points,
-		observedAt: fields.observedAt,
-		note: fields.note.trim() || null,
-	};
 }

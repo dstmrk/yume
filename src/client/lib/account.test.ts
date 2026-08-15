@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Currency, Program } from "../../shared/catalogue.ts";
-import { sortPrograms, toCreateAccountBody } from "./account.ts";
+import { sortPrograms } from "./account.ts";
 
 function program(id: string, name: string, currencyId = "avios"): Program {
 	return { id, currencyId, code: id.toUpperCase(), name, transferable: true };
@@ -101,58 +101,5 @@ describe("sortPrograms", () => {
 		const programs = [program("b", "Bravo"), program("a", "Alfa")];
 		sortPrograms(programs, currencies);
 		expect(programs.map((row) => row.name)).toEqual(["Bravo", "Alfa"]);
-	});
-});
-
-describe("toCreateAccountBody", () => {
-	it("keeps a nickname and a reference of the membership", () => {
-		expect(
-			toCreateAccountBody({
-				programId: "ba-club",
-				nickname: "Principale",
-				membershipRef: "12345",
-			}),
-		).toEqual({
-			programId: "ba-club",
-			nickname: "Principale",
-			membershipRef: "12345",
-		});
-	});
-
-	// The two fields are not necessary. The schema of the API asks for one
-	// character or for null, thus an empty field gives the status 400. The form
-	// writes an empty string, therefore this function makes it null.
-	it("makes an empty field null", () => {
-		expect(
-			toCreateAccountBody({
-				programId: "ba-club",
-				nickname: "",
-				membershipRef: "",
-			}),
-		).toEqual({ programId: "ba-club", nickname: null, membershipRef: null });
-	});
-
-	it("makes a field of spaces only null", () => {
-		expect(
-			toCreateAccountBody({
-				programId: "ba-club",
-				nickname: "   ",
-				membershipRef: "\t",
-			}),
-		).toEqual({ programId: "ba-club", nickname: null, membershipRef: null });
-	});
-
-	it("removes the spaces at the two ends of a field", () => {
-		expect(
-			toCreateAccountBody({
-				programId: "ba-club",
-				nickname: "  Principale  ",
-				membershipRef: " 12345 ",
-			}),
-		).toEqual({
-			programId: "ba-club",
-			nickname: "Principale",
-			membershipRef: "12345",
-		});
 	});
 });

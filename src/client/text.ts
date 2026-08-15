@@ -48,13 +48,10 @@ export const text = {
 	programLabel: "Programma",
 	programPlaceholder: "Scegli un programma",
 	firstBalanceLabel: "Saldo (facoltativo)",
-	nicknameLabel: "Nome (facoltativo)",
-	membershipLabel: "Numero tessera (facoltativo)",
 
 	updateBalance: "Aggiorna saldo",
 	pointsLabel: "Saldo",
 	dateLabel: "Data",
-	noteLabel: "Nota (facoltativo)",
 	pointsError: "Scrivi il saldo in numeri.",
 
 	removeBalance: "Cancella saldo",
