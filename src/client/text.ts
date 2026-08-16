@@ -28,6 +28,9 @@ export const text = {
 	homeScope:
 		"I partner di trasferimento di American Express Italia e di Revolut: 19 programmi aerei raggiungibili. Nel catalogo c'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle due fonti raggiunge. Ogni rapporto è letto dalla pagina ufficiale del programma, mai a memoria.",
 
+	notFound: "Questo volo non è in partenza: la pagina che cerchi non esiste.",
+	notFoundLink: "Torna al tabellone",
+
 	homeScreenshotTitle: "Dopo l'accesso",
 	homeScreenshotAlt:
 		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",

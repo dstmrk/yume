@@ -28,6 +28,7 @@ import { HomePage } from "./HomePage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchSession } from "./lib/api.ts";
 import { inviteCodeOf } from "./lib/invite.ts";
+import { NotFoundPage } from "./NotFoundPage.tsx";
 
 const rootRoute = createRootRoute({
 	component: () => (
@@ -35,6 +36,9 @@ const rootRoute = createRootRoute({
 			<Outlet />
 		</main>
 	),
+	// A path with no route. The server gives the status 404 to that same path,
+	// and `CLIENT_PATHS` of `src/shared/routes.ts` holds the list of the paths.
+	notFoundComponent: NotFoundPage,
 });
 
 const homeRoute = createRoute({

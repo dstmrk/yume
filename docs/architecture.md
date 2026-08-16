@@ -736,6 +736,11 @@ controls the routes, thus the server gave `index.html` with the status 200 to ea
 A search engine then read each address of the site as a page with no content, and the
 quantity of those addresses has no limit.
 
+`NotFoundPage` of `src/client/NotFoundPage.tsx` is the page of that status. The flaps of
+the code turn at the load, as the flaps of a potential value: the code is a value that
+the system gives, and the person wrote no part of it. The page holds one sentence and one
+link to the public page.
+
 `CLIENT_PATHS` of `src/shared/routes.ts` holds the paths of the pages, and the pure
 function `isClientPath` gives the status. The page of the status 404 is the page of the
 application: the server holds no Italian text. The test of that file reads
