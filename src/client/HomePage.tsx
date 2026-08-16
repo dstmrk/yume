@@ -21,15 +21,22 @@ const EXAMPLE_POINTS = 128_400;
  *
  * The image comes from the application, not from a program of design: a
  * browser opens the dashboard with balances of an example and gives the
- * picture. The cards hold the calculation of the real catalogue.
+ * picture. The cards hold the calculation of the real catalogue. A frame of a
+ * telephone holds that picture, because the dashboard is a surface of a
+ * telephone.
  *
- * The picture starts at the first card. The header of the dashboard holds the
- * warning of the transfer, and this page does not give that warning.
+ * The picture starts at the masthead, thus it holds also the warning of the
+ * transfer. The page itself gives no such warning: the warning in the picture
+ * is a part of the dashboard, and this page shows the balance of no person.
+ *
+ * The background of the file is transparent. Therefore the picture holds no
+ * border and no radius: a rectangle of a border cuts the round corners of the
+ * frame.
  */
 const SCREENSHOT = {
 	src: "/screenshot-dashboard.png",
-	width: 780,
-	height: 1010,
+	width: 768,
+	height: 1590,
 };
 
 /**
@@ -107,13 +114,18 @@ export function HomePage() {
 					{text.homeScreenshotTitle}
 				</p>
 				{/* The size is the size of the file. Thus the page keeps the space of
-				    the image before the load, and the text below does not move. */}
+				    the image before the load, and the text below does not move.
+
+				    The frame of the telephone is more than two times taller than it
+				    is wide. Thus the width has a maximum on each screen: with the
+				    full width of the column, the picture alone fills the screen of a
+				    telephone. */}
 				<img
 					src={SCREENSHOT.src}
 					alt={text.homeScreenshotAlt}
 					width={SCREENSHOT.width}
 					height={SCREENSHOT.height}
-					className="h-auto w-full rounded-lg border border-board-line md:max-w-md"
+					className="h-auto w-full max-w-[280px]"
 				/>
 			</Rise>
 

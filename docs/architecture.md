@@ -688,11 +688,21 @@ screen of a telephone opens the dashboard and not the public page.
 
 The public page shows `public/screenshot-dashboard.png`. That image comes from the
 application: a browser opens the dashboard with balances of an example, and it gives the
-picture of the cards of the potential miles. No program of design writes that image. Take
-the picture again after a change of the cards.
+picture of the cards of the potential miles. No program of design writes the content of
+that image. A frame of a telephone holds the picture, because the dashboard is a surface
+of a telephone. Take the picture again after a change of the cards.
 
-The picture starts at the first card. The header of the dashboard holds the warning of
-the transfer, and the public page does not give that warning.
+The picture starts at the masthead of the dashboard, thus it holds also the warning of
+the transfer. The public page itself gives no such warning: the warning in the picture is
+a part of the dashboard, and the public page shows the balance of no person.
+
+The background of the file is transparent, and the file holds a palette of 256 colours.
+The transparent background lets the dark theme of the page pass at the round corners of
+the frame. Therefore the element `img` holds no border and no radius: a rectangle of a
+border cuts those corners. To remove a white background, fill from the border of the
+image. Do not replace each white pixel: the status bar, the icon of the battery and the
+light edge of the frame are also white, and a replacement of all the white makes a hole
+in each one.
 
 The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
