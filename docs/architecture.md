@@ -717,6 +717,18 @@ routes need a session, and a crawler receives the same HTML with no data. The fi
 no `Sitemap`: the site holds one public page, and a search engine finds one page with no
 sitemap. Add that line with the first group of pages of the catalogue.
 
+The server gives the status 404 to a path that the client does not hold. The client
+controls the routes, thus the server gave `index.html` with the status 200 to each path.
+A search engine then read each address of the site as a page with no content, and the
+quantity of those addresses has no limit.
+
+`CLIENT_PATHS` of `src/shared/routes.ts` holds the paths of the pages, and the pure
+function `isClientPath` gives the status. The page of the status 404 is the page of the
+application: the server holds no Italian text. The test of that file reads
+`src/client/router.tsx` and it refuses a path that one file holds and the other file does
+not hold. That examination is necessary, because the development server of Vite holds its
+own fallback and it never calls Hono.
+
 The body of the HTML stays empty after this step. A pre-render at the build gives that
 text, and it comes after the new text of the public page. The order is necessary: a
 pre-render of the flaps of today writes each character of the drum in the HTML, and that
