@@ -724,8 +724,11 @@ description and the tags of Open Graph. That text is Italian, and it is the one 
 to the rule of `text.ts` in `CLAUDE.md`. A static file imports no module, and a value that
 JavaScript writes arrives too late for a crawler.
 
-The head holds three absolute URLs: `canonical`, `og:url` and `og:image`. Change the
-three values together at a change of the domain. The domain is `yumemiles.com`.
+The head holds three absolute URLs: `canonical`, `og:url` and `og:image`. The domain is
+`yumemiles.com`, and `SITE_URL` of `src/client/lib/site.ts` holds the same value for the
+code. A static file imports no module, thus the two cannot share one value. The test
+`site.test.ts` reads `index.html` and it refuses a domain that is different: therefore
+the four places move together at a change of the domain.
 
 The canonical URL holds the domain of the official instance. An instance of another
 person then gives the same value, thus that instance does not compete with the official
@@ -736,19 +739,73 @@ routes need a session, and a crawler receives the same HTML with no data. The fi
 no `Sitemap`: the site holds one public page, and a search engine finds one page with no
 sitemap. Add that line with the first group of pages of the catalogue.
 
-The public page holds four blocks of text: the question of the person, the difference
-between a currency and a programme, the meaning of a potential value, and the catalogue
-of today. Each block holds a paragraph, and the title of each block is an `h2`.
+**The order of the public page is the product, then the detail.** The masthead gives the
+name and the link of the access. Then the `h1` says what Yume calculates, the board of
+the example shows that value, and three blocks give the three rules of the calculation.
+The detail of the catalogue is in the questions at the end of the page.
+
+An earlier version of this paragraph asked for four blocks of the same weight, and the
+second block named the six programmes of Avios. A visitor then read which airlines share
+one currency before it read what the application does. The names of the programmes are an
+answer to a question, not an opening.
+
+The `h1` is the question of the person, not the name of the application. A search engine
+and an assistant read the `h1` as the subject of the page, and the name alone gives no
+subject. The name is on the flaps of the masthead.
+
+The page holds a list of questions with the title `Domande frequenti`. Each answer opens
+with the fact and then it gives the context: an assistant cites the paragraph that
+answers, not the paragraph that introduces. That list holds the detail that the four
+blocks held before: the six programmes of Avios, the quantity of the programmes of the
+catalogue, the source of each ratio and the limit of the sum of two currencies.
 
 That quantity of text is a decision of this paragraph, and it is not a decision of the
 sale. The site holds one public page, thus that page carries each answer alone. The
 pages of the catalogue come later, and they then take that work. Paragraph 6.1 of
 `docs/monetisation.md` gives the channel.
 
-The blocks give the names of the six programmes of Avios and the quantity of the
-programmes of the catalogue. Those values come from `src/server/db/seed/catalogue.ts`.
-The page gives no ratio: a ratio needs a source, and the seed file is the only source.
-Refer to the rule 5 of the data in `CLAUDE.md`.
+The page names the six programmes of Avios and it gives the quantity of the programmes of
+the catalogue. Those values come from `src/server/db/seed/catalogue.ts`. The page gives no
+ratio: a ratio needs a source, and the seed file is the only source. Refer to the rule 5
+of the data in `CLAUDE.md`.
+
+`src/client/text.test.ts` reads the seed file and the text of the page. It refuses a
+quantity or a name that the two do not share. A new transfer rule changes the catalogue,
+and no other test reads the Italian text: without this examination the page keeps a
+number that was correct one time.
+
+The head of `dist/index.html` holds the structured data of schema.org, in the format
+JSON-LD. `src/client/lib/jsonLd.ts` writes four items: `Organization` with the subjects of
+the application, `WebSite`, `SoftwareApplication` with the functions of today, and
+`FAQPage` with the questions of the page. Each question of that data is on the page: data
+that says one thing to a crawler and an other thing to a reader is a defect.
+
+The builder replaces `<`, `>` and `&` with the escape of JSON. A value that holds
+`</script>` closes the element before its place, and the page then holds an element that
+no person wrote.
+
+`dist/llms.txt` gives the same text in markdown, for the crawlers of the assistants
+(https://llmstxt.org). `src/client/lib/llms.ts` reads `text.ts`, thus the file and the
+page hold the same text and no person writes that text two times. The server supplies
+`dist/` as static files, therefore that file needs no route of Hono and no path in
+`CLIENT_PATHS`. The format also gives `/llms-full.txt` for a site with many pages: add
+that file with the first group of pages of the catalogue.
+
+The development server of Vite writes no such file. The pre-render is a step of the
+build, thus the structured data and `llms.txt` exist in the container only. Read the
+production instance to examine them, not `npm run dev:client`.
+
+A block of the network can make this work inactive with no error. A proxy in front of the
+application can refuse `GPTBot`, `OAI-SearchBot`, `ClaudeBot` or `CCBot`, and `llms.txt`
+is then not available to the exact readers of that file. Read the file that the instance
+gives, not the file of the repository:
+
+```bash
+curl -sS https://yumemiles.com/robots.txt
+curl -sS -o /dev/null -w '%{http_code}\n' \
+  -A 'ClaudeBot/1.0 (+https://www.anthropic.com/claude-bot)' \
+  https://yumemiles.com/llms.txt
+```
 
 The server gives the status 404 to a path that the client does not hold. The client
 controls the routes, thus the server gave `index.html` with the status 200 to each path.
@@ -786,10 +843,54 @@ elements of the two are the same, thus a person sees no change.
 The flaps give a limit to this operation. Each cell holds one card for each character of
 its drum, therefore the HTML holds those characters: `Y Y Y U U U` for the name, and the
 digits of each position for the number. Those elements hold `aria-hidden`, and the
-correct value is in an element that is not visible. That text is about one part of eight
-of the page, and the four blocks hold the other seven parts. The order is necessary: a
-pre-render of the flaps of today writes each character of the drum in the HTML, and that
-text says nothing to a reader.
+correct value is in an element that is not visible. The text of the page is much larger
+than that quantity of characters. The order is necessary: a pre-render of the flaps of
+today writes each character of the drum in the HTML, and that text says nothing to a
+reader.
+
+### 5.5.4 A function that arrives later
+
+The public page shows one function of `docs/monetisation.md` before the code of that
+function: the goal and the award chart of paragraph 3.1 of that plan. A visitor then
+reads where the application goes, and not only what it does today.
+
+**A function that no code gives must never arrive in the present tense.** The block holds
+two marks:
+
+- The mark `Presto`, at the left of the title.
+- The verb of the future in each sentence of the text: `sarà`, `dirà`.
+
+`src/client/text.test.ts` refuses a text of that block with no verb of the future. A copy
+that gives a function as a fact is a defect, not an exaggeration of the sale: a person who
+reads it opens the dashboard and looks for a surface that does not exist.
+
+`llms.txt` gives that block under its own title, `In arrivo`. An assistant that reads one
+list of functions cites each item of that list as a function of today. The structured data
+of `SoftwareApplication` holds the functions of today only, and it holds no item of the
+plan.
+
+At the moment that the code of a function arrives, move the text from that block to the
+blocks of `Cosa fa Yume`, add the function to `FEATURE_LIST` of `lib/jsonLd.ts` and
+remove the item of `In arrivo`.
+
+### 5.5.5 The foot of the site
+
+`src/client/components/board/SiteFooter.tsx` holds the foot, and `AppShell` gives it to
+each surface. Yume names American Express, Revolut and each airline programme of the
+catalogue. Therefore each surface says that Yume belongs to none of them, and that all the
+marks belong to their owners.
+
+The foot also says that Yume shows no link of affiliation and takes no commission.
+Paragraph 8 of `docs/monetisation.md` gives that decision, and the foot is the surface
+that holds it: a person reads the position of the product at the same moment as the
+warning of the marks.
+
+The dashboard holds the same foot. That surface needs it most: a person reads the names of
+the programmes there, with a real value.
+
+The `main` holds the page and the foot is outside it: the foot belongs to the site and not
+to the page. The column holds the full height of the screen and the `main` grows, thus the
+foot stays at the end of a page that is shorter than the screen.
 
 ### 5.6 The movement of the flaps
 

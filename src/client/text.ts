@@ -9,24 +9,87 @@
 export const text = {
 	appName: "Yume",
 
-	homeTagline: "Quante miglia puoi ottenere dai tuoi punti, valuta per valuta.",
+	// The title of the page. It is the `h1`, and it holds the words of the
+	// question that a person writes in a search engine. The name of the
+	// application is on the flaps of the masthead, not here.
+	homeTitle: "Quante miglia valgono i tuoi punti",
+	homeLead:
+		"L'app della tua banca ti mostra un saldo di punti. Yume ti dice quante miglia diventano, valuta per valuta, ai rapporti di trasferimento ufficiali di oggi.",
 	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
 
-	homeQuestionTitle: "La domanda",
-	homeQuestion:
-		"L'app della tua banca ti mostra un saldo di punti. Non ti dice quante miglia diventano, né presso quale compagnia. La risposta cambia a seconda di dove li mandi, e cambia nel tempo. Yume calcola quel numero, e lo rifà quando i rapporti cambiano.",
+	homeWhatTitle: "Cosa fa Yume",
+	// Each block opens with the answer, then it gives the detail. An assistant
+	// cites the paragraph that answers, not the paragraph that introduces.
+	homeWhat: [
+		{
+			title: "Un numero per ogni valuta",
+			body: "Sei programmi usano gli Avios: è un saldo solo, non sei. Yume calcola una riga per valuta, così lo stesso saldo non viene contato più volte.",
+		},
+		{
+			title: "Rapporti ufficiali, non a memoria",
+			body: "Ogni rapporto è letto dalla pagina ufficiale del programma. Quando cambia, la regola vecchia resta come storico e ne entra una nuova con la sua data.",
+		},
+		{
+			title: "È un calcolo, non un saldo",
+			body: "Le miglia potenziali sono il massimo che otterresti trasferendo tutti i punti di quella valuta, ai rapporti di oggi. Yume non muove nessun punto.",
+		},
+	],
 
-	homeCurrencyTitle: "Una valuta, sei programmi",
-	homeCurrency:
-		"British Airways Club, Iberia Club, Aer Lingus AerClub, Finnair Plus, Qatar Airways Privilege Club e Vueling Club usano la stessa valuta: gli Avios. È un saldo solo, non sei. Uno strumento che calcola programma per programma conta gli stessi punti sei volte, e ti mostra un totale che non potrai mai ottenere. Yume calcola una riga per valuta.",
+	// The mark and the text of a function that the application does not hold.
+	// The text is in the future: a function that no code gives must never
+	// arrive in the present tense. Paragraph 5.5.4 of `docs/architecture.md`
+	// gives the rule.
+	homeSoonBadge: "Presto",
+	homeSoonTitle: "Dove puoi volare",
+	homeSoon:
+		"Oggi Yume risponde a quanto valgono i tuoi punti. Il passo dopo sarà la domanda opposta: dato un obiettivo, Yume dirà se il tuo potenziale ci arriva e con quale programma.",
 
-	homeCalculationTitle: "È un calcolo, non un saldo",
-	homeCalculation:
-		"Le miglia potenziali sono il massimo che otterresti se trasferissi tutti i punti di quella valuta, ai rapporti di oggi. Non sono miglia che possiedi, e Yume non muove nessun punto. Non sommare le valute tra loro: gli stessi punti possono andare in una direzione sola. Quello che conta è la riga più alta, non il totale.",
-
-	homeScopeTitle: "Cosa copre oggi",
-	homeScope:
-		"I partner di trasferimento di American Express Italia e di Revolut: 19 programmi aerei raggiungibili. Nel catalogo c'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle due fonti raggiunge. Ogni rapporto è letto dalla pagina ufficiale del programma, mai a memoria.",
+	homeFaqTitle: "Domande frequenti",
+	// The details of the catalogue live here, below the product. A visitor reads
+	// what Yume does first: the six programmes of Avios are an answer, not an
+	// opening. Each answer opens with the fact.
+	homeFaq: [
+		{
+			question: "Quali punti posso seguire con Yume?",
+			answer:
+				"I punti Amex Membership Rewards e i RevPoints di Revolut, per l'Italia. Da lì il catalogo raggiunge 19 programmi aerei. C'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle due fonti raggiunge.",
+		},
+		{
+			question: "Perché sei programmi diventano una riga sola?",
+			answer:
+				"British Airways Club, Iberia Club, Aer Lingus AerClub, Finnair Plus, Qatar Airways Privilege Club e Vueling Club usano la stessa valuta: gli Avios. È un saldo solo. Uno strumento che calcola programma per programma conta gli stessi punti sei volte, e mostra un totale che non potrai mai ottenere.",
+		},
+		{
+			question: "Cosa sono le miglia potenziali?",
+			answer:
+				"Il massimo che otterresti se trasferissi tutti i punti di quella valuta, ai rapporti di oggi. Non sono miglia che possiedi: sono un calcolo, e cambia quando cambiano i rapporti.",
+		},
+		{
+			question: "Posso sommare le miglia potenziali di valute diverse?",
+			answer:
+				"No. Gli stessi punti possono andare in una direzione sola, quindi la somma è un numero che non otterrai mai. Quello che conta è la riga più alta, non il totale.",
+		},
+		{
+			question: "Da dove arrivano i rapporti di trasferimento?",
+			answer:
+				"Dalla pagina ufficiale di ogni programma, mai a memoria. Ogni regola ha una data di inizio e una di fine: quando un rapporto cambia, la regola vecchia resta come storico e il calcolo usa quella valida oggi.",
+		},
+		{
+			question: "Yume trasferisce i punti al posto mio?",
+			answer:
+				"No. Yume calcola e basta, non tocca i tuoi conti. Il trasferimento lo fai tu sul sito della banca o del programma, ed è definitivo: i punti trasferiti non tornano indietro.",
+		},
+		{
+			question: "Yume guadagna sui trasferimenti che consiglia?",
+			answer:
+				"No. Yume non mostra link di affiliazione e non prende commissioni. Il codice è open source con licenza MIT, quindi puoi installarlo sul tuo server.",
+		},
+		{
+			question: "Come ottengo un account?",
+			answer:
+				"Solo con un invito di chi usa già Yume. Ogni utente ha due inviti e ogni codice vale 24 ore.",
+		},
+	],
 
 	notFound: "Questo volo non è in partenza: la pagina che cerchi non esiste.",
 	notFoundLink: "Torna al tabellone",
@@ -34,6 +97,15 @@ export const text = {
 	homeScreenshotTitle: "Dopo l'accesso",
 	homeScreenshotAlt:
 		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",
+
+	// The footer of each surface. Yume names American Express, Revolut and each
+	// airline programme of the catalogue, therefore it must say that it belongs
+	// to none of them.
+	footerDisclaimer:
+		"Yume non è affiliato ad American Express, a Revolut, alle compagnie aeree o ai programmi fedeltà citati. Tutti i marchi appartengono ai rispettivi proprietari.",
+	footerIndependence:
+		"Nessun link di affiliazione: Yume non guadagna sui trasferimenti che calcola.",
+	footerSource: "Codice su GitHub",
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
