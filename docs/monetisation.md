@@ -17,9 +17,9 @@ Yume calculates the potential miles. That number answers a question of supply: h
 miles can the user hold? The user reads a balance in the application of the bank.
 Therefore that number alone sells nothing.
 
-ilgeniodellemiglia.com answers a different question. The user gives a destination, and
-the tool names the programme and the quantity of miles. That question is a question of
-demand: what can the user do with the points?
+The paid tools of this market answer a different question. The user gives a destination,
+and the tool names the programme and the quantity of miles. That question is a question
+of demand: what can the user do with the points?
 
 A person pays for the second answer. Therefore Yume must build the bridge between the two
 questions.
@@ -336,9 +336,10 @@ identifier of the customer only. Therefore the obligations stay small.
 
 ## 5. The price
 
-The competitor asks for 5,99 euros in one month for its middle account, and 12,99 euros
-for its large account. Yume holds one paid account only. Two accounts to maintain give no
-advantage to a project of one person.
+The paid tools of this market ask for 6 euros to 13 euros in one month, and they give two
+paid accounts or three paid accounts. Yume holds one paid account only. More than one
+paid account gives more than one surface to maintain, and that cost is large for a
+project of one person.
 
 | Account | Price | Function |
 |---|---|---|
@@ -389,9 +390,9 @@ gives each obligation of a paid service and no income. That state is the worst s
 the plan.
 
 The channel of this market is the content: a guide of a programme, a route with a good
-value, and an answer to the question of a person with 100 000 points. The competitor
-holds a section Academy for that reason. That section is its motor of acquisition and it
-is not an extra.
+value, and an answer to the question of a person with 100 000 points. Each paid tool of
+this market holds a large section of guides for that reason. That section is the motor of
+acquisition of those tools, and it is not an extra.
 
 The content is manual work of each month. But the division of the work is good here, and
 it is the contrary of the division of the catalogue:
