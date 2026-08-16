@@ -9,6 +9,37 @@
 		<meta name="theme-color" content="#0b0c0e" />
 		<meta name="color-scheme" content="dark" />
 
+		<!-- The search engines and the assistants. Refer to paragraph 5.5.3 of
+		     docs/architecture.md.
+
+		     This head holds the only Italian text outside src/client/text.ts. A
+		     static file imports no module, and a crawler of an assistant reads
+		     no JavaScript. Therefore the title and the description must be here.
+
+		     The three absolute URLs hold the domain of the official instance.
+		     Change them together at a change of the domain. -->
+		<meta
+			name="description"
+			content="Yume calcola quante miglia puoi ottenere dai tuoi punti. Un valore per ogni valuta, con i rapporti di trasferimento ufficiali per l'Italia."
+		/>
+		<link rel="canonical" href="https://yumemiles.com/" />
+		<meta property="og:type" content="website" />
+		<meta property="og:site_name" content="Yume" />
+		<meta property="og:locale" content="it_IT" />
+		<meta
+			property="og:title"
+			content="Yume — Quante miglia valgono i tuoi punti"
+		/>
+		<meta
+			property="og:description"
+			content="Yume calcola quante miglia puoi ottenere dai tuoi punti. Un valore per ogni valuta, con i rapporti di trasferimento ufficiali per l'Italia."
+		/>
+		<meta property="og:url" content="https://yumemiles.com/" />
+		<meta property="og:image" content="https://yumemiles.com/icon-512.png" />
+		<!-- The image is the square mark, thus the card is `summary`. A card
+		     `summary_large_image` needs an image of 1.91 to 1. -->
+		<meta name="twitter:card" content="summary" />
+
 		<!-- The installation on the home screen of the telephone. Refer to
 		     paragraph 5.5 of docs/architecture.md. -->
 		<link rel="manifest" href="/manifest.webmanifest" />
@@ -26,7 +57,7 @@
 			content="black-translucent"
 		/>
 
-		<title>Yume</title>
+		<title>Yume — Quante miglia valgono i tuoi punti</title>
 	</head>
 	<body>
 		<div id="root"></div>

@@ -578,15 +578,24 @@ that quantity of points.
 The user reads a balance on a telephone. The user then writes that balance in Yume on the
 same telephone. Therefore the telephone is the first screen, not the second.
 
+Yume has one design, and that design is responsive. A large screen is not a different
+design: it is the same design with more space. Therefore a desktop needs no separate
+work, but it also receives no page that stays at the width of a telephone.
+
 Obey these rules:
 
 - **Write the styles for the small screen first.** Then add a breakpoint of Tailwind for
   a larger screen. Do not write a desktop style and then correct it for the telephone.
+- **Write one tree of elements.** A breakpoint changes the appearance of an element. It
+  does not give a second element for a large screen. A class `hidden md:block` with a
+  second copy of a surface is a second design, and this project holds no such copy.
 - **Make each control large enough for a finger.** The smallest control is 44 pixels on
   each side.
-- **Use one column.** The cards are one above the other.
-- **Limit the width of the content on a large screen.** The content stays in the centre.
-  Yume has no separate design for a desktop.
+- **Use one column on a telephone.** A larger screen can hold two columns of the same
+  elements, with a breakpoint.
+- **Limit the width of the content.** The content stays in the centre. The column of the
+  root is `max-w-board` on a telephone and `md:max-w-3xl` above 768 pixels. A line of
+  text that crosses the full width of a desktop is difficult to read.
 - **Do not make the page move sideways.** A long name breaks into two lines. It does not
   make a horizontal bar.
 
@@ -688,6 +697,89 @@ the transfer, and the public page does not give that warning.
 The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
 and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
+
+### 5.5.3 The search engines and the assistants
+
+Yume has no budget for advertisements. Therefore a person must find the public page in a
+search engine and in the answer of an assistant. Paragraph 6.1 of `docs/monetisation.md`
+gives that channel.
+
+The client is a single page application. The file `src/client/index.html` holds an empty
+`div`, and React writes each element in the browser. Google executes that JavaScript. The
+crawlers of the assistants read the HTML only. Therefore the public page is an empty page
+for the exact channel of this plan.
+
+The head of `index.html` holds the first answer to that problem: the title, the
+description and the tags of Open Graph. That text is Italian, and it is the one exception
+to the rule of `text.ts` in `CLAUDE.md`. A static file imports no module, and a value that
+JavaScript writes arrives too late for a crawler.
+
+The head holds three absolute URLs: `canonical`, `og:url` and `og:image`. Change the
+three values together at a change of the domain. The domain is `yumemiles.com`.
+
+The canonical URL holds the domain of the official instance. An instance of another
+person then gives the same value, thus that instance does not compete with the official
+page in the results of a search.
+
+`public/robots.txt` blocks `/api/`, `/dashboard`, `/login` and `/signup`. Those three
+routes need a session, and a crawler receives the same HTML with no data. The file gives
+no `Sitemap`: the site holds one public page, and a search engine finds one page with no
+sitemap. Add that line with the first group of pages of the catalogue.
+
+The public page holds four blocks of text: the question of the person, the difference
+between a currency and a programme, the meaning of a potential value, and the catalogue
+of today. Each block holds a paragraph, and the title of each block is an `h2`.
+
+That quantity of text is a decision of this paragraph, and it is not a decision of the
+sale. The site holds one public page, thus that page carries each answer alone. The
+pages of the catalogue come later, and they then take that work. Paragraph 6.1 of
+`docs/monetisation.md` gives the channel.
+
+The blocks give the names of the six programmes of Avios and the quantity of the
+programmes of the catalogue. Those values come from `src/server/db/seed/catalogue.ts`.
+The page gives no ratio: a ratio needs a source, and the seed file is the only source.
+Refer to the rule 5 of the data in `CLAUDE.md`.
+
+The server gives the status 404 to a path that the client does not hold. The client
+controls the routes, thus the server gave `index.html` with the status 200 to each path.
+A search engine then read each address of the site as a page with no content, and the
+quantity of those addresses has no limit.
+
+`NotFoundPage` of `src/client/NotFoundPage.tsx` is the page of that status. The flaps of
+the code turn at the load, as the flaps of a potential value: the code is a value that
+the system gives, and the person wrote no part of it. The page holds one sentence and one
+link to the public page.
+
+`CLIENT_PATHS` of `src/shared/routes.ts` holds the paths of the pages, and the pure
+function `isClientPath` gives the status. The page of the status 404 is the page of the
+application: the server holds no Italian text. The test of that file reads
+`src/client/router.tsx` and it refuses a path that one file holds and the other file does
+not hold. That examination is necessary, because the development server of Vite holds its
+own fallback and it never calls Hono.
+
+`src/client/prerender.tsx` writes the elements of the public page in `dist/index.html`.
+Then a crawler that executes no JavaScript reads the four blocks, and a browser paints
+them before it loads the bundle.
+
+`npm run build` runs three commands. Vite builds the client, then Vite builds this module
+for Node, then Node runs that bundle. The second build is necessary, because Node
+executes no JSX. The bundle goes in `dist-ssr/`, and `.gitignore` holds that directory.
+
+The module renders `AppShell` with `HomePage`, and it needs no context and no session:
+the public page holds no element of the router. The build stops when `index.html` holds
+no empty `div` of the root. Without that examination, a change of the name of the element
+gives a page with no text, and the browser shows no such defect.
+
+React writes the page again at the load, because `main.tsx` calls `createRoot`. The
+elements of the two are the same, thus a person sees no change.
+
+The flaps give a limit to this operation. Each cell holds one card for each character of
+its drum, therefore the HTML holds those characters: `Y Y Y U U U` for the name, and the
+digits of each position for the number. Those elements hold `aria-hidden`, and the
+correct value is in an element that is not visible. That text is about one part of eight
+of the page, and the four blocks hold the other seven parts. The order is necessary: a
+pre-render of the flaps of today writes each character of the drum in the HTML, and that
+text says nothing to a reader.
 
 ### 5.6 The movement of the flaps
 

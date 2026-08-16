@@ -14,7 +14,7 @@
 		"fix": "biome check --write .",
 		"dev:server": "BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET:-development-only-secret} TRUSTED_ORIGINS=http://localhost:5173 node --experimental-strip-types --watch src/server/index.ts",
 		"dev:client": "vite",
-		"build": "vite build",
+		"build": "vite build && vite build --ssr prerender.tsx --outDir ../../dist-ssr && node dist-ssr/prerender.js",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "node --experimental-strip-types src/server/db/migrate.ts",
 		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts",

@@ -9,17 +9,28 @@
 export const text = {
 	appName: "Yume",
 
-	homeTagline:
-		"Tutti i tuoi punti su una schermata. Yume calcola quante miglia puoi avere in ogni valuta.",
+	homeTagline: "Quante miglia puoi ottenere dai tuoi punti, valuta per valuta.",
 	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
-	homeHowTitle: "Come funziona",
-	homeHow: "Scrivi i saldi a mano. Yume li converte valuta per valuta.",
-	homeValueTitle: "Il valore",
-	homeValue:
-		"È un calcolo, non un saldo. Yume mostra il massimo per ogni valuta.",
-	homeScopeTitle: "Cosa copre",
+
+	homeQuestionTitle: "La domanda",
+	homeQuestion:
+		"L'app della tua banca ti mostra un saldo di punti. Non ti dice quante miglia diventano, né presso quale compagnia. La risposta cambia a seconda di dove li mandi, e cambia nel tempo. Yume calcola quel numero, e lo rifà quando i rapporti cambiano.",
+
+	homeCurrencyTitle: "Una valuta, sei programmi",
+	homeCurrency:
+		"British Airways Club, Iberia Club, Aer Lingus AerClub, Finnair Plus, Qatar Airways Privilege Club e Vueling Club usano la stessa valuta: gli Avios. È un saldo solo, non sei. Uno strumento che calcola programma per programma conta gli stessi punti sei volte, e ti mostra un totale che non potrai mai ottenere. Yume calcola una riga per valuta.",
+
+	homeCalculationTitle: "È un calcolo, non un saldo",
+	homeCalculation:
+		"Le miglia potenziali sono il massimo che otterresti se trasferissi tutti i punti di quella valuta, ai rapporti di oggi. Non sono miglia che possiedi, e Yume non muove nessun punto. Non sommare le valute tra loro: gli stessi punti possono andare in una direzione sola. Quello che conta è la riga più alta, non il totale.",
+
+	homeScopeTitle: "Cosa copre oggi",
 	homeScope:
-		"I partner di trasferimento di American Express Italia e di Revolut.",
+		"I partner di trasferimento di American Express Italia e di Revolut: 19 programmi aerei raggiungibili. Nel catalogo c'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle due fonti raggiunge. Ogni rapporto è letto dalla pagina ufficiale del programma, mai a memoria.",
+
+	notFound: "Questo volo non è in partenza: la pagina che cerchi non esiste.",
+	notFoundLink: "Torna al tabellone",
+
 	homeScreenshotTitle: "Dopo l'accesso",
 	homeScreenshotAlt:
 		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",

@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
@@ -45,13 +44,22 @@ const SCREENSHOT = {
  * point, and this page shows the balance of no person. The dashboard gives
  * that warning, because a person reads a real value there and then decides.
  *
- * The text is at the centre, and the board of the example is the first
- * surface. The blocks arrive one after the other, thus the page has the rhythm
- * of a board that turns its flaps.
+ * The board of the example is the first surface, and the blocks arrive one
+ * after the other. Thus the page has the rhythm of a board that turns its
+ * flaps.
+ *
+ * The masthead and the board hold the centre. Each block of text holds the
+ * left: a paragraph at the centre gives a different start to each line, and the
+ * eye then finds no start. The page holds four blocks, because a search engine
+ * and an assistant read this page and no other page of the site. Paragraph
+ * 5.5.3 of `docs/architecture.md` gives the reason.
  *
  * The link of the access holds `buttonVariants` of `components/ui/button.tsx`.
- * A navigation needs an `a` element, and the `Link` of the router gives it.
  * Thus the link has the appearance of the standard button.
+ *
+ * This page holds no element of the router. The build writes the page with
+ * `renderToStaticMarkup`, and each element of the router needs the context of
+ * the router.
  */
 export function HomePage() {
 	return (
@@ -71,13 +79,30 @@ export function HomePage() {
 				<p className="text-board-muted text-xs">{text.homeExample}</p>
 			</Rise>
 
-			<dl className="flex w-full flex-col gap-5">
-				<Point index={2} title={text.homeHowTitle} body={text.homeHow} />
-				<Point index={3} title={text.homeValueTitle} body={text.homeValue} />
-				<Point index={4} title={text.homeScopeTitle} body={text.homeScope} />
-			</dl>
+			{/* One column on a telephone, two columns above 768 pixels. The
+			    breakpoint changes the container and no block: the elements are the
+			    same on the two screens. Paragraph 5.4 of `docs/architecture.md`
+			    gives the rule. */}
+			<div className="flex w-full flex-col gap-7 text-left md:grid md:grid-cols-2 md:gap-x-10">
+				<Block
+					index={2}
+					title={text.homeQuestionTitle}
+					body={text.homeQuestion}
+				/>
+				<Block
+					index={3}
+					title={text.homeCurrencyTitle}
+					body={text.homeCurrency}
+				/>
+				<Block
+					index={4}
+					title={text.homeCalculationTitle}
+					body={text.homeCalculation}
+				/>
+				<Block index={5} title={text.homeScopeTitle} body={text.homeScope} />
+			</div>
 
-			<Rise index={5} className="flex w-full flex-col items-center gap-2">
+			<Rise index={6} className="flex w-full flex-col items-center gap-2">
 				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 					{text.homeScreenshotTitle}
 				</p>
@@ -88,14 +113,21 @@ export function HomePage() {
 					alt={text.homeScreenshotAlt}
 					width={SCREENSHOT.width}
 					height={SCREENSHOT.height}
-					className="h-auto w-full rounded-lg border border-board-line"
+					className="h-auto w-full rounded-lg border border-board-line md:max-w-md"
 				/>
 			</Rise>
 
-			<Rise index={6} className="flex w-full flex-col items-center gap-2">
-				<Link to="/login" className={cn(buttonVariants(), "w-full")}>
+			<Rise index={7} className="flex w-full flex-col items-center gap-2">
+				{/* The element is an `a` and not a `Link` of the router. The build
+				    writes this page with `renderToStaticMarkup`, and a `Link` needs
+				    the context of the router: the page then holds no router and no
+				    session. A visitor with no session reads this page one time and
+				    then goes to the form, thus a load of the full page costs
+				    nothing. Paragraph 5.5.3 of `docs/architecture.md` gives the
+				    reason. */}
+				<a href="/login" className={cn(buttonVariants(), "w-full md:max-w-xs")}>
 					{text.signIn}
-				</Link>
+				</a>
 				<p className="text-board-muted text-xs">{text.inviteOnly}</p>
 			</Rise>
 		</div>
@@ -127,8 +159,15 @@ function Rise({
 	);
 }
 
-/** One short point of the page: a title of the board and one sentence. */
-function Point({
+/**
+ * One block of text of the page: a title of the board and one paragraph.
+ *
+ * The elements are a `section` and an `h2`, not a list of definitions. A block
+ * holds a paragraph and not one sentence, and the title is the question that a
+ * person writes in a search engine. Paragraph 5.5.3 of `docs/architecture.md`
+ * gives the reason.
+ */
+function Block({
 	index,
 	title,
 	body,
@@ -139,10 +178,12 @@ function Point({
 }) {
 	return (
 		<Rise index={index}>
-			<dt className="font-board text-[11px] text-board-muted uppercase tracking-widest">
-				{title}
-			</dt>
-			<dd className="mt-1 text-sm">{body}</dd>
+			<section>
+				<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+					{title}
+				</h2>
+				<p className="mt-2 text-board-text text-sm leading-relaxed">{body}</p>
+			</section>
 		</Rise>
 	);
 }
