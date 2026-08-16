@@ -1,4 +1,3 @@
-import { Link } from "@tanstack/react-router";
 import type { CSSProperties, ReactNode } from "react";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
@@ -56,8 +55,11 @@ const SCREENSHOT = {
  * 5.5.3 of `docs/architecture.md` gives the reason.
  *
  * The link of the access holds `buttonVariants` of `components/ui/button.tsx`.
- * A navigation needs an `a` element, and the `Link` of the router gives it.
  * Thus the link has the appearance of the standard button.
+ *
+ * This page holds no element of the router. The build writes the page with
+ * `renderToStaticMarkup`, and each element of the router needs the context of
+ * the router.
  */
 export function HomePage() {
 	return (
@@ -77,7 +79,11 @@ export function HomePage() {
 				<p className="text-board-muted text-xs">{text.homeExample}</p>
 			</Rise>
 
-			<div className="flex w-full flex-col gap-7 text-left">
+			{/* One column on a telephone, two columns above 768 pixels. The
+			    breakpoint changes the container and no block: the elements are the
+			    same on the two screens. Paragraph 5.4 of `docs/architecture.md`
+			    gives the rule. */}
+			<div className="flex w-full flex-col gap-7 text-left md:grid md:grid-cols-2 md:gap-x-10">
 				<Block
 					index={2}
 					title={text.homeQuestionTitle}
@@ -107,14 +113,21 @@ export function HomePage() {
 					alt={text.homeScreenshotAlt}
 					width={SCREENSHOT.width}
 					height={SCREENSHOT.height}
-					className="h-auto w-full rounded-lg border border-board-line"
+					className="h-auto w-full rounded-lg border border-board-line md:max-w-md"
 				/>
 			</Rise>
 
 			<Rise index={7} className="flex w-full flex-col items-center gap-2">
-				<Link to="/login" className={cn(buttonVariants(), "w-full")}>
+				{/* The element is an `a` and not a `Link` of the router. The build
+				    writes this page with `renderToStaticMarkup`, and a `Link` needs
+				    the context of the router: the page then holds no router and no
+				    session. A visitor with no session reads this page one time and
+				    then goes to the form, thus a load of the full page costs
+				    nothing. Paragraph 5.5.3 of `docs/architecture.md` gives the
+				    reason. */}
+				<a href="/login" className={cn(buttonVariants(), "w-full md:max-w-xs")}>
 					{text.signIn}
-				</Link>
+				</a>
 				<p className="text-board-muted text-xs">{text.inviteOnly}</p>
 			</Rise>
 		</div>

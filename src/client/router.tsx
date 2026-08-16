@@ -32,7 +32,11 @@ import { NotFoundPage } from "./NotFoundPage.tsx";
 
 const rootRoute = createRootRoute({
 	component: () => (
-		<main className="mx-auto flex max-w-board flex-col gap-6 px-4 pt-safe pb-safe">
+		// The column of the application. It holds the width of the board on a
+		// telephone, and it takes more space above 768 pixels. One design serves
+		// the two screens: the breakpoint changes the width and no element.
+		// Paragraph 5.4 of `docs/architecture.md` gives the rule.
+		<main className="mx-auto flex w-full max-w-board flex-col gap-6 px-4 pt-safe pb-safe md:max-w-3xl">
 			<Outlet />
 		</main>
 	),

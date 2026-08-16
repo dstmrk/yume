@@ -578,15 +578,24 @@ that quantity of points.
 The user reads a balance on a telephone. The user then writes that balance in Yume on the
 same telephone. Therefore the telephone is the first screen, not the second.
 
+Yume has one design, and that design is responsive. A large screen is not a different
+design: it is the same design with more space. Therefore a desktop needs no separate
+work, but it also receives no page that stays at the width of a telephone.
+
 Obey these rules:
 
 - **Write the styles for the small screen first.** Then add a breakpoint of Tailwind for
   a larger screen. Do not write a desktop style and then correct it for the telephone.
+- **Write one tree of elements.** A breakpoint changes the appearance of an element. It
+  does not give a second element for a large screen. A class `hidden md:block` with a
+  second copy of a surface is a second design, and this project holds no such copy.
 - **Make each control large enough for a finger.** The smallest control is 44 pixels on
   each side.
-- **Use one column.** The cards are one above the other.
-- **Limit the width of the content on a large screen.** The content stays in the centre.
-  Yume has no separate design for a desktop.
+- **Use one column on a telephone.** A larger screen can hold two columns of the same
+  elements, with a breakpoint.
+- **Limit the width of the content.** The content stays in the centre. The column of the
+  root is `max-w-board` on a telephone and `md:max-w-3xl` above 768 pixels. A line of
+  text that crosses the full width of a desktop is difficult to read.
 - **Do not make the page move sideways.** A long name breaks into two lines. It does not
   make a horizontal bar.
 
