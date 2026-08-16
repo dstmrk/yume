@@ -705,9 +705,8 @@ description and the tags of Open Graph. That text is Italian, and it is the one 
 to the rule of `text.ts` in `CLAUDE.md`. A static file imports no module, and a value that
 JavaScript writes arrives too late for a crawler.
 
-The head holds four absolute URLs: `canonical`, `og:url`, `og:image` and the domain of
-the site. Change the four values together at a change of the domain. The domain of today
-is `yume.9874848.xyz`.
+The head holds three absolute URLs: `canonical`, `og:url` and `og:image`. Change the
+three values together at a change of the domain. The domain is `yumemiles.com`.
 
 The canonical URL holds the domain of the official instance. An instance of another
 person then gives the same value, thus that instance does not compete with the official
