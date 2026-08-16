@@ -45,9 +45,15 @@ const SCREENSHOT = {
  * point, and this page shows the balance of no person. The dashboard gives
  * that warning, because a person reads a real value there and then decides.
  *
- * The text is at the centre, and the board of the example is the first
- * surface. The blocks arrive one after the other, thus the page has the rhythm
- * of a board that turns its flaps.
+ * The board of the example is the first surface, and the blocks arrive one
+ * after the other. Thus the page has the rhythm of a board that turns its
+ * flaps.
+ *
+ * The masthead and the board hold the centre. Each block of text holds the
+ * left: a paragraph at the centre gives a different start to each line, and the
+ * eye then finds no start. The page holds four blocks, because a search engine
+ * and an assistant read this page and no other page of the site. Paragraph
+ * 5.5.3 of `docs/architecture.md` gives the reason.
  *
  * The link of the access holds `buttonVariants` of `components/ui/button.tsx`.
  * A navigation needs an `a` element, and the `Link` of the router gives it.
@@ -71,13 +77,26 @@ export function HomePage() {
 				<p className="text-board-muted text-xs">{text.homeExample}</p>
 			</Rise>
 
-			<dl className="flex w-full flex-col gap-5">
-				<Point index={2} title={text.homeHowTitle} body={text.homeHow} />
-				<Point index={3} title={text.homeValueTitle} body={text.homeValue} />
-				<Point index={4} title={text.homeScopeTitle} body={text.homeScope} />
-			</dl>
+			<div className="flex w-full flex-col gap-7 text-left">
+				<Block
+					index={2}
+					title={text.homeQuestionTitle}
+					body={text.homeQuestion}
+				/>
+				<Block
+					index={3}
+					title={text.homeCurrencyTitle}
+					body={text.homeCurrency}
+				/>
+				<Block
+					index={4}
+					title={text.homeCalculationTitle}
+					body={text.homeCalculation}
+				/>
+				<Block index={5} title={text.homeScopeTitle} body={text.homeScope} />
+			</div>
 
-			<Rise index={5} className="flex w-full flex-col items-center gap-2">
+			<Rise index={6} className="flex w-full flex-col items-center gap-2">
 				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 					{text.homeScreenshotTitle}
 				</p>
@@ -92,7 +111,7 @@ export function HomePage() {
 				/>
 			</Rise>
 
-			<Rise index={6} className="flex w-full flex-col items-center gap-2">
+			<Rise index={7} className="flex w-full flex-col items-center gap-2">
 				<Link to="/login" className={cn(buttonVariants(), "w-full")}>
 					{text.signIn}
 				</Link>
@@ -127,8 +146,15 @@ function Rise({
 	);
 }
 
-/** One short point of the page: a title of the board and one sentence. */
-function Point({
+/**
+ * One block of text of the page: a title of the board and one paragraph.
+ *
+ * The elements are a `section` and an `h2`, not a list of definitions. A block
+ * holds a paragraph and not one sentence, and the title is the question that a
+ * person writes in a search engine. Paragraph 5.5.3 of `docs/architecture.md`
+ * gives the reason.
+ */
+function Block({
 	index,
 	title,
 	body,
@@ -139,10 +165,12 @@ function Point({
 }) {
 	return (
 		<Rise index={index}>
-			<dt className="font-board text-[11px] text-board-muted uppercase tracking-widest">
-				{title}
-			</dt>
-			<dd className="mt-1 text-sm">{body}</dd>
+			<section>
+				<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+					{title}
+				</h2>
+				<p className="mt-2 text-board-text text-sm leading-relaxed">{body}</p>
+			</section>
 		</Rise>
 	);
 }

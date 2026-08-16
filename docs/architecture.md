@@ -717,6 +717,20 @@ routes need a session, and a crawler receives the same HTML with no data. The fi
 no `Sitemap`: the site holds one public page, and a search engine finds one page with no
 sitemap. Add that line with the first group of pages of the catalogue.
 
+The public page holds four blocks of text: the question of the person, the difference
+between a currency and a programme, the meaning of a potential value, and the catalogue
+of today. Each block holds a paragraph, and the title of each block is an `h2`.
+
+That quantity of text is a decision of this paragraph, and it is not a decision of the
+sale. The site holds one public page, thus that page carries each answer alone. The
+pages of the catalogue come later, and they then take that work. Paragraph 6.1 of
+`docs/monetisation.md` gives the channel.
+
+The blocks give the names of the six programmes of Avios and the quantity of the
+programmes of the catalogue. Those values come from `src/server/db/seed/catalogue.ts`.
+The page gives no ratio: a ratio needs a source, and the seed file is the only source.
+Refer to the rule 5 of the data in `CLAUDE.md`.
+
 The server gives the status 404 to a path that the client does not hold. The client
 controls the routes, thus the server gave `index.html` with the status 200 to each path.
 A search engine then read each address of the site as a page with no content, and the
