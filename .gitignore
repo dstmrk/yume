@@ -83,6 +83,10 @@ out
 dist
 .output
 
+# Yume — the bundle of the pre-render. `npm run build` writes it, and it runs
+# one time with node. Refer to paragraph 5.5.3 of `docs/architecture.md`.
+dist-ssr
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

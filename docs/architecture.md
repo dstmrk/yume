@@ -757,8 +757,27 @@ application: the server holds no Italian text. The test of that file reads
 not hold. That examination is necessary, because the development server of Vite holds its
 own fallback and it never calls Hono.
 
-The body of the HTML stays empty after this step. A pre-render at the build gives that
-text, and it comes after the new text of the public page. The order is necessary: a
+`src/client/prerender.tsx` writes the elements of the public page in `dist/index.html`.
+Then a crawler that executes no JavaScript reads the four blocks, and a browser paints
+them before it loads the bundle.
+
+`npm run build` runs three commands. Vite builds the client, then Vite builds this module
+for Node, then Node runs that bundle. The second build is necessary, because Node
+executes no JSX. The bundle goes in `dist-ssr/`, and `.gitignore` holds that directory.
+
+The module renders `AppShell` with `HomePage`, and it needs no context and no session:
+the public page holds no element of the router. The build stops when `index.html` holds
+no empty `div` of the root. Without that examination, a change of the name of the element
+gives a page with no text, and the browser shows no such defect.
+
+React writes the page again at the load, because `main.tsx` calls `createRoot`. The
+elements of the two are the same, thus a person sees no change.
+
+The flaps give a limit to this operation. Each cell holds one card for each character of
+its drum, therefore the HTML holds those characters: `Y Y Y U U U` for the name, and the
+digits of each position for the number. Those elements hold `aria-hidden`, and the
+correct value is in an element that is not visible. That text is about one part of eight
+of the page, and the four blocks hold the other seven parts. The order is necessary: a
 pre-render of the flaps of today writes each character of the drum in the HTML, and that
 text says nothing to a reader.
 
