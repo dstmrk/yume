@@ -51,15 +51,25 @@ const SCREENSHOT = {
  * point, and this page shows the balance of no person. The dashboard gives
  * that warning, because a person reads a real value there and then decides.
  *
- * The board of the example is the first surface, and the blocks arrive one
- * after the other. Thus the page has the rhythm of a board that turns its
- * flaps.
+ * **The order of the page is the product, then the detail.** The masthead
+ * gives the name and the access. Then the title says what Yume calculates, the
+ * board of the example shows that value, and three blocks give the three rules
+ * of the calculation. The detail of the catalogue — the six programmes of
+ * Avios, the quantity of the programmes, the source of each ratio — is in the
+ * questions at the end. A visitor reads what Yume does before it reads which
+ * airlines use one currency. Paragraph 5.5.3 of `docs/architecture.md` gives
+ * the reason.
  *
- * The masthead and the board hold the centre. Each block of text holds the
- * left: a paragraph at the centre gives a different start to each line, and the
- * eye then finds no start. The page holds four blocks, because a search engine
- * and an assistant read this page and no other page of the site. Paragraph
- * 5.5.3 of `docs/architecture.md` gives the reason.
+ * The `h1` is the question of the person, not the name of the application. The
+ * name is on the flaps of the masthead: a search engine and an assistant read
+ * the `h1` as the subject of the page, and the name alone gives no subject.
+ *
+ * The access is in the masthead and at the end. A visitor who arrives with the
+ * decision already made finds the link with no movement of the page.
+ *
+ * Each block of text holds the left: a paragraph at the centre gives a
+ * different start to each line, and the eye then finds no start. The masthead,
+ * the title and the board hold the centre.
  *
  * The link of the access holds `buttonVariants` of `components/ui/button.tsx`.
  * Thus the link has the appearance of the standard button.
@@ -70,15 +80,35 @@ const SCREENSHOT = {
  */
 export function HomePage() {
 	return (
-		<div className="flex flex-col items-center gap-8 text-center">
-			<Rise index={0} className="flex flex-col items-center gap-3">
-				<h1>
-					<SplitFlapWord word={text.appName} size="lg" />
-				</h1>
-				<p className="text-board-text text-sm">{text.homeTagline}</p>
+		<div className="flex flex-col gap-10">
+			{/* The masthead. The name is at the left and the access is at the right,
+			    as the two ends of a board. The element is an `a` and not a `Link` of
+			    the router: refer to the note of the link at the end of the page. */}
+			<Rise
+				index={0}
+				className="flex items-center justify-between gap-4 border-board-line border-b pb-4"
+			>
+				<span className="flex items-center">
+					<SplitFlapWord word={text.appName} size="md" />
+				</span>
+				<a
+					href="/login"
+					className={cn(buttonVariants({ variant: "outline" }), "shrink-0")}
+				>
+					{text.signIn}
+				</a>
 			</Rise>
 
-			<Rise index={1} className="flex flex-col items-center gap-2">
+			<Rise index={1} className="flex flex-col items-center gap-4 text-center">
+				<h1 className="font-board text-[22px] text-board-text uppercase leading-tight tracking-widest md:text-[33px]">
+					{text.homeTitle}
+				</h1>
+				<p className="max-w-prose text-board-text text-sm leading-relaxed">
+					{text.homeLead}
+				</p>
+			</Rise>
+
+			<Rise index={2} className="flex flex-col items-center gap-2">
 				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 					{text.potentialTitle}
 				</p>
@@ -86,28 +116,32 @@ export function HomePage() {
 				<p className="text-board-muted text-xs">{text.homeExample}</p>
 			</Rise>
 
-			{/* One column on a telephone, two columns above 768 pixels. The
+			{/* One column on a telephone, three columns above 768 pixels. The
 			    breakpoint changes the container and no block: the elements are the
 			    same on the two screens. Paragraph 5.4 of `docs/architecture.md`
-			    gives the rule. */}
-			<div className="flex w-full flex-col gap-7 text-left md:grid md:grid-cols-2 md:gap-x-10">
-				<Block
-					index={2}
-					title={text.homeQuestionTitle}
-					body={text.homeQuestion}
-				/>
-				<Block
-					index={3}
-					title={text.homeCurrencyTitle}
-					body={text.homeCurrency}
-				/>
-				<Block
-					index={4}
-					title={text.homeCalculationTitle}
-					body={text.homeCalculation}
-				/>
-				<Block index={5} title={text.homeScopeTitle} body={text.homeScope} />
-			</div>
+			    gives the rule.
+
+			    Each block holds two rows of the grid of the section, with
+			    `grid-rows-subgrid`. Thus a title of two lines moves no paragraph:
+			    the three paragraphs start at the same line, as the rows of a
+			    board. */}
+			<section className="flex flex-col gap-7 text-left md:grid md:grid-cols-3 md:grid-rows-[auto_auto] md:gap-x-8">
+				<h2 className="sr-only">{text.homeWhatTitle}</h2>
+				{text.homeWhat.map((block, index) => (
+					<Rise
+						key={block.title}
+						index={3 + index}
+						className="md:row-span-2 md:grid md:grid-rows-subgrid md:gap-2"
+					>
+						<h3 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+							{block.title}
+						</h3>
+						<p className="mt-2 text-board-text text-sm leading-relaxed md:mt-0">
+							{block.body}
+						</p>
+					</Rise>
+				))}
+			</section>
 
 			<Rise index={6} className="flex w-full flex-col items-center gap-2">
 				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
@@ -129,7 +163,51 @@ export function HomePage() {
 				/>
 			</Rise>
 
-			<Rise index={7} className="flex w-full flex-col items-center gap-2">
+			{/* The function that the application does not hold today. The mark and
+			    the verb of the future both say it: a person who reads this block
+			    must not look for that function in the dashboard. Paragraph 5.5.4 of
+			    `docs/architecture.md` gives the rule. */}
+			<Rise index={7}>
+				<section className="rounded-lg border border-board-line border-dashed p-4">
+					<div className="flex items-center gap-3">
+						<span className="rounded-sm border border-board-amber px-2 py-0.5 font-board text-[11px] text-board-amber uppercase tracking-widest">
+							{text.homeSoonBadge}
+						</span>
+						<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+							{text.homeSoonTitle}
+						</h2>
+					</div>
+					<p className="mt-3 text-board-text text-sm leading-relaxed">
+						{text.homeSoon}
+					</p>
+				</section>
+			</Rise>
+
+			{/* The detail of the catalogue. Each answer opens with the fact: an
+			    assistant cites the paragraph that answers, not the paragraph that
+			    introduces. The elements are a list of definitions, because each
+			    item is one question and one answer. */}
+			<Rise index={8}>
+				<section>
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+						{text.homeFaqTitle}
+					</h2>
+					<dl className="mt-4 flex flex-col gap-5">
+						{text.homeFaq.map((item) => (
+							<div key={item.question}>
+								<dt className="text-board-text text-sm font-medium">
+									{item.question}
+								</dt>
+								<dd className="mt-1 text-board-muted text-sm leading-relaxed">
+									{item.answer}
+								</dd>
+							</div>
+						))}
+					</dl>
+				</section>
+			</Rise>
+
+			<Rise index={9} className="flex w-full flex-col items-center gap-2">
 				{/* The element is an `a` and not a `Link` of the router. The build
 				    writes this page with `renderToStaticMarkup`, and a `Link` needs
 				    the context of the router: the page then holds no router and no
@@ -168,34 +246,5 @@ function Rise({
 		>
 			{children}
 		</div>
-	);
-}
-
-/**
- * One block of text of the page: a title of the board and one paragraph.
- *
- * The elements are a `section` and an `h2`, not a list of definitions. A block
- * holds a paragraph and not one sentence, and the title is the question that a
- * person writes in a search engine. Paragraph 5.5.3 of `docs/architecture.md`
- * gives the reason.
- */
-function Block({
-	index,
-	title,
-	body,
-}: {
-	index: number;
-	title: string;
-	body: string;
-}) {
-	return (
-		<Rise index={index}>
-			<section>
-				<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
-					{title}
-				</h2>
-				<p className="mt-2 text-board-text text-sm leading-relaxed">{body}</p>
-			</section>
-		</Rise>
 	);
 }
