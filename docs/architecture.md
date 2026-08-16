@@ -6,8 +6,8 @@ This document records the architecture decisions. The team made these decisions 
 the start of the code. The document is in ASD-STE100 Simplified Technical English.
 
 [`monetisation.md`](monetisation.md) gives a plan for a hosted service with a
-subscription. That plan is proposed, and no person accepted it. This document keeps the
-decisions of the application of today.
+subscription. The owner accepted that plan, but no code implements it now. This document
+keeps the decisions of the code that exists.
 
 ---
 

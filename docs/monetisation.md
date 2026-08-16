@@ -1,10 +1,11 @@
 # Yume — The plan for a paid service
 
-Status: **proposed**. Date: 2026-08-15.
+Status: **accepted**. Date: 2026-08-16. No code implements this plan now.
 
-This document gives a plan. It changes no code and it changes no decision.
-`docs/architecture.md` holds the decisions of the application of today. The team writes
-the decisions of this plan in that document when the work starts.
+The owner accepted the decisions of paragraph 10. But the application of today holds none
+of them. `docs/architecture.md` holds the decisions of the code that exists, and the team
+writes each decision of this plan in that document at the step of that decision.
+Paragraph 7 gives the steps.
 
 The document is in ASD-STE100 Simplified Technical English.
 
