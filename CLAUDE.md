@@ -36,6 +36,11 @@ ASD-STE100 gives these rules for the documents:
 Keep the Italian text of the interface in one place. Do not put Italian text in the
 server code.
 
+The head of `src/client/index.html` is the one exception. The title, the description and
+the tags of Open Graph are Italian, because a static file imports no module and a crawler
+of an assistant reads no JavaScript. Paragraph 5.5.3 of `docs/architecture.md` gives the
+reason. Add no other Italian text to that file.
+
 ## Stack
 
 - Node 22 LTS, TypeScript, Zod

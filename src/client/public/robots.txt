@@ -1,0 +1,14 @@
+# Yume. Refer to paragraph 5.5.3 of docs/architecture.md.
+#
+# The public page is the only page with content for a search engine. The three
+# other routes need a session, and a crawler that opens one of them receives
+# the same HTML of the application with no data.
+#
+# This file gives no `Sitemap`, because the site holds one public page. Add
+# that line with the first group of pages of the catalogue.
+
+User-agent: *
+Disallow: /api/
+Disallow: /dashboard
+Disallow: /login
+Disallow: /signup

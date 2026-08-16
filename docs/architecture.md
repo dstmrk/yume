@@ -689,6 +689,40 @@ The form of the access holds the sign-in and the sign-up. The sign-up needs the 
 the invitation. The server holds no Italian text: it gives the field `code` of the error,
 and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
 
+### 5.5.3 The search engines and the assistants
+
+Yume has no budget for advertisements. Therefore a person must find the public page in a
+search engine and in the answer of an assistant. Paragraph 6.1 of `docs/monetisation.md`
+gives that channel.
+
+The client is a single page application. The file `src/client/index.html` holds an empty
+`div`, and React writes each element in the browser. Google executes that JavaScript. The
+crawlers of the assistants read the HTML only. Therefore the public page is an empty page
+for the exact channel of this plan.
+
+The head of `index.html` holds the first answer to that problem: the title, the
+description and the tags of Open Graph. That text is Italian, and it is the one exception
+to the rule of `text.ts` in `CLAUDE.md`. A static file imports no module, and a value that
+JavaScript writes arrives too late for a crawler.
+
+The head holds four absolute URLs: `canonical`, `og:url`, `og:image` and the domain of
+the site. Change the four values together at a change of the domain. The domain of today
+is `yume.9874848.xyz`.
+
+The canonical URL holds the domain of the official instance. An instance of another
+person then gives the same value, thus that instance does not compete with the official
+page in the results of a search.
+
+`public/robots.txt` blocks `/api/`, `/dashboard`, `/login` and `/signup`. Those three
+routes need a session, and a crawler receives the same HTML with no data. The file gives
+no `Sitemap`: the site holds one public page, and a search engine finds one page with no
+sitemap. Add that line with the first group of pages of the catalogue.
+
+The body of the HTML stays empty after this step. A pre-render at the build gives that
+text, and it comes after the new text of the public page. The order is necessary: a
+pre-render of the flaps of today writes each character of the drum in the HTML, and that
+text says nothing to a reader.
+
 ### 5.6 The movement of the flaps
 
 A board turns its flaps when new data arrives. The page load is that moment for Yume.
