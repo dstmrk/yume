@@ -124,6 +124,46 @@ export type TransferRule = {
 	readonly validTo: IsoDate | null;
 };
 
+/** The cabin of an award. */
+export type Cabin = "economy" | "premium" | "business" | "first";
+
+/**
+ * The season of an award.
+ *
+ * The value `all` belongs to a programme with no calendar of the seasons. The
+ * table `award_season` holds `peak` and `off-peak` only. Paragraph 3.1.2 of
+ * `docs/monetisation.md` gives the rule.
+ */
+export type Season = "peak" | "off-peak" | "all";
+
+/**
+ * An award of a programme: the miles and the taxes for one route.
+ *
+ * The award refers to a programme, not to a currency. Six programmes use Avios,
+ * and each one publishes its own chart.
+ *
+ * The zones hold the names of the chart of that programme. Thus the two values
+ * have a meaning with `programId` only.
+ *
+ * An award is historical data, as a transfer rule. To change a quantity of
+ * miles, write the date in `validTo` of the old award. Then add a new award.
+ * A programme with the chart of the kind `dynamic` holds no award.
+ */
+export type Award = {
+	readonly programId: string;
+	readonly fromZone: string;
+	readonly toZone: string;
+	readonly cabin: Cabin;
+	readonly season: Season;
+	/** The miles of the award. It is more than 0. */
+	readonly miles: number;
+	/** The taxes and the charges, in cents. Refer to the rule of the integers. */
+	readonly taxesCents: number;
+	readonly validFrom: IsoDate;
+	/** The last date of the award. It is null for an active award. */
+	readonly validTo: IsoDate | null;
+};
+
 /** The current balance of one account of the user. */
 export type AccountBalance = {
 	readonly programId: string;
