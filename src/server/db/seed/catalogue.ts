@@ -74,6 +74,16 @@ export const currencies: readonly Currency[] = [
  * has one programme in the catalogue, therefore the name of the currency adds
  * no information. The two names are also parallel: one name with the currency
  * and one name without it read as an error.
+ *
+ * The field `chartKind` holds the kind of the award chart. Paragraph 3.1.1 of
+ * `docs/monetisation.md` gives the three kinds, and it names these three
+ * programmes: Turkish gives a chart of regions, the programmes of Avios give a
+ * chart of distance, and Flying Blue gives no chart.
+ *
+ * Each other programme holds null. Null says that no person read the official
+ * page of that programme. Read that page, then write the kind: the value
+ * `dynamic` is a claim, and null is no claim. Rule 5 of the section Rules for
+ * the data of `CLAUDE.md` gives the rule of the source.
  */
 export const programs: readonly Program[] = [
 	{
@@ -106,7 +116,7 @@ export const programs: readonly Program[] = [
 		code: "IB",
 		name: "Iberia",
 		transferable: true,
-		chartKind: null,
+		chartKind: "distance",
 	},
 	{
 		id: "flying-blue",
@@ -114,7 +124,7 @@ export const programs: readonly Program[] = [
 		code: "FB",
 		name: "Flying Blue",
 		transferable: true,
-		chartKind: null,
+		chartKind: "dynamic",
 	},
 	{
 		id: "sas",
@@ -196,7 +206,7 @@ export const programs: readonly Program[] = [
 		code: "TK",
 		name: "Turkish",
 		transferable: true,
-		chartKind: null,
+		chartKind: "region",
 	},
 	{
 		id: "aegean",
