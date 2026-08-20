@@ -244,3 +244,90 @@ export const balanceSnapshot = sqliteTable(
 		),
 	],
 );
+
+/**
+ * An award of a programme: the miles and the taxes for one route.
+ *
+ * The shape follows `transfer_rule`: integers only, and the two fields of the
+ * version. An award is historical data. To change a quantity of miles, write a
+ * date in `valid_to` of the old row. Then add a new row with a new
+ * `valid_from`.
+ *
+ * The key is the route with the cabin, the season and `valid_from`. Therefore
+ * one programme cannot hold two awards of the same route and of the same cabin
+ * that start on the same day.
+ *
+ * A programme that publishes no chart holds no row here. The interface then
+ * shows the state `dynamic`, and it shows no quantity of miles. Paragraph 3.1.1
+ * of `docs/monetisation.md` gives the reason.
+ *
+ * The columns `from_zone` and `to_zone` hold a zone of the chart of the
+ * programme. Each programme gives its own names, thus the two values have a
+ * meaning with `program_id` only.
+ */
+export const award = sqliteTable(
+	"award",
+	{
+		programId: text("program_id")
+			.notNull()
+			.references(() => program.id),
+		fromZone: text("from_zone").notNull(),
+		toZone: text("to_zone").notNull(),
+		cabin: text("cabin", {
+			enum: ["economy", "premium", "business", "first"],
+		}).notNull(),
+		/** `all` is the season of a programme with no calendar of the seasons. */
+		season: text("season", {
+			enum: ["peak", "off-peak", "all"],
+		}).notNull(),
+		miles: integer("miles").notNull(),
+		/** The taxes and the charges, in cents. Refer to the rule of the integers. */
+		taxesCents: integer("taxes_cents").notNull(),
+		validFrom: text("valid_from").notNull(),
+		validTo: text("valid_to"),
+	},
+	(table) => [
+		primaryKey({
+			columns: [
+				table.programId,
+				table.fromZone,
+				table.toZone,
+				table.cabin,
+				table.season,
+				table.validFrom,
+			],
+		}),
+	],
+);
+
+/**
+ * A period of one season in the calendar of a programme.
+ *
+ * The calendar gives the season of a date. Thus the month is no second source
+ * of data, and one pure function reads this table with one date. Paragraph
+ * 3.1.2 of `docs/monetisation.md` gives the rule.
+ *
+ * The two fields of the version have the same meaning as in `award`. The key is
+ * the programme with `from_date` and with `valid_from`.
+ *
+ * This table holds `peak` and `off-peak` only. The value `all` of `award` is
+ * the award of a programme with no calendar, therefore that value is no period.
+ */
+export const awardSeason = sqliteTable(
+	"award_season",
+	{
+		programId: text("program_id")
+			.notNull()
+			.references(() => program.id),
+		fromDate: text("from_date").notNull(),
+		toDate: text("to_date").notNull(),
+		season: text("season", { enum: ["peak", "off-peak"] }).notNull(),
+		validFrom: text("valid_from").notNull(),
+		validTo: text("valid_to"),
+	},
+	(table) => [
+		primaryKey({
+			columns: [table.programId, table.fromDate, table.validFrom],
+		}),
+	],
+);
