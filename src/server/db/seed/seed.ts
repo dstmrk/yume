@@ -33,6 +33,7 @@ export function seedCatalogue(db: Db): void {
 						code: row.code,
 						name: row.name,
 						transferable: row.transferable,
+						chartKind: row.chartKind ?? null,
 					},
 				})
 				.run();

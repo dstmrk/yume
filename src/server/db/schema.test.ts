@@ -131,3 +131,104 @@ describe("the table invitation", () => {
 		).toThrow();
 	});
 });
+
+describe("the table award", () => {
+	const award = {
+		programId: "ba-club",
+		fromZone: "europe",
+		toZone: "north-america",
+		cabin: "business",
+		season: "off-peak",
+		miles: 34_000,
+		taxesCents: 25_000,
+		validFrom: "2026-08-20",
+	} as const;
+
+	beforeEach(() => {
+		seedCatalogue(db);
+	});
+
+	it("refuses an award of a programme that does not exist", () => {
+		expect(() =>
+			db
+				.insert(schema.award)
+				.values({ ...award, programId: "no-such-program" })
+				.run(),
+		).toThrow();
+	});
+
+	it("refuses two awards with the same key", () => {
+		db.insert(schema.award).values(award).run();
+
+		expect(() =>
+			db
+				.insert(schema.award)
+				.values({ ...award, miles: 40_000 })
+				.run(),
+		).toThrow();
+	});
+
+	it("accepts a second version of one award", () => {
+		db.insert(schema.award)
+			.values({ ...award, validTo: "2026-09-30" })
+			.run();
+		db.insert(schema.award)
+			.values({ ...award, miles: 40_000, validFrom: "2026-10-01" })
+			.run();
+
+		const rows = db.select().from(schema.award).all();
+		expect(rows.map((row) => row.miles)).toEqual([34_000, 40_000]);
+	});
+
+	it("accepts the two cabins of one route", () => {
+		db.insert(schema.award).values(award).run();
+		db.insert(schema.award)
+			.values({ ...award, cabin: "economy", miles: 17_000 })
+			.run();
+
+		expect(db.select().from(schema.award).all()).toHaveLength(2);
+	});
+});
+
+describe("the table award_season", () => {
+	const period = {
+		programId: "ba-club",
+		fromDate: "2026-12-20",
+		toDate: "2027-01-06",
+		season: "peak",
+		validFrom: "2026-08-20",
+	} as const;
+
+	beforeEach(() => {
+		seedCatalogue(db);
+	});
+
+	it("refuses a period of a programme that does not exist", () => {
+		expect(() =>
+			db
+				.insert(schema.awardSeason)
+				.values({ ...period, programId: "no-such-program" })
+				.run(),
+		).toThrow();
+	});
+
+	it("refuses two periods that start on the same day", () => {
+		db.insert(schema.awardSeason).values(period).run();
+
+		expect(() =>
+			db
+				.insert(schema.awardSeason)
+				.values({ ...period, toDate: "2027-01-10" })
+				.run(),
+		).toThrow();
+	});
+
+	it("accepts two periods of one programme", () => {
+		db.insert(schema.awardSeason).values(period).run();
+		db.insert(schema.awardSeason)
+			.values({ ...period, fromDate: "2027-07-01", toDate: "2027-08-31" })
+			.run();
+
+		expect(db.select().from(schema.awardSeason).all()).toHaveLength(2);
+	});
+});

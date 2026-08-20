@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Db, openDatabase } from "../index.ts";
@@ -45,6 +46,35 @@ describe("seedCatalogue", () => {
 			increment: 500,
 			validTo: null,
 		});
+	});
+
+	it("writes the kind of the chart of a programme", () => {
+		seedCatalogue(db);
+		const rows = db.select().from(program).all();
+		const kindOf = (id: string) => rows.find((row) => row.id === id)?.chartKind;
+		expect(kindOf("turkish")).toBe("region");
+		expect(kindOf("iberia-club")).toBe("distance");
+		expect(kindOf("flying-blue")).toBe("dynamic");
+		// No person read the official page of this programme. Null is not
+		// `dynamic`: refer to the comment of the column in `schema.ts`.
+		expect(kindOf("aegean")).toBeNull();
+	});
+
+	// The seed writes a row one time, then it gives the new values to that row.
+	// Without `chartKind` in the set, a container with an old database keeps the
+	// old value of that column, and the person who reads the official page again
+	// sees no change.
+	it("gives the new kind of the chart to a row that exists", () => {
+		seedCatalogue(db);
+		db.update(program)
+			.set({ chartKind: null })
+			.where(eq(program.id, "turkish"))
+			.run();
+
+		seedCatalogue(db);
+
+		const rows = db.select().from(program).all();
+		expect(rows.find((row) => row.id === "turkish")?.chartKind).toBe("region");
 	});
 
 	it("stores transferable as a boolean", () => {

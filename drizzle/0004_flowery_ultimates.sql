@@ -1,0 +1,1 @@
+ALTER TABLE `program` ADD `chart_kind` text;

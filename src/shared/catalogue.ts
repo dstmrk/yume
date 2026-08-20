@@ -52,6 +52,18 @@ export type Currency = {
 	readonly kind: CurrencyKind;
 };
 
+/**
+ * The kind of the award chart of a programme.
+ *
+ * A `region` programme publishes a table of pairs of regions. A `distance`
+ * programme publishes bands of distance, thus the calculation also needs the
+ * position of each airport. A `dynamic` programme publishes no chart: the price
+ * follows the demand of each day.
+ *
+ * Paragraph 3.1.1 of `docs/monetisation.md` gives the three kinds.
+ */
+export type ChartKind = "region" | "distance" | "dynamic";
+
 /** A loyalty programme. The user has an account with a programme. */
 export type Program = {
 	readonly id: string;
@@ -60,6 +72,19 @@ export type Program = {
 	readonly name: string;
 	/** It is false when no source can send points to this programme. */
 	readonly transferable: boolean;
+	/**
+	 * The kind of the award chart. It is null while no person read the official
+	 * page of the programme.
+	 *
+	 * Null is not `dynamic`. The value `dynamic` is the result of an
+	 * examination, and null is the absence of that examination. Thus no surface
+	 * shows a state that no person can defend.
+	 *
+	 * The catalogue writes the value of each programme, also the null. The field
+	 * is optional for a programme of a test, because the calculation of the
+	 * potential miles reads no chart.
+	 */
+	readonly chartKind?: ChartKind | null;
 };
 
 /**
@@ -96,6 +121,46 @@ export type TransferRule = {
 	readonly increment: number;
 	readonly validFrom: IsoDate;
 	/** The last date of the rule. It is null for an active rule. */
+	readonly validTo: IsoDate | null;
+};
+
+/** The cabin of an award. */
+export type Cabin = "economy" | "premium" | "business" | "first";
+
+/**
+ * The season of an award.
+ *
+ * The value `all` belongs to a programme with no calendar of the seasons. The
+ * table `award_season` holds `peak` and `off-peak` only. Paragraph 3.1.2 of
+ * `docs/monetisation.md` gives the rule.
+ */
+export type Season = "peak" | "off-peak" | "all";
+
+/**
+ * An award of a programme: the miles and the taxes for one route.
+ *
+ * The award refers to a programme, not to a currency. Six programmes use Avios,
+ * and each one publishes its own chart.
+ *
+ * The zones hold the names of the chart of that programme. Thus the two values
+ * have a meaning with `programId` only.
+ *
+ * An award is historical data, as a transfer rule. To change a quantity of
+ * miles, write the date in `validTo` of the old award. Then add a new award.
+ * A programme with the chart of the kind `dynamic` holds no award.
+ */
+export type Award = {
+	readonly programId: string;
+	readonly fromZone: string;
+	readonly toZone: string;
+	readonly cabin: Cabin;
+	readonly season: Season;
+	/** The miles of the award. It is more than 0. */
+	readonly miles: number;
+	/** The taxes and the charges, in cents. Refer to the rule of the integers. */
+	readonly taxesCents: number;
+	readonly validFrom: IsoDate;
+	/** The last date of the award. It is null for an active award. */
 	readonly validTo: IsoDate | null;
 };
 
