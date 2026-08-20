@@ -115,7 +115,11 @@ These rules prevent the most dangerous defects in this application:
 5. **Give a source for each ratio.** Read the official page. Do not write a ratio from
    memory. Write the link of that page in a comment above the rule, in
    `src/server/db/seed/catalogue.ts`. The database keeps no link: the source is a note
-   for the author of the catalogue, and no surface shows it.
+   for the author of the catalogue, and no surface shows it. A session of the harness
+   cannot read those pages: the tool of the web and a real browser both receive the
+   status 403 or 405, or the error `ERR_HTTP2_PROTOCOL_ERROR`. Turkish, Iberia, Flying
+   Blue, British Airways, Aer Lingus and Qatar all give one of those results. Thus a
+   person reads the page and gives the value. Do not take the value from a blog.
 6. **Give a country to each transfer rule.** The field `country` holds a country in the
    ISO 3166-1 alpha-2 format, for example `IT`. The field is not null, and it is part of
    the key with `validFrom`. The partners and the ratios change with the country, thus
