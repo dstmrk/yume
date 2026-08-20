@@ -82,6 +82,7 @@ export const programs: readonly Program[] = [
 		code: "AMEX_MR",
 		name: "Amex",
 		transferable: false,
+		chartKind: null,
 	},
 	{
 		id: "revolut",
@@ -89,6 +90,7 @@ export const programs: readonly Program[] = [
 		code: "REVOLUT",
 		name: "Revolut",
 		transferable: false,
+		chartKind: null,
 	},
 	{
 		id: "ba-club",
@@ -96,6 +98,7 @@ export const programs: readonly Program[] = [
 		code: "BA",
 		name: "British Airways",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "iberia-club",
@@ -103,6 +106,7 @@ export const programs: readonly Program[] = [
 		code: "IB",
 		name: "Iberia",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "flying-blue",
@@ -110,6 +114,7 @@ export const programs: readonly Program[] = [
 		code: "FB",
 		name: "Flying Blue",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "sas",
@@ -117,6 +122,7 @@ export const programs: readonly Program[] = [
 		code: "SK",
 		name: "SAS",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "cathay",
@@ -124,6 +130,7 @@ export const programs: readonly Program[] = [
 		code: "CX",
 		name: "Cathay",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "delta",
@@ -131,6 +138,7 @@ export const programs: readonly Program[] = [
 		code: "DL",
 		name: "Delta",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "singapore",
@@ -138,6 +146,7 @@ export const programs: readonly Program[] = [
 		code: "SQ",
 		name: "Singapore",
 		transferable: true,
+		chartKind: null,
 	},
 	// The six programmes of the Avios family. A member moves Avios between them
 	// at no cost. Therefore the dashboard shows one card, not six.
@@ -147,6 +156,7 @@ export const programs: readonly Program[] = [
 		code: "EI",
 		name: "Aer Lingus",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "finnair",
@@ -154,6 +164,7 @@ export const programs: readonly Program[] = [
 		code: "AY",
 		name: "Finnair",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "qatar",
@@ -161,6 +172,7 @@ export const programs: readonly Program[] = [
 		code: "QR",
 		name: "Qatar Airways",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "vueling",
@@ -168,6 +180,7 @@ export const programs: readonly Program[] = [
 		code: "VY",
 		name: "Vueling",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "emirates",
@@ -175,6 +188,7 @@ export const programs: readonly Program[] = [
 		code: "EK",
 		name: "Emirates",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "turkish",
@@ -182,6 +196,7 @@ export const programs: readonly Program[] = [
 		code: "TK",
 		name: "Turkish",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "aegean",
@@ -189,6 +204,7 @@ export const programs: readonly Program[] = [
 		code: "A3",
 		name: "Aegean",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "avianca",
@@ -196,6 +212,7 @@ export const programs: readonly Program[] = [
 		code: "AV",
 		name: "Avianca",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "china-southern",
@@ -203,6 +220,7 @@ export const programs: readonly Program[] = [
 		code: "CZ",
 		name: "China Southern",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "etihad",
@@ -210,6 +228,7 @@ export const programs: readonly Program[] = [
 		code: "EY",
 		name: "Etihad",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "icelandair",
@@ -217,6 +236,7 @@ export const programs: readonly Program[] = [
 		code: "FI",
 		name: "Icelandair",
 		transferable: true,
+		chartKind: null,
 	},
 	{
 		id: "tap",
@@ -224,6 +244,7 @@ export const programs: readonly Program[] = [
 		code: "TP",
 		name: "TAP",
 		transferable: true,
+		chartKind: null,
 	},
 	// Miles & More is the programme of ITA Airways from 1 April 2026. Amex Italia
 	// and Revolut send no points to it. The catalogue holds this programme,
@@ -235,6 +256,7 @@ export const programs: readonly Program[] = [
 		code: "LH",
 		name: "Miles & More",
 		transferable: false,
+		chartKind: null,
 	},
 ];
 

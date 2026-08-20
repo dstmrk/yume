@@ -127,7 +127,18 @@ export const currency = sqliteTable("currency", {
 	}).notNull(),
 });
 
-/** A loyalty programme. The user has an account with a programme. */
+/**
+ * A loyalty programme. The user has an account with a programme.
+ *
+ * The column `chart_kind` gives the kind of the award chart. A `region`
+ * programme and a `distance` programme hold rows in `award`. A `dynamic`
+ * programme holds no row: it publishes no chart. Paragraph 3.1.1 of
+ * `docs/monetisation.md` gives the three kinds.
+ *
+ * The column holds null while no person read the official page of the
+ * programme. Null is not `dynamic`: the value `dynamic` is the result of an
+ * examination, and null is the absence of that examination.
+ */
 export const program = sqliteTable("program", {
 	id: text("id").primaryKey(),
 	currencyId: text("currency_id")
@@ -136,6 +147,7 @@ export const program = sqliteTable("program", {
 	code: text("code").notNull().unique(),
 	name: text("name").notNull(),
 	transferable: integer("transferable", { mode: "boolean" }).notNull(),
+	chartKind: text("chart_kind", { enum: ["region", "distance", "dynamic"] }),
 });
 
 /**

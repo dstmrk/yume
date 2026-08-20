@@ -52,6 +52,18 @@ export type Currency = {
 	readonly kind: CurrencyKind;
 };
 
+/**
+ * The kind of the award chart of a programme.
+ *
+ * A `region` programme publishes a table of pairs of regions. A `distance`
+ * programme publishes bands of distance, thus the calculation also needs the
+ * position of each airport. A `dynamic` programme publishes no chart: the price
+ * follows the demand of each day.
+ *
+ * Paragraph 3.1.1 of `docs/monetisation.md` gives the three kinds.
+ */
+export type ChartKind = "region" | "distance" | "dynamic";
+
 /** A loyalty programme. The user has an account with a programme. */
 export type Program = {
 	readonly id: string;
@@ -60,6 +72,19 @@ export type Program = {
 	readonly name: string;
 	/** It is false when no source can send points to this programme. */
 	readonly transferable: boolean;
+	/**
+	 * The kind of the award chart. It is null while no person read the official
+	 * page of the programme.
+	 *
+	 * Null is not `dynamic`. The value `dynamic` is the result of an
+	 * examination, and null is the absence of that examination. Thus no surface
+	 * shows a state that no person can defend.
+	 *
+	 * The catalogue writes the value of each programme, also the null. The field
+	 * is optional for a programme of a test, because the calculation of the
+	 * potential miles reads no chart.
+	 */
+	readonly chartKind?: ChartKind | null;
 };
 
 /**
