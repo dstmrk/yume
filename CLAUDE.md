@@ -167,6 +167,9 @@ only. Obey these rules:
   name of the application does not turn. `SplitFlapCell` gives the two halves and one card
   for each character of the drum. A surface that turns one time is not a Solari. Paragraph
   5.6 of `docs/architecture.md` gives the rules.
+- The line of the axis of a flap goes above the character, from `::after` of the housing.
+  Do not make it with a half that stops before the middle: that half removes a band of the
+  character, and the digit 8 then reads as two rings.
 - Give a size of a multiple of 11 pixels to each text of the board: `text-[11px]`,
   `text-[22px]`, `text-[33px]`. Departure Mono is a pixel font. Write the size as an
   arbitrary value with a length. A token `text-flap-lg` has the shape of a colour, thus
