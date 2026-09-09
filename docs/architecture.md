@@ -409,7 +409,7 @@ product.
 | Forms and dialogs | Standard shadcn/ui with the dark palette. |
 | Animation | The flaps of a value turn at the load of the page, through the drum of the digits. Refer to paragraph 5.6. |
 | Palette | Dark only. There is no light theme. |
-| Font of the digits | Departure Mono, with a free licence. The server supplies the font file. |
+| Font of the digits | JetBrains Mono Bold, with a free licence. The server supplies the font file. |
 | Screen | Mobile first. Refer to paragraph 5.4. |
 | Installation | A progressive web application. Refer to paragraph 5.5. |
 
@@ -509,8 +509,8 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 
 - **Keep the font files in the repository.** Do not use an external CDN for a font. The
   application must operate on a home network with no connection to the internet.
-- **Use the pixel font only for the digits and for short labels.** Use a standard sans
-  font for the other text. A pixel font is difficult to read in a long sentence.
+- **Use the font of the board only for the digits and for short labels.** Use a standard
+  sans font for the other text. A monospace font is difficult to read in a long sentence.
 - **Give one flap to one position.** A board of Solari holds one flap for each position,
   and each flap has the same size. A number on one large flap is not a board. Therefore
   each number on a flap surface uses `SplitFlapNumber`. The separator of the thousands
@@ -534,24 +534,30 @@ each variant with CVA. Do not write the classes of a variant at the point of use
 
 ### 5.3 The font of the digits
 
-Departure Mono is the font of the board. The repository holds one file:
-`src/client/fonts/DepartureMono-Regular.woff2`, version 1.500. The licence is the SIL
-Open Font License 1.1. The file `src/client/fonts/DepartureMono-LICENSE.txt` holds the
-text of the licence.
+JetBrains Mono Bold is the font of the board. The repository holds one file:
+`src/client/fonts/JetBrainsMono-Bold.woff2`. The licence is the SIL Open Font License
+1.1. The file `src/client/fonts/JetBrainsMono-LICENSE.txt` holds the text of the licence.
 
-The format is WOFF2 only. Each current browser reads that format, and the file is 22
-kilobytes. The `@font-face` rule is in `src/client/styles/theme.css`, with the other
-tokens of the theme. The rule gives `font-display: swap`: the monospace font of the
-system shows the text for the time of the load.
+Departure Mono, the earlier font, is a pixel font: at 11 pixels its antialiased edges
+blur, and that blur hurts the readability of a value more than the seam of the flap. A
+real board of Solari prints smooth, bold letters, not pixel art. JetBrains Mono is a
+smooth vector font and it scales with no defect of the strokes at each size of the board.
+
+The file holds the bold weight only, because the board shows no other weight. It also
+holds the characters of the drum and of the name of the application only:
+`" .0123456789YUME"`. `pyftsubset` of `fonttools` makes that subset, thus the file is 3.5
+kilobytes, smaller than the file of Departure Mono.
+
+The format is WOFF2 only. Each current browser reads that format. The `@font-face` rule
+is in `src/client/styles/theme.css`, with the other tokens of the theme. The rule gives
+`font-display: swap`: the monospace font of the system shows the text for the time of the
+load.
 
 Give the property `font-variant-numeric: tabular-nums` to each number. Then a digit keeps
 its width when the value changes, and the number does not move.
 
-Departure Mono is a pixel font. The author gives a font size of a multiple of 11 pixels
-for an exact result. Therefore each text of the board holds a size of that grid: 11
-pixels for a title and for a label, 22 pixels for the name of the application and for a
-balance, 33 pixels for a potential. A different size makes the strokes of the digits
-unequal.
+Each text of the board holds one of three sizes: 11 pixels for a title and for a label,
+22 pixels for the name of the application and for a balance, 33 pixels for a potential.
 
 Write the size as an arbitrary value: `text-[33px]`. Do not make a token `--text-flap-lg`
 in the `@theme` directive. The class `text-flap-lg` and the class `text-board-amber` have
@@ -942,8 +948,8 @@ The animation obeys these limits:
   not visible, and it reads it one time.
 - The number of flaps comes from the last value. Therefore no flap enters or leaves
   during the animation, and the page does not move.
-- The housing holds a fixed height, in the grid of 11 pixels. Each half is one half of
-  that value. A height from the line of the text gives two halves that are not equal.
+- The housing holds a fixed height. Each half is one half of that value. A height from
+  the line of the text gives two halves that are not equal.
 - Each half holds exactly one half of the housing. A half that stops before the middle
   removes a band of the character.
 

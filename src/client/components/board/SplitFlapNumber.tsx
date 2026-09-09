@@ -10,8 +10,7 @@ import { SplitFlapCell } from "./SplitFlapCell.tsx";
  * same size. The separator of the thousands holds a position, thus it is also a
  * flap. Then the line of the axis crosses the full number.
  *
- * The size is a multiple of 11 pixels. Departure Mono is a pixel font, and the
- * author gives that grid for an exact result. A balance holds the medium size.
+ * A balance holds the medium size.
  * A potential holds the large size, but a value of seven digits is wider than
  * the panel: `flapSize` then gives the medium size. Refer to paragraph 5.3 of
  * `docs/architecture.md`.
@@ -21,9 +20,9 @@ import { SplitFlapCell } from "./SplitFlapCell.tsx";
  * thus `tailwind-merge` reads the two as a colour and removes the size. A class
  * `text-[33px]` holds a length, thus `tailwind-merge` reads it as a size.
  *
- * The height of the housing is also a multiple of 11 pixels. `SplitFlapCell`
- * makes the two halves at one half of that height, thus the value is fixed and
- * not the height of a line.
+ * The height of the housing is fixed. `SplitFlapCell` makes the two halves at
+ * one half of that height, thus the value is fixed and not the height of a
+ * line.
  *
  * The variant `potential` is the amber of a value that the system calculates,
  * and its flaps turn at the load of the page. The variant `balance` is a value

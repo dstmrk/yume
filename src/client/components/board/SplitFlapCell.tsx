@@ -43,7 +43,7 @@ export function SplitFlapCell({
 			style={{ "--flap-index": index } as CSSProperties}
 		>
 			{/* The width of the housing comes from the character: the halves and the
-			    cards are out of the flow. Departure Mono gives one width to each
+			    cards are out of the flow. JetBrains Mono gives one width to each
 			    character, thus each flap of one size holds the same width. */}
 			<span className="invisible whitespace-pre">{char}</span>
 			<span className="flap-half flap-half-top">

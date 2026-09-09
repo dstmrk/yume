@@ -156,7 +156,7 @@ only. Obey these rules:
 - Use the theme on the display surfaces. Use standard components for the forms and for
   the dialogs.
 - Keep the font files in the repository. Do not use an external CDN. The font of the
-  board is Departure Mono, in `src/client/fonts/`.
+  board is JetBrains Mono, in `src/client/fonts/`. The board shows the bold weight only.
 - Do not write two hyphens together in a comment of an SVG file. XML stops at those two
   characters, and each token of the theme starts with them. Write `color-flap-top`, not
   the full name of the token. The mark is in `src/client/public/icon.svg`.
@@ -170,10 +170,10 @@ only. Obey these rules:
 - The line of the axis of a flap goes above the character, from `::after` of the housing.
   Do not make it with a half that stops before the middle: that half removes a band of the
   character, and the digit 8 then reads as two rings.
-- Give a size of a multiple of 11 pixels to each text of the board: `text-[11px]`,
-  `text-[22px]`, `text-[33px]`. Departure Mono is a pixel font. Write the size as an
-  arbitrary value with a length. A token `text-flap-lg` has the shape of a colour, thus
-  `tailwind-merge` removes it and keeps `text-board-amber`.
+- Give the text of the board a size of `text-[11px]`, `text-[22px]` or `text-[33px]`,
+  and write the size as an arbitrary value with a length, not as a token of the theme.
+  A token `text-flap-lg` has the shape of a colour, thus `tailwind-merge` removes it and
+  keeps `text-board-amber`.
 - Give `aria-hidden` to the digits that move. Put the correct value in an element that
   is not visible.
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
