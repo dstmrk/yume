@@ -905,6 +905,13 @@ bottom half of the character that arrives falls from the same axis. Thus the two
 show two different characters while the card turns. A surface that turns one time, with
 one character, is not a Solari.
 
+**The line of the axis takes no space of the character.** The two halves hold one half of
+the height each, and the line comes from `::after` of the housing, above the card. An
+earlier version gave `calc(50% - 1px)` to each half, and the colour of the housing then
+showed in a band of 2 pixels. That band removed a part of each character: the digit 8 read
+as two rings, the digit 4 lost its bar, and the letter A lost its crossbar. On a real board
+the two halves of the card touch, and the reader sees a shadow: the card loses no ink.
+
 **A flap turns through its drum.** The drum holds the empty position, then the separator
 of the thousands, then the digits from 0 to 9. The flap starts at the empty position and
 it turns until the correct digit arrives, thus the user sees each digit before it. An
@@ -937,6 +944,8 @@ The animation obeys these limits:
   during the animation, and the page does not move.
 - The housing holds a fixed height, in the grid of 11 pixels. Each half is one half of
   that value. A height from the line of the text gives two halves that are not equal.
+- Each half holds exactly one half of the housing. A half that stops before the middle
+  removes a band of the character.
 
 ## 6. Repository layout
 

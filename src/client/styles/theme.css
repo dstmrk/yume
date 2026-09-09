@@ -44,9 +44,14 @@
 	/* The amber of a departure board. It marks a value that is a calculation. */
 	--color-board-amber: #f5a623;
 
-	/* The two faces of a flap. The edge is the line between the two halves. */
+	/* The two faces of a flap. The edge is the colour of the housing. */
 	--color-flap-face: #1f2226;
 	--color-flap-edge: #0b0c0e;
+
+	/* The line of the axis. A card of Solari loses no ink at the axis: the two
+	   halves of the card touch, and the reader sees a shadow. Therefore this
+	   colour is translucent and the line goes above the character. */
+	--color-flap-seam: rgb(0 0 0 / 0.55);
 
 	/* The light comes from above, thus the top of a flap is lighter than its
 	   base. The two colours hold `--color-flap-face` at the middle, thus the
@@ -140,14 +145,32 @@
 	/* The moment of the first turn of this flap. A board turns from the left,
 	   thus each position waits for the position before it. */
 	--flap-start: calc(var(--flap-index, 0) * 33ms);
+
+	/* The line of the axis. It goes above each card, and it takes no space of
+	   the character. Refer to paragraph 5.6 of docs/architecture.md. */
+	&::after {
+		content: "";
+		position: absolute;
+		inset-inline: 0;
+		top: 50%;
+		margin-top: -1px;
+		height: 1px;
+		background-color: var(--color-flap-seam);
+		/* The line stays above each card of the drum. A card holds a z-index of
+		   the quantity of its turns, and the drum holds twelve characters. */
+		z-index: 60;
+	}
 }
 
 /**
  * One half of a card.
  *
- * The half holds the full height of the flap and cuts the other half of the
- * character. The height of `calc(50% - 1px)` leaves the line of the axis: the
- * colour of the housing is between the two halves.
+ * The half holds one half of the height of the flap and it cuts the other half
+ * of the character. The two halves together give the full character: the line
+ * of the axis comes from `::after` of the housing, and that line takes no
+ * space. A half of `calc(50% - 1px)` leaves a band of 2 pixels of the colour of
+ * the housing, and that band removes a part of each character. Refer to
+ * paragraph 5.6 of `docs/architecture.md`.
  *
  * The light comes from above, thus the top of a card catches the light and its
  * base stays in the shade. The two gradients together make one card.
@@ -155,7 +178,7 @@
 @utility flap-half {
 	position: absolute;
 	inset-inline: 0;
-	height: calc(50% - 1px);
+	height: 50%;
 	overflow: hidden;
 	backface-visibility: hidden;
 }
