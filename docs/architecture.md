@@ -657,10 +657,20 @@ flap, the seam crosses the full width and the letter Y is on it. A flap of Solar
 full card with the seam at the middle. An earlier version put a small panel inside a
 frame, and that composition became noise at 16 pixels.
 
-The letter is the glyph Y of Departure Mono, as a path. That glyph is five rectangles on
-a grid of pixels. A path holds no text element, thus the icon needs no font and each
-rasteriser gives the same shape. The first version held `font-family: ui-monospace`, and
-each rasteriser then drew a different letter.
+The letter is the glyph Y of JetBrains Mono Bold, as a path. JetBrains Mono is the font
+of the board, thus the mark and the flaps of the interface show one letter. An earlier
+version held the glyph Y of Departure Mono, five rectangles on a grid of pixels: the mark
+then showed a letter of a pixel font beside flaps of a vector font. Paragraph 5.3 gives
+the font.
+
+A path holds no text element, thus the icon needs no font and each rasteriser gives the
+same shape. The first version held `font-family: ui-monospace`, and each rasteriser then
+drew a different letter.
+
+The letter of `icon.svg` is 320 pixels high and the letter of `icon-maskable.svg` is 240
+pixels high. Both letters are at the centre of the tile, and both hold the height of the
+letter of the earlier version. Therefore the change of the font moves no other element of
+the mark.
 
 `src/client/public/icon.svg` and `src/client/public/icon-maskable.svg` are the source of
 the mark. The files `icon-180.png`, `icon-192.png`, `icon-512.png` and

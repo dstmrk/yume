@@ -15,11 +15,16 @@
 		its base. A comment of XML holds no double hyphen, thus this text names
 		each token without its two first characters.
 
-		The letter is the glyph Y of Departure Mono, as a path. Departure Mono
-		is a pixel font, thus the glyph is five rectangles on a grid. The path
-		holds no text element: the icon needs no font, and each rasteriser
-		gives the same result. The file `../fonts/DepartureMono-LICENSE.txt`
+		The letter is the glyph Y of JetBrains Mono Bold, as a path. That font
+		is the font of the board, thus the mark and the flaps of the interface
+		show one letter. An earlier version held the glyph Y of Departure Mono,
+		the earlier font: the mark then showed a letter of a pixel font beside
+		flaps of a vector font. The file `../fonts/JetBrainsMono-LICENSE.txt`
 		holds the licence of the font.
+
+		The path holds no text element: the icon needs no font, and each
+		rasteriser gives the same result. The letter is 320 pixels high and it
+		is at the centre of the tile, as the letter of the earlier version.
 
 		This file is also the favicon of the page. Refer to paragraph 5.5 of
 		`docs/architecture.md`.
@@ -33,7 +38,7 @@
 	<rect width="512" height="512" rx="96" fill="url(#flap)" />
 	<path
 		fill="#f5a623"
-		d="M156 96V216H196V96ZM316 96V216H356V96ZM236 256V416H276V256ZM196 216V256H236V216ZM276 216V256H316V216Z"
+		d="M228.4 416V299.8L134.6 96H192.4L242 206.9Q247.7 220.1 251.6 232.8Q255.6 245.5 256.9 252.5Q258.6 245.5 262.4 232.8Q266.1 220.1 271.8 206.9L320.4 96H377.4L283.6 299.8V416Z"
 	/>
 	<line x1="0" y1="256" x2="512" y2="256" stroke="#0b0c0e" stroke-width="14" />
 </svg>
