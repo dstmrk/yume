@@ -156,7 +156,13 @@ only. Obey these rules:
 - Use the theme on the display surfaces. Use standard components for the forms and for
   the dialogs.
 - Keep the font files in the repository. Do not use an external CDN. The font of the
-  board is JetBrains Mono, in `src/client/fonts/`. The board shows the bold weight only.
+  board is JetBrains Mono, in `src/client/fonts/`, in the regular weight and in the bold
+  weight. The flaps show the bold weight. The titles and the labels show the regular
+  weight.
+- Keep the Latin characters in each font file. The class `font-board` goes also to a
+  title and to a label, thus a subset of the drum leaves each other letter to the font of
+  the system. The two fonts then show one word, and the reader sees a defect of the
+  weight. Paragraph 5.3 of `docs/architecture.md` gives the command of `pyftsubset`.
 - Do not write two hyphens together in a comment of an SVG file. XML stops at those two
   characters, and each token of the theme starts with them. Write `color-flap-top`, not
   the full name of the token. The mark is in `src/client/public/icon.svg`.

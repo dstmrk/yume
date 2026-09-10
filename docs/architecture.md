@@ -409,7 +409,7 @@ product.
 | Forms and dialogs | Standard shadcn/ui with the dark palette. |
 | Animation | The flaps of a value turn at the load of the page, through the drum of the digits. Refer to paragraph 5.6. |
 | Palette | Dark only. There is no light theme. |
-| Font of the digits | JetBrains Mono Bold, with a free licence. The server supplies the font file. |
+| Font of the board | JetBrains Mono, regular and bold, with a free licence. The server supplies the font files. |
 | Screen | Mobile first. Refer to paragraph 5.4. |
 | Installation | A progressive web application. Refer to paragraph 5.5. |
 
@@ -532,9 +532,10 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   immediately. Do not animate the digits.
 - **Show the numbers in the Italian format.** Use the locale `it-IT`.
 
-### 5.3 The font of the digits
+### 5.3 The font of the board
 
-JetBrains Mono Bold is the font of the board. The repository holds one file:
+JetBrains Mono is the font of the board. The repository holds two files:
+`src/client/fonts/JetBrainsMono-Regular.woff2` and
 `src/client/fonts/JetBrainsMono-Bold.woff2`. The licence is the SIL Open Font License
 1.1. The file `src/client/fonts/JetBrainsMono-LICENSE.txt` holds the text of the licence.
 
@@ -543,15 +544,40 @@ blur, and that blur hurts the readability of a value more than the seam of the f
 real board of Solari prints smooth, bold letters, not pixel art. JetBrains Mono is a
 smooth vector font and it scales with no defect of the strokes at each size of the board.
 
-The file holds the bold weight only, because the board shows no other weight. It also
-holds the characters of the drum and of the name of the application only:
-`" .0123456789YUME"`. `pyftsubset` of `fonttools` makes that subset, thus the file is 3.5
-kilobytes, smaller than the file of Departure Mono.
+The token `--font-board` goes to the flaps and also to the titles and to the labels
+around them: the class `font-board` is on each title of a panel and on the title of the
+public page. Therefore each file holds the Latin characters, and not the characters of
+the drum only.
 
-The format is WOFF2 only. Each current browser reads that format. The `@font-face` rule
-is in `src/client/styles/theme.css`, with the other tokens of the theme. The rule gives
-`font-display: swap`: the monospace font of the system shows the text for the time of the
-load.
+An earlier version held one file with the bold weight and with the characters
+`" .0123456789YUME"`. That subset gave a defect: a word of the interface took the
+letters E, M, U and Y from JetBrains Mono and each other letter from the monospace font
+of the system. The one face also held the weight 700, thus those four letters came in
+bold beside letters in regular. The title `Quante miglia valgono i tuoi punti` then
+showed a heavy U, a heavy M and a heavy E.
+
+Each file holds the Latin characters of the range of Google Fonts: 240 characters. The
+files hold no layout feature, thus the programming ligatures of JetBrains Mono do not
+enter the interface. `pyftsubset` of `fonttools` makes each subset from the release 2.304
+of the JetBrains Mono Project, and each file is 15 kilobytes. This command makes one
+file:
+
+```bash
+pyftsubset JetBrainsMono-Bold.ttf \
+  --unicodes="U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,\
+U+2000-206F,U+2074,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD" \
+  --layout-features='' --flavor=woff2 \
+  --output-file=src/client/fonts/JetBrainsMono-Bold.woff2
+```
+
+The regular weight is for the text. The bold weight is for the flaps: the utility `flap`
+of `src/client/styles/theme.css` gives `font-weight: 700`. The family holds two faces,
+thus that surface asks for the weight. It does not receive the weight by default.
+
+The format is WOFF2 only. Each current browser reads that format. The two `@font-face`
+rules are in `src/client/styles/theme.css`, with the other tokens of the theme. Each rule
+gives `font-display: swap`: the monospace font of the system shows the text for the time
+of the load.
 
 Give the property `font-variant-numeric: tabular-nums` to each number. Then a digit keeps
 its width when the value changes, and the number does not move.
@@ -631,10 +657,20 @@ flap, the seam crosses the full width and the letter Y is on it. A flap of Solar
 full card with the seam at the middle. An earlier version put a small panel inside a
 frame, and that composition became noise at 16 pixels.
 
-The letter is the glyph Y of Departure Mono, as a path. That glyph is five rectangles on
-a grid of pixels. A path holds no text element, thus the icon needs no font and each
-rasteriser gives the same shape. The first version held `font-family: ui-monospace`, and
-each rasteriser then drew a different letter.
+The letter is the glyph Y of JetBrains Mono Bold, as a path. JetBrains Mono is the font
+of the board, thus the mark and the flaps of the interface show one letter. An earlier
+version held the glyph Y of Departure Mono, five rectangles on a grid of pixels: the mark
+then showed a letter of a pixel font beside flaps of a vector font. Paragraph 5.3 gives
+the font.
+
+A path holds no text element, thus the icon needs no font and each rasteriser gives the
+same shape. The first version held `font-family: ui-monospace`, and each rasteriser then
+drew a different letter.
+
+The letter of `icon.svg` is 320 pixels high and the letter of `icon-maskable.svg` is 240
+pixels high. Both letters are at the centre of the tile, and both hold the height of the
+letter of the earlier version. Therefore the change of the font moves no other element of
+the mark.
 
 `src/client/public/icon.svg` and `src/client/public/icon-maskable.svg` are the source of
 the mark. The files `icon-180.png`, `icon-192.png`, `icon-512.png` and

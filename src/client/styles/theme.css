@@ -4,23 +4,37 @@
  * JetBrains Mono, of the JetBrains Mono Project. The licence is the SIL Open
  * Font License 1.1. The file `../fonts/JetBrainsMono-LICENSE.txt` holds it.
  *
- * The repository holds the font file. The application must operate on a home
+ * The repository holds the font files. The application must operate on a home
  * network with no connection to the internet, thus it uses no external CDN.
  * Refer to paragraph 5.2 of `docs/architecture.md`.
  *
- * The file holds the bold weight only, because the board shows no other
- * weight. `pyftsubset` keeps the characters of the drum and of the name of
- * the application only: `" .0123456789YUME"`. The format is WOFF2 only, and
- * that file is 3.5 kilobytes.
+ * The theme gives `--font-board` to the flaps of the board and also to the
+ * titles and the labels around it. Therefore the two files hold the Latin
+ * characters, not the characters of the drum only. A subset of the drum leaves
+ * each other letter to the font of the system: the two fonts then show one
+ * word, and the reader sees a defect of the weight. Refer to paragraph 5.3 of
+ * `docs/architecture.md`.
+ *
+ * The regular weight is for the text. The bold weight is for the flaps: the
+ * utility `flap` asks for it. `pyftsubset` of `fonttools` makes each file, and
+ * each file is 15 kilobytes.
  */
+@font-face {
+	font-family: "JetBrains Mono";
+	src: url("../fonts/JetBrainsMono-Regular.woff2") format("woff2");
+	font-weight: 400;
+	font-style: normal;
+	/* `swap` shows the text immediately with the monospace font of the system.
+	   The board is the first content of the page, thus a blank text is worse
+	   than a change of the font. */
+	font-display: swap;
+}
+
 @font-face {
 	font-family: "JetBrains Mono";
 	src: url("../fonts/JetBrainsMono-Bold.woff2") format("woff2");
 	font-weight: 700;
 	font-style: normal;
-	/* `swap` shows the text immediately with the monospace font of the system.
-	   The board is the first content of the page, thus a blank text is worse
-	   than a change of the font. */
 	font-display: swap;
 }
 
@@ -137,6 +151,9 @@
 	border-radius: 0.25rem;
 	background-color: var(--color-flap-edge);
 	font-family: var(--font-board);
+	/* The board shows the bold weight. The family holds two weights, thus this
+	   surface asks for the weight: it does not receive it by default. */
+	font-weight: 700;
 	font-variant-numeric: tabular-nums;
 	perspective: 200px;
 
