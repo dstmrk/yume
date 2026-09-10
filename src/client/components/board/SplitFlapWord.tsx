@@ -9,8 +9,8 @@ import { SplitFlapCell } from "./SplitFlapCell.tsx";
  * because both use `SplitFlapCell`. Thus a letter and a digit hold the same
  * gradient, the same axis and the same radius.
  *
- * The size is a multiple of 11 pixels, and it comes from an arbitrary value.
- * A token with the shape of a colour loses against `text-board-amber`, because
+ * The size comes from an arbitrary value, not from a token of the theme. A
+ * token with the shape of a colour loses against `text-board-amber`, because
  * `tailwind-merge` reads the two as a colour. Refer to `SplitFlapNumber`.
  *
  * The name of the application holds the amber, as before the flaps.

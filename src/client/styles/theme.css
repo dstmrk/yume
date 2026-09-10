@@ -1,20 +1,22 @@
 @import "tailwindcss";
 
 /**
- * Departure Mono, version 1.500, of Helena Zhang. The licence is the SIL Open
- * Font License 1.1. The file `../fonts/DepartureMono-LICENSE.txt` holds it.
+ * JetBrains Mono, of the JetBrains Mono Project. The licence is the SIL Open
+ * Font License 1.1. The file `../fonts/JetBrainsMono-LICENSE.txt` holds it.
  *
  * The repository holds the font file. The application must operate on a home
  * network with no connection to the internet, thus it uses no external CDN.
  * Refer to paragraph 5.2 of `docs/architecture.md`.
  *
- * The format is WOFF2 only. Each browser of Node 22 era reads that format, and
- * one file of 22 kilobytes is smaller than the OTF file.
+ * The file holds the bold weight only, because the board shows no other
+ * weight. `pyftsubset` keeps the characters of the drum and of the name of
+ * the application only: `" .0123456789YUME"`. The format is WOFF2 only, and
+ * that file is 3.5 kilobytes.
  */
 @font-face {
-	font-family: "Departure Mono";
-	src: url("../fonts/DepartureMono-Regular.woff2") format("woff2");
-	font-weight: 400;
+	font-family: "JetBrains Mono";
+	src: url("../fonts/JetBrainsMono-Bold.woff2") format("woff2");
+	font-weight: 700;
 	font-style: normal;
 	/* `swap` shows the text immediately with the monospace font of the system.
 	   The board is the first content of the page, thus a blank text is worse
@@ -60,11 +62,11 @@
 	--color-flap-top: #262a2f;
 	--color-flap-base: #1a1d21;
 
-	/* Departure Mono is the font of the board. The list gives the monospace font
+	/* JetBrains Mono is the font of the board. The list gives the monospace font
 	   of the system for the time of the load. Refer to paragraph 5.3 of
 	   docs/architecture.md. */
 	--font-board:
-		"Departure Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
+		"JetBrains Mono", ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas,
 		monospace;
 
 	/* The width of the content on a large screen. Yume is mobile first and has
