@@ -1,8 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
+import { ProgramLogo } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
 import { cn } from "./lib/cn.ts";
+import { PROGRAM_LOGOS } from "./lib/logos.ts";
 import { text } from "./text.ts";
 
 /**
@@ -54,11 +56,12 @@ const SCREENSHOT = {
  * **The order of the page is the product, then the detail.** The masthead
  * gives the name and the access. Then the title says what Yume calculates, the
  * board of the example shows that value, and three blocks give the three rules
- * of the calculation. The detail of the catalogue — the six programmes of
- * Avios, the quantity of the programmes, the source of each ratio — is in the
- * questions at the end. A visitor reads what Yume does before it reads which
- * airlines use one currency. Paragraph 5.5.3 of `docs/architecture.md` gives
- * the reason.
+ * of the calculation. The logos of the catalogue follow those blocks, as the
+ * extent of the catalogue in one view. The detail of the catalogue — the six
+ * programmes of Avios, the quantity of the programmes, the source of each
+ * ratio — is in the questions at the end. A visitor reads what Yume does
+ * before it reads which airlines use one currency. Paragraph 5.5.3 of
+ * `docs/architecture.md` gives the reason.
  *
  * The `h1` is the question of the person, not the name of the application. The
  * name is on the flaps of the masthead: a search engine and an assistant read
@@ -143,7 +146,36 @@ export function HomePage() {
 				))}
 			</section>
 
-			<Rise index={6} className="flex w-full flex-col items-center gap-2">
+			{/* The programmes of the catalogue, with their logos. The list gives the
+			    names that the questions at the end also give, thus a visitor reads
+			    the extent of the catalogue before the access. Each item holds the
+			    name below the logo: a visitor does not know each logo. The foot of
+			    the site says that each logo belongs to its owner. Paragraph 5.7 of
+			    `docs/architecture.md` gives the rules. */}
+			<Rise index={6}>
+				<section>
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+						{text.homeLogosTitle}
+					</h2>
+					<ul className="mt-4 grid grid-cols-5 gap-x-2 gap-y-5">
+						{Object.entries(PROGRAM_LOGOS).map(([programId, logo]) => (
+							<li
+								key={programId}
+								className="flex flex-col items-center gap-2 text-center"
+							>
+								<span className="text-board-text">
+									<ProgramLogo programId={programId} size="lg" />
+								</span>
+								<span className="text-[11px] text-board-muted leading-tight">
+									{logo.title}
+								</span>
+							</li>
+						))}
+					</ul>
+				</section>
+			</Rise>
+
+			<Rise index={7} className="flex w-full flex-col items-center gap-2">
 				<p className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 					{text.homeScreenshotTitle}
 				</p>
@@ -167,7 +199,7 @@ export function HomePage() {
 			    assistant cites the paragraph that answers, not the paragraph that
 			    introduces. The elements are a list of definitions, because each
 			    item is one question and one answer. */}
-			<Rise index={7}>
+			<Rise index={8}>
 				<section>
 					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 						{text.homeFaqTitle}
@@ -187,7 +219,7 @@ export function HomePage() {
 				</section>
 			</Rise>
 
-			<Rise index={8} className="flex w-full flex-col items-center gap-2">
+			<Rise index={9} className="flex w-full flex-col items-center gap-2">
 				{/* The element is an `a` and not a `Link` of the router. The build
 				    writes this page with `renderToStaticMarkup`, and a `Link` needs
 				    the context of the router: the page then holds no router and no

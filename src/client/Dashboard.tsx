@@ -7,6 +7,7 @@ import { AccountActions } from "./components/AccountActions.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
+import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { InvitePanel } from "./components/InvitePanel.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
@@ -212,9 +213,9 @@ export function Dashboard() {
 					{allAccounts.map((account) => (
 						<li key={account.accountId} className="flex flex-col gap-2">
 							<div className="flex items-center justify-between gap-3">
-								<span className="min-w-0 break-words text-sm">
+								<ProgramName programId={account.programId} className="text-sm">
 									{name(account.programId)}
-								</span>
+								</ProgramName>
 								{account.points === null ? (
 									<span className="shrink-0 text-board-muted text-xs">
 										{text.noBalance}
@@ -321,11 +322,14 @@ function CurrencyCard({
 					{holdings.map((account) => (
 						<li
 							key={account.accountId}
-							className="flex items-baseline justify-between gap-3 text-sm"
+							className="flex items-center justify-between gap-3 text-sm"
 						>
-							<span className="min-w-0 break-words text-board-muted">
+							<ProgramName
+								programId={account.programId}
+								className="text-board-muted"
+							>
 								{name(account.programId)}
-							</span>
+							</ProgramName>
 							<span className="shrink-0 tabular-nums">
 								{formatPoints(account.points ?? 0)}
 							</span>
@@ -367,11 +371,14 @@ function RouteRow({
 
 	return (
 		<li className="flex flex-col text-sm">
-			<div className="flex items-baseline justify-between gap-3">
+			<div className="flex items-center justify-between gap-3">
 				<span className="flex min-w-0 items-center gap-1">
-					<span className="min-w-0 break-words text-board-muted">
+					<ProgramName
+						programId={route.fromProgramId}
+						className="text-board-muted"
+					>
 						{name(route.fromProgramId)}
-					</span>
+					</ProgramName>
 					<button
 						type="button"
 						aria-expanded={open}
@@ -400,11 +407,11 @@ function RouteRow({
 						.map((option) => (
 							<li
 								key={option.toProgramId}
-								className="flex items-baseline justify-between gap-3 text-board-muted text-xs"
+								className="flex items-center justify-between gap-3 text-board-muted text-xs"
 							>
-								<span className="min-w-0 break-words">
+								<ProgramName programId={option.toProgramId}>
 									{name(option.toProgramId)}
-								</span>
+								</ProgramName>
 								<span className="shrink-0 tabular-nums">
 									{formatPoints(option.points)}
 								</span>

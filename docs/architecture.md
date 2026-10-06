@@ -827,7 +827,12 @@ sitemap. Add that line with the first group of pages of the catalogue.
 **The order of the public page is the product, then the detail.** The masthead gives the
 name and the link of the access. Then the `h1` says what Yume calculates, the board of
 the example shows that value, and three blocks give the three rules of the calculation.
+The logos of the catalogue come after those blocks, then the picture of the dashboard.
 The detail of the catalogue is in the questions at the end of the page.
+
+The logos give the extent of the catalogue in one view, and a visitor finds a known brand.
+They come after the three rules, thus they are not an opening. Paragraph 5.7 gives the
+rules of the logos.
 
 An earlier version of this paragraph asked for four blocks of the same weight, and the
 second block named the six programmes of Avios. A visitor then read which airlines share
@@ -936,8 +941,8 @@ reader.
 
 `src/client/components/board/SiteFooter.tsx` holds the foot, and `AppShell` gives it to
 each surface. Yume names American Express, Revolut and each airline programme of the
-catalogue. Therefore each surface says that Yume belongs to none of them, and that all the
-marks belong to their owners.
+catalogue, with their logos. Therefore each surface says that Yume belongs to none of
+them, and that the names and the logos are trademarks of their owners.
 
 The dashboard holds the same foot. That surface needs it most: a person reads the names of
 the programmes there, with a real value.
@@ -1000,6 +1005,56 @@ The animation obeys these limits:
   the line of the text gives two halves that are not equal.
 - Each half holds exactly one half of the housing. A half that stops before the middle
   removes a band of the character.
+
+### 5.7 The logos of the programmes
+
+Each programme of the catalogue shows its logo at the left of its name. The public page
+shows all the logos in one grid. `src/client/lib/logos.ts` holds the logos, and
+`src/client/components/board/ProgramLogo.tsx` shows them.
+
+| Decision | Value |
+|---|---|
+| Format | One SVG path in a box of 24 x 24. The longer side of the logo touches the box. |
+| Colour | One colour, `currentColor`. A logo takes the colour of the text next to it. |
+| Size | 20 pixels in a list of the dashboard, 32 pixels on the public page. |
+| Storage | In the bundle of the client. The application operates with no internet. |
+
+The logos have one colour for these reasons:
+
+- The palette is dark only. A logo in dark blue, for example Delta or Klarna, does not
+  show on the board.
+- Twenty-five palettes of brands break the board of Solari. One colour keeps the theme.
+- One format gives one column of logos in each list.
+
+Three sources supply the logos:
+
+1. **Simple Icons**, with the licence CC0 1.0. The path is the path of the icon, with no
+   change. Do not add the package: the bundle needs 14 of more than 3 000 icons.
+2. **Wikimedia Commons**, for a programme that Simple Icons does not hold. The file must
+   be in the public domain, for example as a text logo. A script draws the file, keeps
+   one part of it, traces that part with `potrace` and puts it in the box.
+3. **The official file of the programme**, when the two sources above do not hold the
+   logo. The same script traces it. Flying Blue is the only example: the user gave the
+   address of the file on `img.static-fb.com`.
+
+The official sites of the airlines refuse the session of the harness. Refer to the rule 5
+of the data in `CLAUDE.md`. Wikimedia Commons limits the requests from the session, but
+the Playwright server of `PLAYWRIGHT_URL` receives each file.
+
+Keep the symbol of a brand when the brand has one, for example the shamrock of Aer
+Lingus. Keep the full name when the brand has no symbol, for example SAS or Vueling. A
+wide name is small in the box: that is the cost of one format.
+
+The file of Flying Blue is a blue circle with the name and the line of Air France and KLM.
+Yume keeps the name only: a full circle in the box of 20 pixels shows a disc with no
+legible text. Miles & More shows its name, from the logo with Lufthansa: the programme
+has no separate symbol.
+
+A new programme of the catalogue needs a logo. The test of `logos.ts` compares
+the keys with the catalogue, thus a programme with no entry makes the test fail.
+
+The logos are trademarks of their owners. The foot of each surface says it. Refer to
+paragraph 5.5.4.
 
 ## 6. Repository layout
 
