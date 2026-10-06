@@ -1032,8 +1032,13 @@ The animation obeys these limits:
 ### 5.7 The logos of the programmes
 
 Each programme of the catalogue shows its logo at the left of its name. The public page
-shows all the logos in one grid. `src/client/lib/logos.ts` holds the logos, and
-`src/client/components/board/ProgramLogo.tsx` shows them.
+shows the logos of the sources and of the airlines in one grid. `src/client/lib/logos.ts`
+holds the logos, and `src/client/components/board/ProgramLogo.tsx` shows them.
+
+The grid shows airlines, not programmes. A visitor looks for the airline: ITA Airways, not
+Miles & More. A programme with one airline gives its own logo. Miles & More and Flying
+Blue give the logo of each of their airlines, from `AIRLINE_LOGOS`. Paragraph 3.1 gives
+the three levels.
 
 | Decision | Value |
 |---|---|
@@ -1046,13 +1051,13 @@ The logos have one colour for these reasons:
 
 - The palette is dark only. A logo in dark blue, for example Delta or Klarna, does not
   show on the board.
-- Twenty-nine palettes of brands break the board of Solari. One colour keeps the theme.
+- Thirty-nine palettes of brands break the board of Solari. One colour keeps the theme.
 - One format gives one column of logos in each list.
 
 Three sources supply the logos:
 
 1. **Simple Icons**, with the licence CC0 1.0. The path is the path of the icon, with no
-   change. Do not add the package: the bundle needs 16 of more than 3 000 icons.
+   change. Do not add the package: the bundle needs 19 of more than 3 000 icons.
 2. **Wikimedia Commons**, for a programme that Simple Icons does not hold. The file must
    be in the public domain, for example as a text logo. A script draws the file, keeps
    one part of it, traces that part with `potrace` and puts it in the box. A file with
@@ -1076,7 +1081,9 @@ legible text. Miles & More shows its name, from the logo with Lufthansa: the pro
 has no separate symbol.
 
 A new programme of the catalogue needs a logo. The test of `logos.ts` compares
-the keys with the catalogue, thus a programme with no entry makes the test fail.
+the keys with the catalogue, thus a programme with no entry makes the test fail. A new
+airline of Miles & More or of Flying Blue also needs a logo in `AIRLINE_LOGOS`, and the
+same test fails without it.
 
 The logos are trademarks of their owners. The foot of each surface says it. Refer to
 paragraph 5.5.4.

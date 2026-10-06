@@ -35,7 +35,7 @@ export const text = {
 		},
 	],
 
-	homeLogosTitle: "Fonti e programmi del catalogo",
+	homeLogosTitle: "Fonti e compagnie aeree del catalogo",
 
 	homeFaqTitle: "Domande frequenti",
 	// The details of the catalogue live here, below the product. A visitor reads

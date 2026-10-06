@@ -1,10 +1,10 @@
 import type { CSSProperties, ReactNode } from "react";
-import { ProgramLogo } from "./components/board/ProgramLogo.tsx";
+import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
 import { cn } from "./lib/cn.ts";
-import { PROGRAM_LOGOS } from "./lib/logos.ts";
+import { catalogueLogos } from "./lib/logos.ts";
 import { text } from "./text.ts";
 
 /**
@@ -158,13 +158,13 @@ export function HomePage() {
 						{text.homeLogosTitle}
 					</h2>
 					<ul className="mt-4 grid grid-cols-5 gap-x-2 gap-y-5">
-						{Object.entries(PROGRAM_LOGOS).map(([programId, logo]) => (
+						{catalogueLogos().map(({ key, logo }) => (
 							<li
-								key={programId}
+								key={key}
 								className="flex flex-col items-center gap-2 text-center"
 							>
 								<span className="text-board-text">
-									<ProgramLogo programId={programId} size="lg" />
+									<LogoMark logo={logo} size="lg" />
 								</span>
 								<span className="text-[11px] text-board-muted leading-tight">
 									{logo.title}
