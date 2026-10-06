@@ -5,7 +5,7 @@ import type { Currency, Program } from "../../shared/catalogue.ts";
  *
  * The default comparison of JavaScript reads the numbers of the characters.
  * With that comparison each capital letter comes before each small letter, and
- * a letter with an accent comes after `z`. The catalogue holds 22
+ * a letter with an accent comes after `z`. The catalogue holds 25
  * programmes, thus the list needs the order of a dictionary.
  */
 const byName = new Intl.Collator("it-IT");
@@ -15,11 +15,11 @@ const byName = new Intl.Collator("it-IT");
  * of the alphabet.
  *
  * A source is a programme of a currency with the kind `flexible`: Amex
- * Membership Rewards and Revolut RevPoints. The potential of a currency grows
+ * Membership Rewards, Revolut RevPoints and Klarna Cashback. The potential of a currency grows
  * only with a source. Refer to paragraph 3.5 of `docs/architecture.md`.
  * Therefore a user who adds only airline programmes reads a potential that is
- * equal to each balance. The two sources are in the middle of 22 names in the
- * order of the alphabet, thus this function moves them to the top.
+ * equal to each balance. The three sources are in the middle of 25 names in
+ * the order of the alphabet, thus this function moves them to the top.
  */
 export function sortPrograms(
 	programs: readonly Program[],

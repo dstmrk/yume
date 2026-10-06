@@ -7,9 +7,10 @@ Japanese word 夢. The word means "dream".
 
 Yume shows all your loyalty balances on one screen:
 
-- flexible points: American Express Membership Rewards and Revolut RevPoints
-- airline programmes: 20 programmes, with 15 different point currencies. A source sends
-  points to 19 of them.
+- flexible points: American Express Membership Rewards, Revolut RevPoints and Klarna
+  Cashback
+- airline programmes: 22 programmes, with 17 different point currencies. A source sends
+  points to 21 of them.
 
 Yume then calculates the **potential miles**. The potential miles are the miles that you
 can have in one airline currency, if you transfer all your flexible points to that
@@ -36,8 +37,8 @@ The application on the home screen of a telephone opens the dashboard.
 ## Scope
 
 Yume is for the Italian market. It contains only the transfer partners of American
-Express Italy and Revolut. Amex Italy and Revolut are the only two sources of flexible
-points in Italy.
+Express Italy, Revolut and Klarna. These three sources send points to airline programmes
+in Italy.
 
 ## Important
 
@@ -55,8 +56,8 @@ the API, the public page and the dashboard are present. From the dashboard you a
 account, you write a balance, you cancel a balance and you remove an account. Yume
 installs on the home screen of a telephone.
 
-The catalogue holds all the 19 airline programmes that receive points from Amex Italia or
-from Revolut. It also holds Miles & More, which no source can increase.
+The catalogue holds all the 21 airline programmes that receive points from Amex Italia,
+from Revolut or from Klarna. It also holds Miles & More, which no source can increase.
 
 Authentication is present. Registration is possible only with an invitation. The log of
 the container gives the link of the first user, and each user then has two invitations.

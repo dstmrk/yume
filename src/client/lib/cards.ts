@@ -20,7 +20,7 @@ export type CardList<T> = {
  * two groups goes from the largest value to the smallest one. The user marks
  * the currencies of interest, and the value alone does not give that sequence.
  *
- * The catalogue holds 15 airline currencies, but the user reads the dashboard
+ * The catalogue holds 17 airline currencies, but the user reads the dashboard
  * on a telephone. Therefore the first view holds the first three cards of that
  * sequence, and a button opens the other ones. A favourite with a small value
  * takes the place of a larger currency: that result is the reason of the mark.
