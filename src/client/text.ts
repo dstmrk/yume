@@ -45,7 +45,7 @@ export const text = {
 		{
 			question: "Quali punti posso seguire con Yume?",
 			answer:
-				"I punti Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna, per l'Italia. Da lì il catalogo raggiunge 21 programmi aerei. C'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle tre fonti raggiunge.",
+				"I punti Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna, per l'Italia. Da lì il catalogo raggiunge 21 programmi aerei. Ci sono anche Miles & More, il programma di ITA Airways, Korean Air, ANA, JAL e Qantas: oggi nessuna delle tre fonti li raggiunge, ma puoi tenerne il saldo.",
 		},
 		{
 			question: "Perché sei programmi diventano una riga sola?",

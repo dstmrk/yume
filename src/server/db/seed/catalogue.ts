@@ -77,6 +77,20 @@ export const currencies: readonly Currency[] = [
 		name: "Royal Orchid Plus",
 		kind: "airline",
 	},
+	{ id: "skypass", code: "SKP", name: "SKYPASS", kind: "airline" },
+	{
+		id: "ana-mileage-club",
+		code: "AMC",
+		name: "ANA Mileage Club",
+		kind: "airline",
+	},
+	{
+		id: "jal-mileage-bank",
+		code: "JMB",
+		name: "JAL Mileage Bank",
+		kind: "airline",
+	},
+	{ id: "qantas-points", code: "QFF", name: "Qantas Points", kind: "airline" },
 ];
 
 /**
@@ -270,6 +284,37 @@ export const programs: readonly Program[] = [
 		currencyId: "miles-and-more",
 		code: "LH",
 		name: "Miles & More",
+		transferable: false,
+	},
+	// Amex Italia, Revolut and Klarna send no points to these four programmes.
+	// The catalogue holds them for the users who have this balance. No source
+	// can increase it.
+	{
+		id: "korean-air",
+		currencyId: "skypass",
+		code: "KE",
+		name: "Korean Air",
+		transferable: false,
+	},
+	{
+		id: "ana",
+		currencyId: "ana-mileage-club",
+		code: "NH",
+		name: "ANA",
+		transferable: false,
+	},
+	{
+		id: "jal",
+		currencyId: "jal-mileage-bank",
+		code: "JL",
+		name: "JAL",
+		transferable: false,
+	},
+	{
+		id: "qantas",
+		currencyId: "qantas-points",
+		code: "QF",
+		name: "Qantas",
 		transferable: false,
 	},
 ];
