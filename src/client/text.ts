@@ -121,6 +121,8 @@ export const text = {
 	newAccountTitle: "Nuovo conto",
 	programLabel: "Programma",
 	programPlaceholder: "Scegli un programma",
+	programSearch: "Programma o compagnia aerea",
+	programNotFound: "Nessun programma trovato.",
 	firstBalanceLabel: "Saldo (facoltativo)",
 
 	updateBalance: "Aggiorna saldo",
