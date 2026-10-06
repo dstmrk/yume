@@ -16,7 +16,7 @@ These constraints control all the decisions in this document:
 
 | Constraint | Decision |
 |---|---|
-| Cost | Zero. The system uses no paid service and no necessary external service. |
+| Cost | Zero. The system uses no paid service and no necessary external service. The supporter account of paragraph 4.6 adds a payment service to the official instance only. |
 | Deployment | One Docker container on a home server, a NAS or a Raspberry Pi with arm64. |
 | Users | A small, closed group. Registration is possible only with an invitation. |
 | Data input | Manual. Amex and Revolut do not give a public API for balances. The team refused the automatic collection of data from the web sites. |
@@ -392,6 +392,55 @@ Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12,
 project holds the version 13. That peer is optional: the library imports it only with its
 own adapter of SQLite. This project uses the Drizzle adapter, thus Drizzle imports the
 module. An `overrides` in `package.json` gives the version of the project to npm.
+
+### 4.6 The supporter account
+
+Status: **accepted**. Date: 2026-10-06. No code implements this decision now.
+
+The official instance gives two levels of account: the free account and the supporter
+account. The supporter account has one price: 4,99 euros for one year. No other plan
+exists.
+
+**The free account holds these limits:**
+
+| Item | Free account | Supporter account |
+|---|---|---|
+| Amex and Revolut | No limit | No limit |
+| Each other source, for example Klarna or a hotel programme | Not available | No limit |
+| Airline programmes | 2 programmes | No limit |
+
+Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
+A limit on them stops the users that those links bring.
+
+The catalogue holds no other source now. A new source, for example Klarna or ALL Accor,
+enters the catalogue with the mark of the supporter account.
+
+**The limit counts the programmes, not the currencies.** The British Airways Club and
+Iberia Club are two programmes, thus they use the two places of the free account. The
+user sees programmes in the form, and a count of currencies gives a number that the user
+cannot find. Paragraph 3.1 keeps its rule: the calculation adds the balances of each
+currency.
+
+**The end of a supporter account removes nothing.** The accounts above the limit stay on
+the dashboard, and their balances stay in the potential miles. The user cannot add a new
+account above the limit. A hidden account gives a potential that is too low, and a
+transfer of points is permanent.
+
+**The limits apply to the official instance only.** The code is under the licence MIT.
+A variable of the environment activates the limits, and the default value is no limit.
+Thus a self-hosted installation keeps each function.
+
+The table `user` receives the date of the end of the supporter account. A pure function
+in `src/shared/` reads that date, the accounts of the user and the catalogue. It gives
+the operations that the user can do. Each surface reads that function, and the
+application holds no other rule of the payment.
+
+These items are open:
+
+- The payment service.
+- The name of the variable of the environment.
+- The unit of the balance of Klarna. Klarna gives cashback in euros and a ratio in miles
+  for each euro. The balance in cents keeps the rule of the integers of paragraph 3.3.
 
 ## 5. User interface
 
