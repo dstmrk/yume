@@ -10,10 +10,8 @@ const SOURCE_URL = "https://github.com/dstmrk/yume";
  * The foot of each surface.
  *
  * Yume names American Express, Revolut and each airline programme of the
- * catalogue. Therefore each surface must say that Yume belongs to none of them,
- * and that no link of this application pays a commission. Paragraph 8 of
- * `docs/monetisation.md` gives that decision, and the foot is the surface that
- * holds it.
+ * catalogue. Therefore each surface must say that Yume belongs to none of them.
+ * Paragraph 5.5.4 of `docs/architecture.md` gives that decision.
  *
  * `AppShell` holds this component, thus the public page, the dashboard and the
  * form of the access all give the same text. The dashboard needs it most: a
@@ -26,7 +24,6 @@ export function SiteFooter() {
 	return (
 		<footer className="mt-10 border-board-line border-t pt-4 pb-2 text-board-muted text-xs leading-relaxed">
 			<p>{text.footerDisclaimer}</p>
-			<p className="mt-2">{text.footerIndependence}</p>
 			<p className="mt-3">
 				<a
 					href={SOURCE_URL}

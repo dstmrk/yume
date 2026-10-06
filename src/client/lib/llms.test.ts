@@ -41,16 +41,6 @@ describe("llmsTxt", () => {
 		expect(body).toContain(text.footerDisclaimer);
 	});
 
-	/**
-	 * A function of `docs/monetisation.md` is not a function of today. The file
-	 * gives that difference to an assistant with a word, because an assistant
-	 * that reads a list of functions cites each item of that list.
-	 */
-	it("marks the function that arrives later", () => {
-		expect(body).toContain("## In arrivo");
-		expect(body).toContain(text.homeSoonTitle);
-	});
-
 	it("holds no element of HTML", () => {
 		expect(body).not.toMatch(/<[a-z]/i);
 	});

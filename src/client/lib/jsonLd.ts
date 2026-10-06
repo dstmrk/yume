@@ -36,13 +36,7 @@ const KNOWS_ABOUT = [
 	"Rapporti di trasferimento",
 ] as const;
 
-/**
- * The functions that the application gives today.
- *
- * A function of `docs/monetisation.md` is not in this list. The page shows that
- * function with the mark of the future, and this data says what the application
- * does now.
- */
+/** The functions that the application gives today. */
 const FEATURE_LIST = [
 	"Calcolo delle miglia potenziali per ogni valuta",
 	"Rapporti di trasferimento ufficiali per l'Italia",
@@ -93,8 +87,7 @@ export function webSiteJsonLd(site: string) {
  * The application.
  *
  * The price is 0: Yume gives an account with an invitation, and the code is
- * under the licence MIT. The plan of `docs/monetisation.md` writes no price
- * here before the step of the payment.
+ * under the licence MIT.
  */
 export function softwareApplicationJsonLd(site: string) {
 	return {
