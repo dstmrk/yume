@@ -30,6 +30,7 @@ const KNOWS_ABOUT = [
 	"Avios",
 	"Membership Rewards",
 	"RevPoints",
+	"Cashback Klarna",
 	"Miglia aeree",
 	"Trasferimento punti",
 	"Programmi fedeltà aerei",

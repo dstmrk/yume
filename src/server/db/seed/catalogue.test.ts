@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
+import { convert, findRule } from "../../../shared/conversion.ts";
 import { currencies, programs, transferRules } from "./catalogue.ts";
 
 /**
@@ -63,13 +64,13 @@ describe("the catalogue", () => {
 		const targets = new Set(transferRules.map((rule) => rule.toProgramId));
 		const reached = programs.filter((program) => targets.has(program.id));
 
-		expect(programs.length).toBe(22);
-		expect(airline.size).toBe(15);
+		expect(programs.length).toBe(25);
+		expect(airline.size).toBe(17);
 		expect(
 			programs.filter((program) => airline.has(program.currencyId)).length,
-		).toBe(20);
-		expect(reached.length).toBe(19);
-		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(14);
+		).toBe(22);
+		expect(reached.length).toBe(21);
+		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(16);
 	});
 });
 
@@ -168,5 +169,52 @@ describe("the transfer rules", () => {
 		for (const program of programs.filter((one) => one.transferable)) {
 			expect(targets).toContain(program.id);
 		}
+	});
+});
+
+/**
+ * Klarna gives a ratio with two decimals for each 100 points of cashback, for
+ * example 101,43 Avios through Finnair. The catalogue keeps that ratio as two
+ * integers, and `convert` gives the lower integer.
+ */
+describe("the rules of Klarna", () => {
+	const at = "2026-10-06";
+	const rule = (to: string) => {
+		const found = findRule(transferRules, "klarna", to, DEFAULT_COUNTRY, at);
+		if (!found) throw new Error(`no rule from klarna to ${to}`);
+		return found;
+	};
+
+	it("gives the exact value for a balance in blocks of 100", () => {
+		expect(convert(100, rule("finnair"))).toBe(101);
+		expect(convert(1_000, rule("finnair"))).toBe(1_014);
+		expect(convert(10_000, rule("finnair"))).toBe(10_143);
+		expect(convert(10_000, rule("ba-club"))).toBe(8_002);
+	});
+
+	it("uses the lower block of 100", () => {
+		expect(convert(9_999, rule("finnair"))).toBe(10_041);
+	});
+
+	it("gives 0 below one block", () => {
+		expect(convert(99, rule("finnair"))).toBe(0);
+	});
+
+	it("reaches United and Thai", () => {
+		expect(convert(10_000, rule("united"))).toBe(8_002);
+		expect(convert(10_000, rule("thai"))).toBe(10_143);
+	});
+
+	it("gives the larger value through Finnair for Avios", () => {
+		const avios = programs.filter((program) => program.currencyId === "avios");
+		const best = Math.max(
+			...avios
+				.map((program) =>
+					findRule(transferRules, "klarna", program.id, DEFAULT_COUNTRY, at),
+				)
+				.filter((found) => found !== undefined)
+				.map((found) => convert(10_000, found)),
+		);
+		expect(best).toBe(10_143);
 	});
 });
