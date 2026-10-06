@@ -35,6 +35,8 @@ export const text = {
 		},
 	],
 
+	homeLogosTitle: "Fonti e programmi del catalogo",
+
 	homeFaqTitle: "Domande frequenti",
 	// The details of the catalogue live here, below the product. A visitor reads
 	// what Yume does first: the six programmes of Avios are an answer, not an
@@ -93,7 +95,7 @@ export const text = {
 	// and each airline programme of the catalogue, therefore it must say that it
 	// belongs to none of them.
 	footerDisclaimer:
-		"Yume non è affiliato ad American Express, a Revolut, a Klarna, alle compagnie aeree o ai programmi fedeltà citati. Tutti i marchi appartengono ai rispettivi proprietari.",
+		"Yume non è affiliato ad American Express, a Revolut, a Klarna, alle compagnie aeree o ai programmi fedeltà citati. Nomi e loghi sono marchi dei rispettivi proprietari.",
 	footerSource: "Codice su GitHub",
 
 	potentialTitle: "Miglia potenziali",
