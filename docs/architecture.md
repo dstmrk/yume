@@ -1205,6 +1205,11 @@ only: a migration that ran on a server is immutable. Add a new migration.
 
 ## 8. Appendix — the catalogue of programmes
 
+The catalogue holds each airline programme that users of Yume have. Yume keeps the balance
+of each programme. Yume calculates the potential miles only for a programme that a source
+reaches. A programme with no source is not a defect, thus the interface gives no warning
+for it.
+
 The catalogue contains 26 airline programmes. 21 of them are the transfer partners of
 Amex MR Italy, Revolut RevPoints and Klarna Cashback in October 2026. The last section of
 this appendix gives the five programmes that no source reaches. Each ratio is *source :

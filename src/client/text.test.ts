@@ -38,21 +38,17 @@ const aviosAnswer = text.homeFaq.find((item) =>
 )?.answer;
 
 describe("the copy of the public page and the catalogue", () => {
+	it("gives the quantity of the airline programmes", () => {
+		expect(scopeAnswer).toBeDefined();
+		expect(scopeAnswer).toContain(`${airlinePrograms.length} programmi aerei`);
+	});
+
 	it("gives the quantity of the airline programmes that a source reaches", () => {
 		const count = airlinePrograms.filter((program) =>
 			reachable.has(program.id),
 		).length;
 
-		expect(scopeAnswer).toBeDefined();
-		expect(scopeAnswer).toContain(`${count} programmi aerei`);
-	});
-
-	it("names each airline programme that no source reaches", () => {
-		for (const program of airlinePrograms) {
-			if (!reachable.has(program.id)) {
-				expect(scopeAnswer).toContain(program.name);
-			}
-		}
+		expect(scopeAnswer).toContain(`Per i ${count} programmi`);
 	});
 
 	it("names each source of the catalogue", () => {
