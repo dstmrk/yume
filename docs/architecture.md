@@ -108,6 +108,24 @@ points to 21 of those programmes, and those 21 programmes use 16 currencies. Fiv
 programmes hold the five currencies that no source reaches. Appendix 8 gives those
 programmes.
 
+The user knows a third level: the airline. One airline credits one programme. One
+programme can receive the miles of more than one airline.
+
+| Level | Example | Where it lives |
+|---|---|---|
+| Airline | ITA Airways, Lufthansa, SWISS | `src/client/lib/airlines.ts` |
+| Programme | Miles & More: one account, one balance | The table `program` |
+| Currency | Miles & More: one card on the dashboard | The table `currency` |
+
+Avios has six programmes, because each airline of Avios keeps its own account. Miles &
+More has one programme for seven airlines, because the seven airlines credit one account.
+Thus an airline is not a programme. Do not add a programme for an airline that credits an
+account of the catalogue. Add the airline to the list of that programme.
+
+The search of a new account reads the name of the programme, the names of its airlines and
+the name of its currency. A user who flies ITA Airways writes "ITA" and finds Miles & More.
+No query of the server reads the airlines, thus the list lives in the client.
+
 ### 3.2 Snapshots, not a record of changes
 
 The user writes the balances manually. The user reads a balance on a screen. The user
