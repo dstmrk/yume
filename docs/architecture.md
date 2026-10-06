@@ -126,6 +126,11 @@ The search of a new account reads the name of the programme, the names of its ai
 the name of its currency. A user who flies ITA Airways writes "ITA" and finds Miles & More.
 No query of the server reads the airlines, thus the list lives in the client.
 
+The card of a currency shows the airlines of that currency under its name. A user who
+reads "EuroBonus" then also reads "SAS". A long list shows its first names and "+3": the
+button opens the full list in the card. The order of `airlines.ts` gives the first names,
+thus ITA Airways comes first in the list of Miles & More.
+
 ### 3.2 Snapshots, not a record of changes
 
 The user writes the balances manually. The user reads a balance on a screen. The user

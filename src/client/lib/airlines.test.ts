@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { currencies, programs } from "../../server/db/seed/catalogue.ts";
-import { airlinesOf, PROGRAM_AIRLINES } from "./airlines.ts";
+import {
+	airlinesOf,
+	airlinesSummary,
+	currencyAirlines,
+	PROGRAM_AIRLINES,
+} from "./airlines.ts";
 
 const airlineCurrencies = new Set(
 	currencies
@@ -33,13 +38,13 @@ describe("PROGRAM_AIRLINES", () => {
 
 	it("gives the seven airlines of Miles & More", () => {
 		expect(PROGRAM_AIRLINES["miles-and-more"]).toEqual([
+			"ITA Airways",
 			"Lufthansa",
 			"SWISS",
 			"Austrian",
 			"Brussels Airlines",
 			"Air Dolomiti",
 			"Eurowings",
-			"ITA Airways",
 		]);
 	});
 });
@@ -61,5 +66,74 @@ describe("airlinesOf", () => {
 	it("gives an empty list for a key of the prototype", () => {
 		expect(airlinesOf("toString")).toEqual([]);
 		expect(airlinesOf("__proto__")).toEqual([]);
+	});
+});
+
+describe("currencyAirlines", () => {
+	it("gives the airlines of each programme of a currency", () => {
+		expect(currencyAirlines(programs, "avios")).toEqual([
+			"British Airways",
+			"Iberia",
+			"Aer Lingus",
+			"Finnair",
+			"Qatar Airways",
+			"Vueling",
+		]);
+	});
+
+	// The API gives the programmes in an other order. The line must keep the
+	// order of this file: British Airways first, not Aer Lingus.
+	it("keeps the order of the list, not the order of the programmes", () => {
+		const reversed = [...programs].reverse();
+		expect(currencyAirlines(reversed, "avios")[0]).toBe("British Airways");
+	});
+
+	it("gives the airline of a currency with one programme", () => {
+		expect(currencyAirlines(programs, "eurobonus")).toEqual(["SAS"]);
+	});
+
+	it("gives an empty list for a source", () => {
+		expect(currencyAirlines(programs, "amex-mr")).toEqual([]);
+	});
+});
+
+describe("airlinesSummary", () => {
+	it("shows all the names when they enter the line", () => {
+		expect(airlinesSummary(["Air France", "KLM", "Transavia"], 40)).toEqual({
+			shown: ["Air France", "KLM", "Transavia"],
+			hidden: 0,
+		});
+	});
+
+	// "British Airways, Iberia, Aer Lingus" has 35 characters. The next name
+	// gives 44.
+	it("stops before the name that goes past the limit", () => {
+		expect(
+			airlinesSummary(
+				[
+					"British Airways",
+					"Iberia",
+					"Aer Lingus",
+					"Finnair",
+					"Qatar",
+					"Vueling",
+				],
+				40,
+			),
+		).toEqual({
+			shown: ["British Airways", "Iberia", "Aer Lingus"],
+			hidden: 3,
+		});
+	});
+
+	// A line with no name tells nothing.
+	it("shows the first name also when it is longer than the limit", () => {
+		expect(
+			airlinesSummary(["A very long name of an airline", "B"], 10),
+		).toEqual({ shown: ["A very long name of an airline"], hidden: 1 });
+	});
+
+	it("gives an empty summary for an empty list", () => {
+		expect(airlinesSummary([], 40)).toEqual({ shown: [], hidden: 0 });
 	});
 });

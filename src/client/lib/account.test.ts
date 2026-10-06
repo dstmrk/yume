@@ -189,13 +189,13 @@ describe("searchNamesOf", () => {
 		);
 		expect(names.get("miles-and-more")).toEqual([
 			"Miles & More",
+			"ITA Airways",
 			"Lufthansa",
 			"SWISS",
 			"Austrian",
 			"Brussels Airlines",
 			"Air Dolomiti",
 			"Eurowings",
-			"ITA Airways",
 			"Miles & More",
 		]);
 	});
