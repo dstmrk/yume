@@ -64,11 +64,11 @@ describe("the catalogue", () => {
 		const targets = new Set(transferRules.map((rule) => rule.toProgramId));
 		const reached = programs.filter((program) => targets.has(program.id));
 
-		expect(programs.length).toBe(25);
-		expect(airline.size).toBe(17);
+		expect(programs.length).toBe(29);
+		expect(airline.size).toBe(21);
 		expect(
 			programs.filter((program) => airline.has(program.currencyId)).length,
-		).toBe(22);
+		).toBe(26);
 		expect(reached.length).toBe(21);
 		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(16);
 	});
@@ -135,6 +135,22 @@ describe("the transfer rules", () => {
 		for (const rule of transferRules) {
 			expect(byId.get(rule.toProgramId)?.transferable).toBe(true);
 		}
+	});
+
+	// Appendix 8 of `docs/architecture.md` names these programmes. A rule to one
+	// of them must change `transferable`, and then the appendix.
+	it("names the airline programmes that do not accept a transfer", () => {
+		const airline = new Set(
+			currencies
+				.filter((currency) => currency.kind === "airline")
+				.map((currency) => currency.id),
+		);
+		expect(
+			programs
+				.filter((program) => airline.has(program.currencyId))
+				.filter((program) => !program.transferable)
+				.map((program) => program.id),
+		).toEqual(["miles-and-more", "korean-air", "ana", "jal", "qantas"]);
 	});
 
 	it("does not send points from a programme to itself", () => {
