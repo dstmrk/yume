@@ -123,6 +123,8 @@ export const text = {
 	programPlaceholder: "Scegli un programma",
 	programSearch: "Programma o compagnia aerea",
 	programNotFound: "Nessun programma trovato.",
+	airlinesMore: "Mostra tutte le compagnie",
+	airlinesLess: "Mostra meno compagnie",
 	firstBalanceLabel: "Saldo (facoltativo)",
 
 	updateBalance: "Aggiorna saldo",

@@ -9,6 +9,9 @@ import type { ReactNode } from "react";
  *
  * The property `action` holds one control at the right of the title. The card
  * of a currency puts the heart of the favourites there.
+ *
+ * The property `note` holds one line under the title. The card of a currency
+ * puts its airlines there, with a button for the other names.
  */
 export function BoardPanel({
 	title,
@@ -17,7 +20,7 @@ export function BoardPanel({
 	children,
 }: {
 	title: string;
-	note?: string;
+	note?: ReactNode;
 	action?: ReactNode;
 	children: ReactNode;
 }) {

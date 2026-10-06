@@ -13,6 +13,7 @@ import { InvitePanel } from "./components/InvitePanel.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { Button } from "./components/ui/button.tsx";
+import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
 import {
 	fetchAccounts,
 	fetchCatalogue,
@@ -180,6 +181,10 @@ export function Dashboard() {
 							key={row.currencyId}
 							row={row}
 							title={currencyNames.get(row.currencyId) ?? row.currencyId}
+							airlines={currencyAirlines(
+								catalogue.data.programs,
+								row.currencyId,
+							)}
 							holdings={allAccounts.filter(
 								(account) =>
 									currencyOf.get(account.programId) === row.currencyId &&
@@ -292,6 +297,7 @@ function SignOutButton() {
 function CurrencyCard({
 	row,
 	title,
+	airlines,
 	holdings,
 	name,
 	favorite,
@@ -299,6 +305,7 @@ function CurrencyCard({
 }: {
 	row: PotentialMiles;
 	title: string;
+	airlines: readonly string[];
 	holdings: AccountRow[];
 	name: (programId: string) => string;
 	favorite: boolean;
@@ -307,6 +314,7 @@ function CurrencyCard({
 	return (
 		<BoardPanel
 			title={title}
+			note={airlines.length > 0 ? <AirlinesLine names={airlines} /> : undefined}
 			action={<FavoriteHeart favorite={favorite} onToggle={onToggleFavorite} />}
 		>
 			{/* The label is above the board. Then the board holds the full width of
@@ -348,6 +356,41 @@ function CurrencyCard({
 				</ul>
 			)}
 		</BoardPanel>
+	);
+}
+
+/**
+ * The maximum length of the line of the airlines, in characters. The line then
+ * stays on one line at the width of a telephone of 360 pixels.
+ */
+const AIRLINES_LINE_LENGTH = 40;
+
+/**
+ * The airlines of a currency, under its name. A user who reads "EuroBonus"
+ * then also reads "SAS".
+ *
+ * A long list shows its first names and "+3". The button opens the full list
+ * in the card, as the button of the routes does.
+ */
+function AirlinesLine({ names }: { names: readonly string[] }) {
+	const [open, setOpen] = useState(false);
+	const { shown, hidden } = airlinesSummary(names, AIRLINES_LINE_LENGTH);
+
+	return (
+		<>
+			{(open ? names : shown).join(", ")}
+			{hidden > 0 && (
+				<button
+					type="button"
+					aria-expanded={open}
+					aria-label={open ? text.airlinesLess : text.airlinesMore}
+					onClick={() => setOpen(!open)}
+					className="-my-3 ml-1 px-2 py-3 font-board text-[11px] text-board-amber"
+				>
+					{open ? "−" : `+${hidden}`}
+				</button>
+			)}
+		</>
 	);
 }
 
