@@ -2,7 +2,6 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn.ts";
 import { logoOf } from "../../lib/logos.ts";
-import { SplitFlapWord } from "./SplitFlapWord.tsx";
 
 /**
  * The box of a logo. Each logo fills the same box, thus a list of programmes
@@ -24,9 +23,6 @@ const logoBox = cva("inline-flex shrink-0 items-center justify-center", {
 /**
  * The logo of one programme, in the colour of the text.
  *
- * A programme with no free logo shows its code on the flaps. The flaps of a
- * code do not turn: a code is not data. Refer to `SplitFlapWord`.
- *
  * The logo is not visible to a screen reader. The name of the programme is
  * next to the logo, or in an element that is not visible.
  */
@@ -40,14 +36,6 @@ export function ProgramLogo({
 	const logo = logoOf(programId);
 	if (logo === null) {
 		return null;
-	}
-
-	if ("code" in logo) {
-		return (
-			<span aria-hidden="true" className={logoBox({ size })}>
-				<SplitFlapWord word={logo.code} size={size === "lg" ? "sm" : "xs"} />
-			</span>
-		);
 	}
 
 	return (

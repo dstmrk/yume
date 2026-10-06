@@ -187,9 +187,9 @@ only. Obey these rules:
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
 - Show all the numbers with the locale `it-IT`.
 - Give each programme of the catalogue a logo in `src/client/lib/logos.ts`. A logo is one
-  SVG path in a box of 24 x 24, with `currentColor`. A programme with no free logo gets
-  its code on the flaps. Take a logo from Simple Icons or from a file of Wikimedia
-  Commons in the public domain. Do not add the package `simple-icons`. Wikimedia Commons
+  SVG path in a box of 24 x 24, with `currentColor`. Take a logo from Simple Icons, from
+  a file of Wikimedia Commons in the public domain, or from an official file that the
+  user gives. Do not add the package `simple-icons`. Wikimedia Commons
   limits the requests of the session: send them through the Playwright server of
   `PLAYWRIGHT_URL`. Paragraph 5.7 of `docs/architecture.md` gives the rules.
 

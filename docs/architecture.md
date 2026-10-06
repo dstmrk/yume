@@ -1018,7 +1018,6 @@ shows all the logos in one grid. `src/client/lib/logos.ts` holds the logos, and
 | Colour | One colour, `currentColor`. A logo takes the colour of the text next to it. |
 | Size | 20 pixels in a list of the dashboard, 32 pixels on the public page. |
 | Storage | In the bundle of the client. The application operates with no internet. |
-| No free logo | The code of the programme on the flaps, for example `FB`. |
 
 The logos have one colour for these reasons:
 
@@ -1027,13 +1026,16 @@ The logos have one colour for these reasons:
 - Twenty-five palettes of brands break the board of Solari. One colour keeps the theme.
 - One format gives one column of logos in each list.
 
-Two sources supply the logos:
+Three sources supply the logos:
 
 1. **Simple Icons**, with the licence CC0 1.0. The path is the path of the icon, with no
    change. Do not add the package: the bundle needs 14 of more than 3 000 icons.
 2. **Wikimedia Commons**, for a programme that Simple Icons does not hold. The file must
    be in the public domain, for example as a text logo. A script draws the file, keeps
    one part of it, traces that part with `potrace` and puts it in the box.
+3. **The official file of the programme**, when the two sources above do not hold the
+   logo. The same script traces it. Flying Blue is the only example: the user gave the
+   address of the file on `img.static-fb.com`.
 
 The official sites of the airlines refuse the session of the harness. Refer to the rule 5
 of the data in `CLAUDE.md`. Wikimedia Commons limits the requests from the session, but
@@ -1043,11 +1045,12 @@ Keep the symbol of a brand when the brand has one, for example the shamrock of A
 Lingus. Keep the full name when the brand has no symbol, for example SAS or Vueling. A
 wide name is small in the box: that is the cost of one format.
 
-Flying Blue has a logo, but no free copy of it is available. Simple Icons does not hold
-it, and Wikimedia Commons does not hold it. Therefore it shows the code `FB`. Miles & More
-shows its name, from the logo with Lufthansa: the programme has no separate symbol.
+The file of Flying Blue is a blue circle with the name and the line of Air France and KLM.
+Yume keeps the name only: a full circle in the box of 20 pixels shows a disc with no
+legible text. Miles & More shows its name, from the logo with Lufthansa: the programme
+has no separate symbol.
 
-A new programme of the catalogue needs a logo or a code. The test of `logos.ts` compares
+A new programme of the catalogue needs a logo. The test of `logos.ts` compares
 the keys with the catalogue, thus a programme with no entry makes the test fail.
 
 The logos are trademarks of their owners. The foot of each surface says it. Refer to
