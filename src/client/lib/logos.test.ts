@@ -4,6 +4,7 @@ import { airlinesOf, PROGRAM_AIRLINES } from "./airlines.ts";
 import {
 	AIRLINE_LOGOS,
 	catalogueLogos,
+	FEATURED_AIRLINES,
 	logoOf,
 	PROGRAM_LOGOS,
 } from "./logos.ts";
@@ -75,6 +76,28 @@ describe("catalogueLogos", () => {
 			"Revolut",
 			"Klarna",
 		]);
+	});
+
+	it("gives the featured airlines after the sources, in their order", () => {
+		expect(titles.slice(3, 3 + FEATURED_AIRLINES.length)).toEqual([
+			...FEATURED_AIRLINES,
+		]);
+	});
+
+	it("gives each featured airline a logo", () => {
+		const airlines = Object.keys(PROGRAM_AIRLINES).flatMap((id) =>
+			airlinesOf(id),
+		);
+		for (const name of FEATURED_AIRLINES) {
+			expect(airlines).toContain(name);
+		}
+	});
+
+	it("gives the other airlines in the order of the alphabet", () => {
+		const rest = titles.slice(3 + FEATURED_AIRLINES.length);
+		expect(rest).toEqual([...rest].sort((a, b) => a.localeCompare(b, "it")));
+		expect(rest[0]).toBe("Aegean");
+		expect(rest).not.toContain("ITA Airways");
 	});
 
 	// The visitor looks for the airline. Miles & More is the account, ITA

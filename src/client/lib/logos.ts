@@ -30,7 +30,7 @@ export type ProgramLogo = { title: string; path: string };
 
 /**
  * The logos, in the order of the catalogue: the three sources first, then the
- * airline programmes. The public page shows them in this order.
+ * airline programmes. `catalogueLogos` gives the order of the public page.
  *
  * The key is the `id` of the programme in `src/server/db/seed/catalogue.ts`.
  * The field `title` is the name of the brand of the logo, not the short name
@@ -257,23 +257,57 @@ export const AIRLINE_LOGOS: Readonly<Record<string, ProgramLogo>> = {
 };
 
 /**
- * The logos of the public page, in the order of the catalogue.
+ * The airlines that the public page shows first, after the sources. They are
+ * the brands that a visitor in Italy knows best: the first row tells the
+ * visitor that the site is for the Italian market. The value is the `title`
+ * of the logo.
+ */
+export const FEATURED_AIRLINES: readonly string[] = [
+	"ITA Airways",
+	"Lufthansa",
+	"Air France",
+	"KLM",
+	"British Airways",
+	"Emirates",
+	"Qatar Airways",
+	"Turkish Airlines",
+];
+
+/**
+ * The logos of the public page: the sources in the order of the catalogue,
+ * then `FEATURED_AIRLINES`, then the other airlines in the order of the
+ * alphabet.
  *
  * A programme with one airline gives its own logo. A programme with more than
  * one airline gives the logo of each airline: the visitor finds ITA Airways,
- * not Miles & More. The sources come first, as in `PROGRAM_LOGOS`.
+ * not Miles & More.
  */
 export function catalogueLogos(): { key: string; logo: ProgramLogo }[] {
-	return Object.entries(PROGRAM_LOGOS).flatMap(([programId, logo]) => {
-		const airlines = airlinesOf(programId);
-		if (airlines.length <= 1) {
-			return [{ key: programId, logo }];
+	const sources: { key: string; logo: ProgramLogo }[] = [];
+	const airlines: { key: string; logo: ProgramLogo }[] = [];
+	for (const [programId, logo] of Object.entries(PROGRAM_LOGOS)) {
+		const names = airlinesOf(programId);
+		if (names.length === 0) {
+			sources.push({ key: programId, logo });
+		} else if (names.length === 1) {
+			airlines.push({ key: programId, logo });
+		} else {
+			for (const name of names) {
+				const airlineLogo = AIRLINE_LOGOS[name];
+				if (airlineLogo !== undefined) {
+					airlines.push({ key: name, logo: airlineLogo });
+				}
+			}
 		}
-		return airlines.flatMap((name) => {
-			const airlineLogo = AIRLINE_LOGOS[name];
-			return airlineLogo === undefined
-				? []
-				: [{ key: name, logo: airlineLogo }];
-		});
-	});
+	}
+	const rank = (title: string) => {
+		const index = FEATURED_AIRLINES.indexOf(title);
+		return index === -1 ? FEATURED_AIRLINES.length : index;
+	};
+	airlines.sort(
+		(a, b) =>
+			rank(a.logo.title) - rank(b.logo.title) ||
+			a.logo.title.localeCompare(b.logo.title, "it"),
+	);
+	return [...sources, ...airlines];
 }

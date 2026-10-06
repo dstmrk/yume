@@ -1040,6 +1040,10 @@ Miles & More. A programme with one airline gives its own logo. Miles & More and 
 Blue give the logo of each of their airlines, from `AIRLINE_LOGOS`. Paragraph 3.1 gives
 the three levels.
 
+The grid shows the sources first. Then it shows `FEATURED_AIRLINES`, the airlines that a
+visitor in Italy knows best. The other airlines follow in the order of the alphabet. The
+first row thus tells the visitor that the site is for the Italian market.
+
 | Decision | Value |
 |---|---|
 | Format | One SVG path in a box of 24 x 24. The longer side of the logo touches the box. |

@@ -14,7 +14,7 @@ export const text = {
 	// application is on the flaps of the masthead, not here.
 	homeTitle: "Quante miglia valgono i tuoi punti",
 	homeLead:
-		"L'app della tua banca ti mostra un saldo di punti. Yume ti dice quante miglia diventano, valuta per valuta, ai rapporti di trasferimento ufficiali di oggi.",
+		"L'app della tua carta ti mostra un saldo di punti. Yume ti dice quante miglia diventano, valuta per valuta, ai rapporti di trasferimento ufficiali di oggi.",
 	homeExample: "Un esempio. Il tuo saldo appare dopo l'accesso.",
 
 	homeWhatTitle: "Cosa fa Yume",
@@ -26,7 +26,7 @@ export const text = {
 			body: "Sei programmi usano gli Avios: è un saldo solo, non sei. Yume calcola una riga per valuta, così lo stesso saldo non viene contato più volte.",
 		},
 		{
-			title: "Rapporti ufficiali, non a memoria",
+			title: "Rapporti ufficiali, ognuno con la sua data",
 			body: "Ogni rapporto è letto dalla pagina ufficiale del programma. Quando cambia, la regola vecchia resta come storico e ne entra una nuova con la sua data.",
 		},
 		{
@@ -35,7 +35,7 @@ export const text = {
 		},
 	],
 
-	homeLogosTitle: "Fonti e compagnie aeree del catalogo",
+	homeLogosTitle: "Carte e compagnie aeree supportate",
 
 	homeFaqTitle: "Domande frequenti",
 	// The details of the catalogue live here, below the product. A visitor reads
@@ -45,7 +45,7 @@ export const text = {
 		{
 			question: "Quali punti posso seguire con Yume?",
 			answer:
-				"I saldi di 26 programmi aerei e di tre fonti di punti per l'Italia: Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna. Per i 21 programmi che quelle fonti raggiungono, Yume calcola anche le miglia potenziali.",
+				"I saldi di 26 programmi aerei e di tre carte per l'Italia: Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna. Per i 21 programmi che quelle carte raggiungono, Yume calcola anche le miglia potenziali.",
 		},
 		{
 			question: "Perché sei programmi diventano una riga sola?",
@@ -65,17 +65,16 @@ export const text = {
 		{
 			question: "Da dove arrivano i rapporti di trasferimento?",
 			answer:
-				"Dalla pagina ufficiale di ogni programma, mai a memoria. Ogni regola ha una data di inizio e una di fine: quando un rapporto cambia, la regola vecchia resta come storico e il calcolo usa quella valida oggi.",
+				"Dalla pagina ufficiale di ogni programma, per l'Italia. Ogni regola ha una data di inizio e una di fine: quando un rapporto cambia, la regola vecchia resta come storico e il calcolo usa quella valida oggi.",
 		},
 		{
 			question: "Yume trasferisce i punti al posto mio?",
 			answer:
-				"No. Yume calcola e basta, non tocca i tuoi conti. Il trasferimento lo fai tu sul sito della banca o del programma, ed è definitivo: i punti trasferiti non tornano indietro.",
+				"No. Yume calcola e basta, non tocca i tuoi conti. Il trasferimento lo fai tu, dall'app della tua carta o dal sito del programma, ed è definitivo: i punti trasferiti non tornano indietro.",
 		},
 		{
-			question: "Yume guadagna sui trasferimenti che consiglia?",
-			answer:
-				"No. Yume non mostra link di affiliazione e non prende commissioni. Il codice è open source con licenza MIT, quindi puoi installarlo sul tuo server.",
+			question: "Posso installare Yume sul mio server?",
+			answer: "Sì. Il codice è open source con licenza MIT.",
 		},
 		{
 			question: "Come ottengo un account?",
@@ -93,9 +92,10 @@ export const text = {
 
 	// The footer of each surface. Yume names American Express, Revolut, Klarna
 	// and each airline programme of the catalogue, therefore it must say that it
-	// belongs to none of them.
+	// belongs to none of them. The text does not say "affiliato": an affiliate
+	// link to a source does not make it false.
 	footerDisclaimer:
-		"Yume non è affiliato ad American Express, a Revolut, a Klarna, alle compagnie aeree o ai programmi fedeltà citati. Nomi e loghi sono marchi dei rispettivi proprietari.",
+		"Yume è un progetto indipendente: non appartiene ad American Express, a Revolut, a Klarna né alle compagnie aeree o ai programmi fedeltà citati. Nomi e loghi sono marchi dei rispettivi proprietari.",
 	footerSource: "Codice su GitHub",
 
 	potentialTitle: "Miglia potenziali",
