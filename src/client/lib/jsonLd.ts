@@ -93,8 +93,7 @@ export function webSiteJsonLd(site: string) {
  * The application.
  *
  * The price is 0: Yume gives an account with an invitation, and the code is
- * under the licence MIT. The plan of `docs/monetisation.md` writes no price
- * here before the step of the payment.
+ * under the licence MIT.
  */
 export function softwareApplicationJsonLd(site: string) {
 	return {

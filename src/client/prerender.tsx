@@ -4,7 +4,7 @@
  * The client is a single page application: `index.html` holds an empty `div`,
  * and React writes each element in the browser. Google executes that
  * JavaScript. The crawlers of the assistants read the HTML only, thus the
- * public page is an empty page for the channel of `docs/monetisation.md`.
+ * public page is an empty page for them.
  *
  * This file writes three items in `dist/`:
  *

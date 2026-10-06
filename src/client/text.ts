@@ -103,8 +103,6 @@ export const text = {
 	// to none of them.
 	footerDisclaimer:
 		"Yume non è affiliato ad American Express, a Revolut, alle compagnie aeree o ai programmi fedeltà citati. Tutti i marchi appartengono ai rispettivi proprietari.",
-	footerIndependence:
-		"Nessun link di affiliazione: Yume non guadagna sui trasferimenti che calcola.",
 	footerSource: "Codice su GitHub",
 
 	potentialTitle: "Miglia potenziali",

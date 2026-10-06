@@ -5,10 +5,6 @@ Status: **accepted**. Date: 2026-08-11.
 This document records the architecture decisions. The team made these decisions before
 the start of the code. The document is in ASD-STE100 Simplified Technical English.
 
-[`monetisation.md`](monetisation.md) gives a plan for a hosted service with a
-subscription. The owner accepted that plan, but no code implements it now. This document
-keeps the decisions of the code that exists.
-
 ---
 
 ## 1. Context
@@ -753,13 +749,12 @@ and the pure function `authMessage` of `src/client/lib/auth.ts` gives the messag
 ### 5.5.3 The search engines and the assistants
 
 Yume has no budget for advertisements. Therefore a person must find the public page in a
-search engine and in the answer of an assistant. Paragraph 6.1 of `docs/monetisation.md`
-gives that channel.
+search engine and in the answer of an assistant.
 
 The client is a single page application. The file `src/client/index.html` holds an empty
 `div`, and React writes each element in the browser. Google executes that JavaScript. The
 crawlers of the assistants read the HTML only. Therefore the public page is an empty page
-for the exact channel of this plan.
+for those crawlers.
 
 The head of `index.html` holds the first answer to that problem: the title, the
 description and the tags of Open Graph. That text is Italian, and it is the one exception
@@ -803,8 +798,7 @@ catalogue, the source of each ratio and the limit of the sum of two currencies.
 
 That quantity of text is a decision of this paragraph, and it is not a decision of the
 sale. The site holds one public page, thus that page carries each answer alone. The
-pages of the catalogue come later, and they then take that work. Paragraph 6.1 of
-`docs/monetisation.md` gives the channel.
+pages of the catalogue come later, and they then take that work.
 
 The page names the six programmes of Avios and it gives the quantity of the programmes of
 the catalogue. Those values come from `src/server/db/seed/catalogue.ts`. The page gives no
@@ -921,11 +915,6 @@ remove the item of `In arrivo`.
 each surface. Yume names American Express, Revolut and each airline programme of the
 catalogue. Therefore each surface says that Yume belongs to none of them, and that all the
 marks belong to their owners.
-
-The foot also says that Yume shows no link of affiliation and takes no commission.
-Paragraph 8 of `docs/monetisation.md` gives that decision, and the foot is the surface
-that holds it: a person reads the position of the product at the same moment as the
-warning of the marks.
 
 The dashboard holds the same foot. That surface needs it most: a person reads the names of
 the programmes there, with a real value.

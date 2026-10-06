@@ -51,9 +51,6 @@ export function llmsTxt(site: string): string {
 				"",
 			]),
 		),
-		...section("Avvertenze", [
-			`- ${text.footerDisclaimer}`,
-			`- ${text.footerIndependence}`,
-		]),
+		...section("Avvertenze", [`- ${text.footerDisclaimer}`]),
 	].join("\n");
 }
