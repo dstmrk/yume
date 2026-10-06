@@ -20,6 +20,10 @@ const wordCell = cva("text-board-amber", {
 		size: {
 			lg: "px-1.5 text-[33px] [--flap-h:55px]",
 			md: "px-1 text-[22px] [--flap-h:33px]",
+			// The code of a programme with no free logo. Two flaps fill the box
+			// of the logo. Refer to `ProgramLogo`.
+			sm: "px-0 text-[22px] [--flap-h:32px]",
+			xs: "px-px text-[11px] [--flap-h:20px]",
 		},
 	},
 	defaultVariants: {
