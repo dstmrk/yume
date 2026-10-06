@@ -60,8 +60,8 @@ const SCREENSHOT = {
  * extent of the catalogue in one view. The detail of the catalogue — the six
  * programmes of Avios, the quantity of the programmes, the source of each
  * ratio — is in the questions at the end. A visitor reads what Yume does
- * before it reads which airlines use one currency. Paragraph 5.5.3 of `docs/architecture.md` gives
- * the reason.
+ * before it reads which airlines use one currency. Paragraph 5.5.3 of
+ * `docs/architecture.md` gives the reason.
  *
  * The `h1` is the question of the person, not the name of the application. The
  * name is on the flaps of the masthead: a search engine and an assistant read
