@@ -91,19 +91,3 @@ describe("the copy of the public page and the catalogue", () => {
 		expect(aviosAnswer).toContain(`${word} volte`);
 	});
 });
-
-describe("the copy of a function that arrives later", () => {
-	/**
-	 * A function that no code gives must never arrive in the present tense.
-	 * The text of that block uses the future. Refer to paragraph 5.5.4 of
-	 * `docs/architecture.md`.
-	 */
-	it("writes the function of the future with a verb of the future", () => {
-		expect(text.homeSoon).toContain("sarà");
-		expect(text.homeSoon).toContain("dirà");
-	});
-
-	it("gives a mark to that block", () => {
-		expect(text.homeSoonBadge).not.toBe("");
-	});
-});

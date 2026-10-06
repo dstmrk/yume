@@ -36,13 +36,7 @@ const KNOWS_ABOUT = [
 	"Rapporti di trasferimento",
 ] as const;
 
-/**
- * The functions that the application gives today.
- *
- * A function of `docs/monetisation.md` is not in this list. The page shows that
- * function with the mark of the future, and this data says what the application
- * does now.
- */
+/** The functions that the application gives today. */
 const FEATURE_LIST = [
 	"Calcolo delle miglia potenziali per ogni valuta",
 	"Rapporti di trasferimento ufficiali per l'Italia",

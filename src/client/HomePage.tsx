@@ -163,31 +163,11 @@ export function HomePage() {
 				/>
 			</Rise>
 
-			{/* The function that the application does not hold today. The mark and
-			    the verb of the future both say it: a person who reads this block
-			    must not look for that function in the dashboard. Paragraph 5.5.4 of
-			    `docs/architecture.md` gives the rule. */}
-			<Rise index={7}>
-				<section className="rounded-lg border border-board-line border-dashed p-4">
-					<div className="flex items-center gap-3">
-						<span className="rounded-sm border border-board-amber px-2 py-0.5 font-board text-[11px] text-board-amber uppercase tracking-widest">
-							{text.homeSoonBadge}
-						</span>
-						<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
-							{text.homeSoonTitle}
-						</h2>
-					</div>
-					<p className="mt-3 text-board-text text-sm leading-relaxed">
-						{text.homeSoon}
-					</p>
-				</section>
-			</Rise>
-
 			{/* The detail of the catalogue. Each answer opens with the fact: an
 			    assistant cites the paragraph that answers, not the paragraph that
 			    introduces. The elements are a list of definitions, because each
 			    item is one question and one answer. */}
-			<Rise index={8}>
+			<Rise index={7}>
 				<section>
 					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
 						{text.homeFaqTitle}
@@ -207,7 +187,7 @@ export function HomePage() {
 				</section>
 			</Rise>
 
-			<Rise index={9} className="flex w-full flex-col items-center gap-2">
+			<Rise index={8} className="flex w-full flex-col items-center gap-2">
 				{/* The element is an `a` and not a `Link` of the router. The build
 				    writes this page with `renderToStaticMarkup`, and a `Link` needs
 				    the context of the router: the page then holds no router and no

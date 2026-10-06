@@ -884,32 +884,7 @@ than that quantity of characters. The order is necessary: a pre-render of the fl
 today writes each character of the drum in the HTML, and that text says nothing to a
 reader.
 
-### 5.5.4 A function that arrives later
-
-The public page shows one function of `docs/monetisation.md` before the code of that
-function: the goal and the award chart of paragraph 3.1 of that plan. A visitor then
-reads where the application goes, and not only what it does today.
-
-**A function that no code gives must never arrive in the present tense.** The block holds
-two marks:
-
-- The mark `Presto`, at the left of the title.
-- The verb of the future in each sentence of the text: `sarà`, `dirà`.
-
-`src/client/text.test.ts` refuses a text of that block with no verb of the future. A copy
-that gives a function as a fact is a defect, not an exaggeration of the sale: a person who
-reads it opens the dashboard and looks for a surface that does not exist.
-
-`llms.txt` gives that block under its own title, `In arrivo`. An assistant that reads one
-list of functions cites each item of that list as a function of today. The structured data
-of `SoftwareApplication` holds the functions of today only, and it holds no item of the
-plan.
-
-At the moment that the code of a function arrives, move the text from that block to the
-blocks of `Cosa fa Yume`, add the function to `FEATURE_LIST` of `lib/jsonLd.ts` and
-remove the item of `In arrivo`.
-
-### 5.5.5 The foot of the site
+### 5.5.4 The foot of the site
 
 `src/client/components/board/SiteFooter.tsx` holds the foot, and `AppShell` gives it to
 each surface. Yume names American Express, Revolut and each airline programme of the

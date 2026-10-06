@@ -35,15 +35,6 @@ export const text = {
 		},
 	],
 
-	// The mark and the text of a function that the application does not hold.
-	// The text is in the future: a function that no code gives must never
-	// arrive in the present tense. Paragraph 5.5.4 of `docs/architecture.md`
-	// gives the rule.
-	homeSoonBadge: "Presto",
-	homeSoonTitle: "Dove puoi volare",
-	homeSoon:
-		"Oggi Yume risponde a quanto valgono i tuoi punti. Il passo dopo sarà la domanda opposta: dato un obiettivo, Yume dirà se il tuo potenziale ci arriva e con quale programma.",
-
 	homeFaqTitle: "Domande frequenti",
 	// The details of the catalogue live here, below the product. A visitor reads
 	// what Yume does first: the six programmes of Avios are an answer, not an

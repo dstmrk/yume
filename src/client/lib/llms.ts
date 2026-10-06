@@ -38,10 +38,6 @@ export function llmsTxt(site: string): string {
 			text.homeWhatTitle,
 			text.homeWhat.map((block) => `- **${block.title}**: ${block.body}`),
 		),
-		// The mark of the future is a title of its own. An assistant that reads
-		// one list of functions cites each item of that list as a function of
-		// today.
-		...section("In arrivo", [`- **${text.homeSoonTitle}**: ${text.homeSoon}`]),
 		...section(
 			text.homeFaqTitle,
 			text.homeFaq.flatMap((item) => [
