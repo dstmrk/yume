@@ -5,6 +5,7 @@ import { sortPrograms } from "../lib/account.ts";
 import { addSnapshot, createAccount } from "../lib/api.ts";
 import { readOptionalPoints, todayIso } from "../lib/balance.ts";
 import { text } from "../text.ts";
+import { ProgramName } from "./board/ProgramLogo.tsx";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -120,7 +121,7 @@ function Fields({
 					<SelectContent>
 						{options.map((program) => (
 							<SelectItem key={program.id} value={program.id}>
-								{program.name}
+								<ProgramName programId={program.id}>{program.name}</ProgramName>
 							</SelectItem>
 						))}
 					</SelectContent>
