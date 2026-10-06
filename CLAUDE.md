@@ -186,6 +186,12 @@ only. Obey these rules:
   is not visible.
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
 - Show all the numbers with the locale `it-IT`.
+- Give each programme of the catalogue a logo in `src/client/lib/logos.ts`. A logo is one
+  SVG path in a box of 24 x 24, with `currentColor`. A programme with no free logo gets
+  its code on the flaps. Take a logo from Simple Icons or from a file of Wikimedia
+  Commons in the public domain. Do not add the package `simple-icons`. Wikimedia Commons
+  limits the requests of the session: send them through the Playwright server of
+  `PLAYWRIGHT_URL`. Paragraph 5.7 of `docs/architecture.md` gives the rules.
 
 The project has no `jsdom` and no library for the tests of a component. Therefore keep
 the logic of the client in `src/client/lib/`, with a test file. Then a `.tsx` file holds
