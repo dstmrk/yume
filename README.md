@@ -9,7 +9,7 @@ Yume shows all your loyalty balances on one screen:
 
 - flexible points: American Express Membership Rewards, Revolut RevPoints and Klarna
   Cashback
-- airline programmes: 22 programmes, with 17 different point currencies. A source sends
+- airline programmes: 26 programmes, with 21 different point currencies. A source sends
   points to 21 of them.
 
 Yume then calculates the **potential miles**. The potential miles are the miles that you
@@ -57,7 +57,8 @@ account, you write a balance, you cancel a balance and you remove an account. Yu
 installs on the home screen of a telephone.
 
 The catalogue holds all the 21 airline programmes that receive points from Amex Italia,
-from Revolut or from Klarna. It also holds Miles & More, which no source can increase.
+from Revolut or from Klarna. It also holds Miles & More, Korean Air, ANA, JAL and Qantas,
+which no source can increase.
 
 Authentication is present. Registration is possible only with an invitation. The log of
 the container gives the link of the first user, and each user then has two invitations.

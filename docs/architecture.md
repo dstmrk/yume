@@ -103,10 +103,10 @@ Thus the system calculates the potential **for each currency**, not for each pro
 If the system calculates the potential for each programme, it counts the same balance
 six times.
 
-The catalogue holds 22 airline programmes and 17 airline currencies. A source sends
-points to 21 of those programmes, and those 21 programmes use 16 currencies. The
-programme Miles & More holds the currency that no source reaches. Appendix 8 gives that
-programme.
+The catalogue holds 26 airline programmes and 21 airline currencies. A source sends
+points to 21 of those programmes, and those 21 programmes use 16 currencies. Five
+programmes hold the five currencies that no source reaches. Appendix 8 gives those
+programmes.
 
 ### 3.2 Snapshots, not a record of changes
 
@@ -1023,16 +1023,18 @@ The logos have one colour for these reasons:
 
 - The palette is dark only. A logo in dark blue, for example Delta or Klarna, does not
   show on the board.
-- Twenty-five palettes of brands break the board of Solari. One colour keeps the theme.
+- Twenty-nine palettes of brands break the board of Solari. One colour keeps the theme.
 - One format gives one column of logos in each list.
 
 Three sources supply the logos:
 
 1. **Simple Icons**, with the licence CC0 1.0. The path is the path of the icon, with no
-   change. Do not add the package: the bundle needs 14 of more than 3 000 icons.
+   change. Do not add the package: the bundle needs 16 of more than 3 000 icons.
 2. **Wikimedia Commons**, for a programme that Simple Icons does not hold. The file must
    be in the public domain, for example as a text logo. A script draws the file, keeps
-   one part of it, traces that part with `potrace` and puts it in the box.
+   one part of it, traces that part with `potrace` and puts it in the box. A file with
+   one colour and no effect needs no trace: the script scales its paths into the box.
+   The paths then stay exact. Korean Air and ANA are those files.
 3. **The official file of the programme**, when the two sources above do not hold the
    logo. The same script traces it. Flying Blue is the only example: the user gave the
    address of the file on `img.static-fb.com`.
@@ -1203,9 +1205,9 @@ only: a migration that ran on a server is immutable. Add a new migration.
 
 ## 8. Appendix — the catalogue of programmes
 
-The catalogue contains 22 airline programmes. 21 of them are the transfer partners of
-Amex MR Italy, Revolut RevPoints and Klarna Cashback in October 2026. The last section of this appendix
-gives Miles & More, the programme that no source reaches. Each ratio is *source :
+The catalogue contains 26 airline programmes. 21 of them are the transfer partners of
+Amex MR Italy, Revolut RevPoints and Klarna Cashback in October 2026. The last section of
+this appendix gives the five programmes that no source reaches. Each ratio is *source :
 target*. Each rule holds the country `IT`. Paragraph 3.3.2 gives the rule for an other
 country.
 
@@ -1278,6 +1280,10 @@ and Revolut cannot transfer points to Miles & More.
 
 Keep Miles & More in the catalogue with `transferable = false`. Many Italian users have
 this balance. For these users, the answer is clear: no source can increase it.
+
+**Korean Air**, **ANA**, **JAL** and **Qantas** have the same status. Users of Yume hold
+these balances, and no source sends points to these programmes. Each programme has its own
+currency: SKYPASS, ANA Mileage Club, JAL Mileage Bank and Qantas Points.
 
 Keep a record of these routes that do not operate. Then no person examines them again:
 
