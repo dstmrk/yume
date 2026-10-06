@@ -1,7 +1,7 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ReactNode } from "react";
 import { cn } from "../../lib/cn.ts";
-import { logoOf } from "../../lib/logos.ts";
+import { type ProgramLogo as Logo, logoOf } from "../../lib/logos.ts";
 
 /**
  * The box of a logo. Each logo fills the same box, thus a list of programmes
@@ -38,6 +38,20 @@ export function ProgramLogo({
 		return null;
 	}
 
+	return <LogoMark logo={logo} size={size} />;
+}
+
+/**
+ * One logo, in the colour of the text. The public page uses it for the logo of
+ * an airline, which is not the logo of a programme.
+ */
+export function LogoMark({
+	logo,
+	size,
+}: {
+	logo: Logo;
+	size?: VariantProps<typeof logoBox>["size"];
+}) {
 	return (
 		<svg
 			viewBox="0 0 24 24"
