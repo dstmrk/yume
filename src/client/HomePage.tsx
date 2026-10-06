@@ -36,7 +36,7 @@ const EXAMPLE_POINTS = 128_400;
 const SCREENSHOT = {
 	src: "/screenshot-dashboard.png",
 	width: 768,
-	height: 1590,
+	height: 1613,
 };
 
 /**
