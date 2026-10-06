@@ -34,6 +34,7 @@ import type {
  */
 const VERIFIED_ON = "2026-08-11";
 const VERIFIED_ON_2 = "2026-08-12";
+const VERIFIED_ON_3 = "2026-10-06";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -43,6 +44,12 @@ export const currencies: readonly Currency[] = [
 		kind: "flexible",
 	},
 	{ id: "revpoints", code: "REVP", name: "RevPoints", kind: "flexible" },
+	{
+		id: "klarna-cashback",
+		code: "KLARNA",
+		name: "Klarna Cashback",
+		kind: "flexible",
+	},
 	{ id: "avios", code: "AVIOS", name: "Avios", kind: "airline" },
 	{
 		id: "flying-blue",
@@ -63,6 +70,13 @@ export const currencies: readonly Currency[] = [
 	{ id: "saga-points", code: "SAGA", name: "Saga Points", kind: "airline" },
 	{ id: "miles-and-go", code: "MG", name: "Miles&Go", kind: "airline" },
 	{ id: "miles-and-more", code: "MM", name: "Miles & More", kind: "airline" },
+	{ id: "mileageplus", code: "MP", name: "MileagePlus", kind: "airline" },
+	{
+		id: "royal-orchid-plus",
+		code: "ROP",
+		name: "Royal Orchid Plus",
+		kind: "airline",
+	},
 ];
 
 /**
@@ -88,6 +102,13 @@ export const programs: readonly Program[] = [
 		currencyId: "revpoints",
 		code: "REVOLUT",
 		name: "Revolut",
+		transferable: false,
+	},
+	{
+		id: "klarna",
+		currencyId: "klarna-cashback",
+		code: "KLARNA",
+		name: "Klarna",
 		transferable: false,
 	},
 	{
@@ -223,6 +244,21 @@ export const programs: readonly Program[] = [
 		currencyId: "miles-and-go",
 		code: "TP",
 		name: "TAP",
+		transferable: true,
+	},
+	// Klarna is the only source of these two programmes.
+	{
+		id: "united",
+		currencyId: "mileageplus",
+		code: "UA",
+		name: "United",
+		transferable: true,
+	},
+	{
+		id: "thai",
+		currencyId: "royal-orchid-plus",
+		code: "TG",
+		name: "Thai",
 		transferable: true,
 	},
 	// Miles & More is the programme of ITA Airways from 1 April 2026. Amex Italia
@@ -580,6 +616,155 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 1,
 		increment: 1,
 		validFrom: VERIFIED_ON_2,
+		validTo: null,
+	},
+
+	// The routes of Klarna. Klarna converts the cashback of a member into the
+	// points of a partner. The plan of the member changes the expiry of the
+	// cashback, not the ratio.
+	//
+	// Klarna refuses a request from a machine: each domain gives the status 403.
+	// Therefore the user read the list of the partners on 6 October 2026. The
+	// page gives each ratio for 100 points of cashback, with two decimals. The
+	// catalogue keeps that ratio as two integers over 10 000 points.
+	//
+	// The page gives no minimum and no step. The user thinks that the step is
+	// 100 points, thus the minimum and the step are 100. That value is the safe
+	// choice: a smaller step can give a value that is too high.
+	//
+	// The hotel partners, GHA and Spenn are not in the catalogue.
+	//
+	// Source: https://www.klarna.com/it/abbonamento/max/
+	{
+		// "80,02 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "ba-club",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "iberia-club",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "vueling",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "aer-lingus",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "101,43 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "finnair",
+		country: "IT",
+		ratioNum: 10143,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 Miglia Flying Blue ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "flying-blue",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 miglia ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "turkish",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "132,24 punti SAS EuroBonus ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "sas",
+		country: "IT",
+		ratioNum: 13224,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 Lifemiles ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "avianca",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "80,02 miglia ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "united",
+		country: "IT",
+		ratioNum: 8002,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+	{
+		// "101,43 Royal Orchid Plus miles ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "thai",
+		country: "IT",
+		ratioNum: 10143,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_3,
 		validTo: null,
 	},
 ];

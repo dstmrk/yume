@@ -118,8 +118,10 @@ These rules prevent the most dangerous defects in this application:
    for the author of the catalogue, and no surface shows it. A session of the harness
    cannot read those pages: the tool of the web and a real browser both receive the
    status 403 or 405, or the error `ERR_HTTP2_PROTOCOL_ERROR`. Turkish, Iberia, Flying
-   Blue, British Airways, Aer Lingus and Qatar all give one of those results. Thus a
-   person reads the page and gives the value. Do not take the value from a blog.
+   Blue, British Airways, Aer Lingus, Qatar and Klarna all give one of those results.
+   The Playwright server of `PLAYWRIGHT_URL` also receives the status 403 from each
+   domain of Klarna. Thus a person reads the page and gives the value. Do not take the
+   value from a blog.
 6. **Give a country to each transfer rule.** The field `country` holds a country in the
    ISO 3166-1 alpha-2 format, for example `IT`. The field is not null, and it is part of
    the key with `validFrom`. The partners and the ratios change with the country, thus

@@ -43,7 +43,7 @@ export const text = {
 		{
 			question: "Quali punti posso seguire con Yume?",
 			answer:
-				"I punti Amex Membership Rewards e i RevPoints di Revolut, per l'Italia. Da lì il catalogo raggiunge 19 programmi aerei. C'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle due fonti raggiunge.",
+				"I punti Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna, per l'Italia. Da lì il catalogo raggiunge 21 programmi aerei. C'è anche Miles & More, il programma di ITA Airways, che oggi nessuna delle tre fonti raggiunge.",
 		},
 		{
 			question: "Perché sei programmi diventano una riga sola?",
@@ -89,11 +89,11 @@ export const text = {
 	homeScreenshotAlt:
 		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",
 
-	// The footer of each surface. Yume names American Express, Revolut and each
-	// airline programme of the catalogue, therefore it must say that it belongs
-	// to none of them.
+	// The footer of each surface. Yume names American Express, Revolut, Klarna
+	// and each airline programme of the catalogue, therefore it must say that it
+	// belongs to none of them.
 	footerDisclaimer:
-		"Yume non è affiliato ad American Express, a Revolut, alle compagnie aeree o ai programmi fedeltà citati. Tutti i marchi appartengono ai rispettivi proprietari.",
+		"Yume non è affiliato ad American Express, a Revolut, a Klarna, alle compagnie aeree o ai programmi fedeltà citati. Tutti i marchi appartengono ai rispettivi proprietari.",
 	footerSource: "Codice su GitHub",
 
 	potentialTitle: "Miglia potenziali",

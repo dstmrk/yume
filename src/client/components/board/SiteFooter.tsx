@@ -9,8 +9,9 @@ const SOURCE_URL = "https://github.com/dstmrk/yume";
 /**
  * The foot of each surface.
  *
- * Yume names American Express, Revolut and each airline programme of the
- * catalogue. Therefore each surface must say that Yume belongs to none of them.
+ * Yume names American Express, Revolut, Klarna and each airline programme of
+ * the catalogue. Therefore each surface must say that Yume belongs to none of
+ * them.
  * Paragraph 5.5.4 of `docs/architecture.md` gives that decision.
  *
  * `AppShell` holds this component, thus the public page, the dashboard and the

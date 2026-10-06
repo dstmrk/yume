@@ -16,7 +16,7 @@ These constraints control all the decisions in this document:
 
 | Constraint | Decision |
 |---|---|
-| Cost | Zero. The system uses no paid service and no necessary external service. |
+| Cost | Zero. The system uses no paid service and no necessary external service. The supporter account of paragraph 4.6 adds a payment service to the official instance only. |
 | Deployment | One Docker container on a home server, a NAS or a Raspberry Pi with arm64. |
 | Users | A small, closed group. Registration is possible only with an invitation. |
 | Data input | Manual. Amex and Revolut do not give a public API for balances. The team refused the automatic collection of data from the web sites. |
@@ -103,8 +103,8 @@ Thus the system calculates the potential **for each currency**, not for each pro
 If the system calculates the potential for each programme, it counts the same balance
 six times.
 
-The catalogue holds 20 airline programmes and 15 airline currencies. A source sends
-points to 19 of those programmes, and those 19 programmes use 14 currencies. The
+The catalogue holds 22 airline programmes and 17 airline currencies. A source sends
+points to 21 of those programmes, and those 21 programmes use 16 currencies. The
 programme Miles & More holds the currency that no source reaches. Appendix 8 gives that
 programme.
 
@@ -393,6 +393,54 @@ project holds the version 13. That peer is optional: the library imports it only
 own adapter of SQLite. This project uses the Drizzle adapter, thus Drizzle imports the
 module. An `overrides` in `package.json` gives the version of the project to npm.
 
+### 4.6 The supporter account
+
+Status: **accepted**. Date: 2026-10-06. No code implements this decision now.
+
+The official instance gives two levels of account: the free account and the supporter
+account. The supporter account has one price: 4,99 euros for one year. No other plan
+exists.
+
+**The free account holds these limits:**
+
+| Item | Free account | Supporter account |
+|---|---|---|
+| Amex and Revolut | No limit | No limit |
+| Each other source, for example Klarna or a hotel programme | Not available | No limit |
+| Airline programmes | 2 programmes | No limit |
+
+Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
+A limit on them stops the users that those links bring.
+
+Klarna is the first source of that kind. It is open to each user until the code of the
+supporter account exists. A user who adds Klarna before that date keeps the account,
+because the end of a supporter account removes nothing.
+
+**The limit counts the programmes, not the currencies.** The British Airways Club and
+Iberia Club are two programmes, thus they use the two places of the free account. The
+user sees programmes in the form, and a count of currencies gives a number that the user
+cannot find. Paragraph 3.1 keeps its rule: the calculation adds the balances of each
+currency.
+
+**The end of a supporter account removes nothing.** The accounts above the limit stay on
+the dashboard, and their balances stay in the potential miles. The user cannot add a new
+account above the limit. A hidden account gives a potential that is too low, and a
+transfer of points is permanent.
+
+**The limits apply to the official instance only.** The code is under the licence MIT.
+A variable of the environment activates the limits, and the default value is no limit.
+Thus a self-hosted installation keeps each function.
+
+The table `user` receives the date of the end of the supporter account. A pure function
+in `src/shared/` reads that date, the accounts of the user and the catalogue. It gives
+the operations that the user can do. Each surface reads that function, and the
+application holds no other rule of the payment.
+
+These items are open:
+
+- The payment service.
+- The name of the variable of the environment.
+
 ## 5. User interface
 
 The visual theme of Yume is an airport departure board with split-flap displays. Solari
@@ -451,8 +499,8 @@ Two rules make the first entry of the data short:
 - **Put the sources first in the list of the programmes.** A source is a programme of a
   currency with the kind `flexible`. The potential of a currency grows only with a
   source. Refer to paragraph 3.5. A user who adds only airline programmes reads a
-  potential that is equal to each balance. The two sources are in the middle of 22 names
-  in the order of the alphabet, thus `sortPrograms` reads the currencies and moves each
+  potential that is equal to each balance. The three sources are in the middle of 25
+  names in the order of the alphabet, thus `sortPrograms` reads the currencies and moves each
   source to the top.
 - **Write the first balance in the form of the account.** The user made an account and
   then opened a second form in the row of that account. The form of the account now
@@ -1100,8 +1148,8 @@ only: a migration that ran on a server is immutable. Add a new migration.
 
 ## 8. Appendix — the catalogue of programmes
 
-The catalogue contains 20 airline programmes. 19 of them are the transfer partners of
-Amex MR Italy and Revolut RevPoints in August 2026. The last section of this appendix
+The catalogue contains 22 airline programmes. 21 of them are the transfer partners of
+Amex MR Italy, Revolut RevPoints and Klarna Cashback in October 2026. The last section of this appendix
 gives Miles & More, the programme that no source reaches. Each ratio is *source :
 target*. Each rule holds the country `IT`. Paragraph 3.3.2 gives the rule for an other
 country.
@@ -1118,10 +1166,11 @@ seed file. Read the official page again and write the link in the comment.
 | Avios | British Airways Club, Iberia Club, Aer Lingus AerClub, Finnair Plus, Qatar Airways Privilege Club, Vueling Club |
 | Flying Blue miles | Flying Blue (Air France, KLM, Transavia) |
 
-Each of the other 12 programmes has its own currency: SAS EuroBonus, Singapore Airlines
+Each of the other 14 programmes has its own currency: SAS EuroBonus, Singapore Airlines
 KrisFlyer, Emirates Skywards, Aegean Miles+Bonus, Avianca LifeMiles, China Southern Sky
 Pearl Club, Etihad Guest, Icelandair Saga Club, TAP Miles&Go, Turkish Airlines
-Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
+Miles&Smiles, Cathay (Asia Miles), Delta SkyMiles, United MileagePlus and Thai Royal
+Orchid Plus.
 
 ### Transfer rules — Revolut RevPoints
 
@@ -1131,6 +1180,19 @@ Miles&Smiles, Cathay (Asia Miles) and Delta SkyMiles.
 | Emirates Skywards | 2 : 1 |
 | Singapore Airlines KrisFlyer | 2 : 1 |
 | ALL Accor points (hotel) | 2 : 1 |
+
+### Transfer rules — Klarna Cashback
+
+Klarna gives each ratio for 100 points of cashback. The minimum and the step are 100
+points. The plan of the member changes the expiry of the cashback, not the ratio.
+
+| Target | Points for 100 points of cashback |
+|---|---|
+| Finnair Plus (Avios), Thai Royal Orchid Plus | 101,43 |
+| SAS EuroBonus | 132,24 |
+| British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 80,02 |
+
+For Avios, the route through Finnair Plus gives the largest value.
 
 ### Transfer rules — Amex Membership Rewards Italy
 
