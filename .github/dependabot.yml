@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # The base image of the Dockerfile has an exact Node patch. Dependabot
+  # proposes the patch and minor updates of Node 22. The major line stays a
+  # manual choice.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    cooldown:
+      default-days: 7
+    ignore:
+      - dependency-name: node
+        update-types:
+          - version-update:semver-major
