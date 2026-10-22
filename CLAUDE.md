@@ -43,7 +43,7 @@ reason. Add no other Italian text to that file.
 
 ## Stack
 
-- Node 22 LTS, TypeScript, Zod
+- Node 26, TypeScript, Zod
 - Server: Hono. It supplies the API and the client files from one origin.
 - Client: Vite, React 19, TanStack Router, TanStack Query
 - User interface: Tailwind CSS v4, shadcn/ui
@@ -300,7 +300,7 @@ docker build -t ghcr.io/dstmrk/yume:latest .
 
 Give `--ignore-scripts` to each call of `npm ci` in the `Dockerfile`. `better-sqlite3`
 holds a `binding.gyp`, thus npm calls `node-gyp rebuild`. That command needs `python3`,
-and the image `node:22-bookworm-slim` holds no `python3`. The command also compiles
+and the image `node:26-bookworm-slim` holds no `python3`. The command also compiles
 nothing: the package holds the compiled binary of each platform in `prebuilds/`.
 
 The hooks have commands. Run each test suite after a change to a hook:

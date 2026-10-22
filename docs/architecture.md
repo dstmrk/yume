@@ -26,7 +26,7 @@ These constraints control all the decisions in this document:
 
 | Layer | Decision | Reason |
 |---|---|---|
-| Runtime | Node 22 LTS | Long-term support. It includes `fetch`. |
+| Runtime | Node 26 | Current release, LTS from October 2026. It includes `fetch`. |
 | HTTP server | Hono | Small and standard. It supplies the API and the client files from one origin. |
 | Client | Vite, React 19, TanStack Router, TanStack Query | Typed routes. TanStack Query controls the cache and the refresh of data. |
 | User interface | Tailwind CSS v4, shadcn/ui | The repository contains the components. No external design system at runtime. |
@@ -1123,7 +1123,7 @@ adds complexity but gives no advantage.
 ## 7. Deployment
 
 The repository holds `Dockerfile`, `.dockerignore` and `compose.yaml`. The
-`Dockerfile` has three stages with `node:22-bookworm-slim`: the dependencies of
+`Dockerfile` has three stages with `node:26-bookworm-slim`: the dependencies of
 production, the build of the client, and the image of runtime. The image runs as the user
 `node`, and it holds a `HEALTHCHECK` on `GET /api/health`. `compose.yaml` mounts
 `./data` on `/data`.

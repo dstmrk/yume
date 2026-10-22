@@ -1,7 +1,7 @@
 version: 2
 updates:
   # The base image of the Dockerfile has an exact Node patch. Dependabot
-  # proposes the patch and minor updates of Node 22. The major line stays a
+  # proposes the patch and minor updates of Node 26. The major line stays a
   # manual choice.
   - package-ecosystem: docker
     directory: /

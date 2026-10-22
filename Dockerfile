@@ -10,10 +10,10 @@
 # The build needs BuildKit for the cache of npm. Docker 23 and after start
 # BuildKit for each build.
 
-# Node 22.23.4 is the patch of the security release of 2026-10-21 (Brotli and
-# TLS hostname checks). The tag `22-bookworm-slim` can stay on an old patch in
+# Node 26.12.1 is the patch that was current on 2026-10-22. Node 26 becomes LTS in
+# October 2026. The tag `26-bookworm-slim` can stay on an old patch in
 # the cache of a builder, thus the tag is exact. Raise it with intent.
-FROM node:22.23.4-bookworm-slim AS deps
+FROM node:26.12.1-bookworm-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 # Only the dependencies of production. The server reads the TypeScript files
@@ -32,7 +32,7 @@ COPY package.json package-lock.json ./
 RUN --mount=type=cache,target=/root/.npm \
 	npm ci --omit=dev --ignore-scripts --prefer-offline
 
-FROM node:22.23.4-bookworm-slim AS build
+FROM node:26.12.1-bookworm-slim AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 # The same rule for the scripts. Vite, esbuild and Rollup need no script of
@@ -43,7 +43,7 @@ COPY src ./src
 # Vite writes the files of the client in `dist/`.
 RUN npm run build
 
-FROM node:22.23.4-bookworm-slim AS runtime
+FROM node:26.12.1-bookworm-slim AS runtime
 WORKDIR /app
 
 ENV NODE_ENV=production
