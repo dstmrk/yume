@@ -104,6 +104,24 @@ describe("the removal of a user", () => {
 });
 
 /**
+ * A copy of `drizzle/` with the migrations until `tag` only. A test applies it,
+ * writes the rows of that old version, then applies the full folder.
+ */
+function migrationsUntil(tag: string): string {
+	const folder = mkdtempSync(join(tmpdir(), "yume-drizzle-"));
+	cpSync("drizzle", folder, { recursive: true });
+	const path = join(folder, "meta", "_journal.json");
+	const journal = JSON.parse(readFileSync(path, "utf8")) as {
+		entries: { idx: number; tag: string }[];
+	};
+	const last = journal.entries.findIndex((entry) => entry.tag === tag);
+	expect(last).toBeGreaterThan(-1);
+	journal.entries = journal.entries.slice(0, last + 1);
+	writeFileSync(path, JSON.stringify(journal));
+	return folder;
+}
+
+/**
  * The migration of the sign-in with Google. Paragraph 4.2 of
  * `docs/architecture.md` gives the decision: the data of the first version goes
  * away, and the table `invitation` goes away.
@@ -117,17 +135,7 @@ describe("the migration of the sign-in with Google", () => {
 	const LAST_OLD = "0005_clear_maelstrom";
 
 	function oldMigrations(): string {
-		const folder = mkdtempSync(join(tmpdir(), "yume-drizzle-"));
-		cpSync("drizzle", folder, { recursive: true });
-		const path = join(folder, "meta", "_journal.json");
-		const journal = JSON.parse(readFileSync(path, "utf8")) as {
-			entries: { idx: number; tag: string }[];
-		};
-		const last = journal.entries.findIndex((entry) => entry.tag === LAST_OLD);
-		expect(last).toBeGreaterThan(-1);
-		journal.entries = journal.entries.slice(0, last + 1);
-		writeFileSync(path, JSON.stringify(journal));
-		return folder;
+		return migrationsUntil(LAST_OLD);
 	}
 
 	function tablesOf(old: Db): string[] {
@@ -178,5 +186,29 @@ describe("the migration of the sign-in with Google", () => {
 		}
 		// The catalogue is application data, not user data. It stays.
 		expect(old.select().from(schema.program).all().length).toBeGreaterThan(0);
+	});
+});
+
+/**
+ * Yume asks Google for the email address only. The users of the version
+ * before hold the name and the photo of the Google account, and the migration
+ * 0007 removes them. Paragraph 4.1 of `docs/architecture.md` gives the rule.
+ */
+describe("the migration that removes the profile of Google", () => {
+	it("removes the name and the photo and keeps the user", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: migrationsUntil("0006_google_sign_in") });
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, image, created_at, updated_at)
+			values ('author', 'Mario Rossi', 'autore@example.com', 1, 'https://example.com/photo', ${now}, ${now})`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		const rows = old.select().from(schema.user).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0]?.email).toBe("autore@example.com");
+		expect(rows[0]?.name).toBe("");
+		expect(rows[0]?.image).toBeNull();
 	});
 });

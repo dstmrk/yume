@@ -12,7 +12,6 @@
  */
 
 import type { LocaleTags } from "../../shared/locale.ts";
-import type { Messages } from "../i18n/messages.ts";
 
 /** The values of the head of one page. */
 export type Head = {
@@ -25,23 +24,31 @@ export type Head = {
 	readonly alternates: readonly { hreflang: string; href: string }[];
 };
 
-/** Gives the values of the head of the public page of one language. */
+/**
+ * Gives the values of the head of one static page in one language.
+ *
+ * `path` is the path of the page with no prefix, for example `/privacy`. Each
+ * page holds its own canonical address and the links `hreflang` of the same
+ * page in the other languages.
+ */
 export function headOf<L extends string>(input: {
 	site: string;
 	locale: L;
+	path: string;
 	routing: { pathFor(locale: L, path: string): string };
 	locales: readonly L[];
 	base: L;
 	tags: Record<L, LocaleTags>;
-	t: Messages;
+	title: string;
+	description: string;
 }): Head {
 	const urlOf = (locale: L) =>
-		`${input.site}${input.routing.pathFor(locale, "/")}`;
+		`${input.site}${input.routing.pathFor(locale, input.path)}`;
 	return {
 		lang: input.tags[input.locale].html,
 		openGraph: input.tags[input.locale].openGraph,
-		title: `Yume — ${input.t.homeTitle}`,
-		description: input.t.siteDescription,
+		title: input.title,
+		description: input.description,
 		url: urlOf(input.locale),
 		alternates: [
 			...input.locales.map((locale) => ({

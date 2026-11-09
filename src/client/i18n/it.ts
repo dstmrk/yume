@@ -204,6 +204,8 @@ export const it = {
 	// `tos` below has the same shape, thus `LegalPage` shows the two.
 	privacy: {
 		title: "Informativa sul trattamento dei dati personali",
+		description:
+			"Quali dati tratta Yume, perché, con chi e per quanto tempo, e come esercitare i tuoi diritti.",
 		subtitle:
 			"ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003",
 		updated: "Ultimo aggiornamento: novembre 2026",
@@ -224,7 +226,7 @@ export const it = {
 					"Yume tratta solo i dati che servono a mostrarti saldi e miglia potenziali.",
 				],
 				items: [
-					"Dall'account Google, al primo accesso: nome, indirizzo email, immagine del profilo e identificativo dell'account. Yume conserva anche i token che Google restituisce all'accesso.",
+					"Dall'account Google, al primo accesso: l'indirizzo email e l'identificativo dell'account. Yume non chiede a Google il nome né la foto del profilo. Conserva anche i token che Google restituisce all'accesso.",
 					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le valute preferite.",
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
 					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",
@@ -243,7 +245,27 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "4. Natura del conferimento",
+				title: "4. Uso dei dati ricevuti da Google",
+				paragraphs: [
+					"Yume usa l'indirizzo email e l'identificativo dell'account Google solo per creare il tuo account e farti accedere. Non li usa per pubblicità, non li vende, non li cede a terzi e non li usa per addestrare modelli di intelligenza artificiale.",
+					"L'uso e il trasferimento ad altre app delle informazioni ricevute dalle API di Google rispettano le Google API Services User Data Policy (developers.google.com/terms/api-services-user-data-policy), inclusi i requisiti di Limited Use.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "5. Sicurezza dei dati",
+				paragraphs: [],
+				items: [
+					"Tutte le connessioni usano HTTPS.",
+					"Il cookie della sessione ha gli attributi Secure e HttpOnly: viaggia solo su HTTPS e gli script della pagina non lo leggono.",
+					"Il database non è raggiungibile da internet: lo legge solo il server di Yume, e solo il titolare accede al server.",
+					"I token di Google restano nel database e nessuna pagina li mostra.",
+				],
+				contact: false,
+			},
+			{
+				title: "6. Natura del conferimento",
 				paragraphs: [
 					"Nome ed email dell'account Google sono necessari: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla.",
 				],
@@ -251,7 +273,7 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "5. Destinatari",
+				title: "7. Destinatari",
 				paragraphs: [
 					"I dati non sono venduti né ceduti a terzi per loro finalità. Ricevono dati solo:",
 				],
@@ -264,7 +286,7 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "6. Trasferimenti extra-UE",
+				title: "8. Trasferimenti extra-UE",
 				paragraphs: [
 					"Google e Cloudflare possono trattare dati negli Stati Uniti. Il trasferimento si basa sul Data Privacy Framework UE-USA e sulle Clausole Contrattuali Standard della Commissione europea (decisione 2021/914).",
 				],
@@ -272,16 +294,17 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "7. Periodo di conservazione",
+				title: "9. Periodo di conservazione",
 				paragraphs: [],
 				items: [
 					"Account, programmi e saldi: finché l'account esiste. Dopo una richiesta di cancellazione sono eliminati entro 30 giorni.",
 					"Sessione, con indirizzo IP e browser: finché la sessione esiste. Una sessione scade 7 giorni dopo l'ultimo uso e si chiude subito con Esci.",
+					"Per chiedere la cancellazione del tuo account e di tutti i suoi dati, scrivi all'indirizzo qui sotto. Puoi anche togliere a Yume l'accesso al tuo account Google da myaccount.google.com/connections.",
 				],
-				contact: false,
+				contact: true,
 			},
 			{
-				title: "8. Diritti dell'interessato",
+				title: "10. Diritti dell'interessato",
 				paragraphs: [
 					"Ai sensi degli artt. 15–22 GDPR puoi chiedere l'accesso ai tuoi dati e una copia (art. 15), la rettifica (art. 16), la cancellazione (art. 17), la limitazione (art. 18), la portabilità in formato JSON (art. 20) e opporti al trattamento basato sul legittimo interesse (art. 21).",
 					"Puoi proporre reclamo al Garante per la protezione dei dati personali (www.gpdp.it), ai sensi dell'art. 77 GDPR.",
@@ -291,7 +314,7 @@ export const it = {
 				contact: true,
 			},
 			{
-				title: "9. Minori",
+				title: "11. Minori",
 				paragraphs: [
 					"Yume non è rivolto a chi ha meno di 14 anni (art. 2-quinquies D.Lgs. 196/2003). Se veniamo a sapere che un account appartiene a un minore di 14 anni, lo cancelliamo.",
 				],
@@ -299,7 +322,7 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "10. Cookie",
+				title: "12. Cookie",
 				paragraphs: [
 					"Yume usa solo cookie tecnici, necessari all'accesso: il cookie della sessione, valido 7 giorni dall'ultimo uso, e un cookie temporaneo che protegge il passaggio da Google. Nessun cookie di profilazione o di terze parti: per questo la pagina non chiede un consenso (Linee guida del Garante sui cookie del 10 giugno 2021).",
 				],
@@ -307,7 +330,7 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "11. Aggiornamenti",
+				title: "13. Aggiornamenti",
 				paragraphs: [
 					"La data in alto indica l'ultima modifica. Una modifica sostanziale riporta in questa pagina la nuova data e il cambiamento.",
 				],
@@ -322,6 +345,8 @@ export const it = {
 	// consumer applies, and the court is the court of the consumer.
 	tos: {
 		title: "Termini del servizio",
+		description:
+			"Le condizioni d'uso di Yume, il calcolatore gratuito delle miglia potenziali.",
 		subtitle: "Condizioni d'uso di yumemiles.com",
 		updated: "Ultimo aggiornamento: novembre 2026",
 		contactLead: "Per informazioni o reclami scrivi a",

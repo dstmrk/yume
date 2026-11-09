@@ -310,8 +310,9 @@ These are the reasons:
   the AWS free tier gives credits for 6 months only. useSend on the server of the
   installation needs Postgres, Redis and Amazon SES.
 - Google verifies the email address. Thus Yume needs no verification of the address.
-- The scopes `openid`, `email` and `profile` are not sensitive. Google then asks for no
-  review of the application.
+- Yume asks for the scopes `openid` and `email` only. Those scopes are not sensitive,
+  thus Google asks for no review of the application. Yume keeps no name and no photo of
+  the Google account: the GDPR asks for the minimum of data, and no surface shows them.
 
 Sign in with Apple is not available. It needs the Apple Developer Program, for 99 dollars
 for one year. Its client secret expires after six months, and Apple refuses `localhost`
@@ -761,7 +762,9 @@ The client holds five routes: `/` for the public page, `/dashboard` for the dash
 `/login` for the access, `/privacy` for the policy of the personal data and `/tos` for
 the terms of the service. The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
-from the dictionary, and `robots.txt` does not block them. The tree is in
+from the dictionary, and `robots.txt` does not block them. The build writes a static
+page for each one, with its own title and canonical address. The check of Google reads
+no JavaScript: with no static page, it reads the public page at `/privacy`. The tree is in
 `src/client/router.tsx`, in the code. The project needs no plugin of the router and no
 step of generation.
 
