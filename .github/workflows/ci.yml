@@ -46,6 +46,16 @@ jobs:
       - name: Build
         run: npm run build
 
+      # The server gives the shell to `/dashboard`, `/login` and each 404. A
+      # shell with the elements of the public page paints the example board
+      # there before the bundle loads. The public page keeps its elements.
+      - name: Examine the shell and the public page
+        run: |
+          grep -qF '<div id="root"></div>' dist/app.html
+          grep -qF 'noindex' dist/app.html
+          ! grep -qF '<div id="root"></div>' dist/index.html
+          grep -qF 'application/ld+json' dist/index.html
+
       # Each hook makes a rule of CLAUDE.md mechanical. A hook that stops its
       # block must make these suites fail.
       - name: Hooks
@@ -164,7 +174,8 @@ jobs:
       # refuses a request from an other origin.
       #
       # The page shows that the server supplies the files of the client from
-      # dist/.
+      # dist/. The public page holds its elements. `/dashboard` and a 404 hold
+      # the shell with an empty root.
       - name: Examine the catalogue, the sign-in and the page
         run: |
           docker exec yume-ci node -e "
@@ -179,7 +190,13 @@ jobs:
             -H 'origin: http://localhost:3000' \
             -d '{"provider":"google","callbackURL":"/dashboard"}' \
             | grep -q 'accounts.google.com'
-          curl -fsS http://127.0.0.1:3000/ | grep -q 'id="root"'
+          curl -fsS http://127.0.0.1:3000/ | grep -q '<h1'
+          curl -fsS http://127.0.0.1:3000/dashboard \
+            | grep -qF '<div id="root"></div>'
+          code="$(curl -s -o nope.html -w '%{http_code}' \
+            http://127.0.0.1:3000/nope)"
+          test "$code" = "404"
+          grep -qF '<div id="root"></div>' nope.html
 
       - name: Give the log of the container
         if: failure()

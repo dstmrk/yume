@@ -252,7 +252,7 @@ export function createApp(db: Db, auth: Auth) {
 	 * A path of the API that no route above matches.
 	 *
 	 * The server supplies the files of the client after this application, and a
-	 * path that no file matches gives `index.html`. Without this route, a path
+	 * path that no file matches gives `app.html`. Without this route, a path
 	 * of the API that holds an error gives that page with the status 200. Then
 	 * the client reads HTML in the place of JSON, and the cause of the defect
 	 * stays hidden.

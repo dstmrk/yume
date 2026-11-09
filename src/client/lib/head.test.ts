@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { localeRouting } from "../../shared/locale.ts";
 import { it as italian } from "../i18n/it.ts";
-import { headOf, localizeHead } from "./head.ts";
+import { appShellOf, headOf, localizeHead } from "./head.ts";
 
 const SITE = "https://yumemiles.com";
 const template = readFileSync("src/client/index.html", "utf8");
@@ -126,5 +126,60 @@ describe("headOf for a page that is not the home page", () => {
 			{ hreflang: "en", href: `${SITE}/en/privacy` },
 			{ hreflang: "x-default", href: `${SITE}/privacy` },
 		]);
+	});
+});
+
+// The server gives the shell to `/dashboard`, `/login` and each 404. The public
+// page there paints the example board before the bundle loads, and that value
+// then reads as a balance of the person. Refer to issue #73.
+describe("appShellOf", () => {
+	const shell = appShellOf(template, head("en"));
+
+	it("keeps the root empty", () => {
+		expect(shell).toContain('<div id="root"></div>');
+	});
+
+	it("gives the head of the language", () => {
+		expect(shell).toContain('<html lang="en">');
+		expect(shell).toContain(
+			"<title>Yume — How many miles your points are worth</title>",
+		);
+		expect(shell).toContain('<meta property="og:locale" content="en_GB" />');
+	});
+
+	it("asks the search engines not to index the page", () => {
+		expect(shell).toContain('<meta name="robots" content="noindex" />');
+	});
+
+	// One shell answers each path. A canonical address or a link hreflang then
+	// gives the address of an other page, and a page with noindex must not say
+	// that it is a copy of the public page.
+	it("holds no canonical address and no link hreflang", () => {
+		expect(shell).not.toContain('rel="canonical"');
+		expect(shell).not.toContain('rel="alternate"');
+	});
+
+	it("holds no structured data", () => {
+		expect(shell).not.toContain("application/ld+json");
+	});
+
+	it("keeps the rest of the template", () => {
+		expect(shell).toContain(
+			'<link rel="manifest" href="/manifest.webmanifest" />',
+		);
+		expect(shell).toContain('<script type="module" src="./main.tsx"></script>');
+	});
+
+	it("stops when the template holds no empty root", () => {
+		const full = template.replace(
+			'<div id="root"></div>',
+			'<div id="root"><h1>X</h1></div>',
+		);
+		expect(() => appShellOf(full, head("en"))).toThrow(/root/);
+	});
+
+	it("stops when the template holds no canonical address", () => {
+		const broken = template.replace(/\t\t<link rel="canonical"[^\n]*\n/, "");
+		expect(() => appShellOf(broken, head("en"))).toThrow(/canonical/);
 	});
 });

@@ -982,6 +982,19 @@ gives a page with no text, and the browser shows no such defect.
 React writes the page again at the load, because `main.tsx` calls `createRoot`. The
 elements of the two are the same, thus a person sees no change.
 
+The same module writes the shell of the application for each language: `dist/app.html`
+for the base language, `dist/en/app.html` for English. `appShellOf` of
+`src/client/lib/head.ts` gives the shell. It holds the head of the language, an empty
+root, no structured data and `<meta name="robots" content="noindex">`. It holds no
+canonical address and no link `hreflang`, because one shell answers each path.
+
+The server gives the shell to each path that no file matches: `/dashboard`, `/login` and
+each 404. `serveStatic` gives `dist/index.html` to `/` only. With one page for each path,
+the browser painted the public page on `/dashboard` before the bundle loaded. The
+`start_url` of the manifest is `/dashboard`, thus each start of the installed application
+showed the example board. That value then read as a balance of the person. The path
+`/app.html` is public, and `noindex` keeps it out of the search engines.
+
 The flaps give a limit to this operation. Each cell holds one card for each character of
 its drum, therefore the HTML holds those characters: `Y Y Y U U U` for the name, and the
 digits of each position for the number. Those elements hold `aria-hidden`, and the

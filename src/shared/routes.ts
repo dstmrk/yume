@@ -2,7 +2,7 @@
  * The paths of the pages of the client.
  *
  * The client and the server both need this list. `src/client/router.tsx` gives
- * one route to each path. The server gives `index.html` to each path of this
+ * one route to each path. The server gives `app.html` to each path of this
  * list with the status 200, and it gives the status 404 to each other path.
  *
  * Without that difference each path gives the status 200 with the page of the
