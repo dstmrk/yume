@@ -1,3 +1,4 @@
+import { routing } from "../../../shared/locale.ts";
 import { useI18n } from "../../i18n/I18n.tsx";
 
 /**
@@ -22,11 +23,24 @@ const SOURCE_URL = "https://github.com/dstmrk/yume";
  * the application, and the pre-render of `prerender.tsx` holds no router.
  */
 export function SiteFooter() {
-	const { t: text } = useI18n();
+	const { t: text, locale } = useI18n();
 	return (
 		<footer className="mt-10 border-board-line border-t pt-4 pb-2 text-board-muted text-xs leading-relaxed">
 			<p>{text.footerDisclaimer}</p>
-			<p className="mt-3">
+			<p className="mt-3 flex gap-4">
+				{/* The legal pages, in the language of the page. */}
+				<a
+					href={routing.pathFor(locale, "/privacy")}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerPrivacy}
+				</a>
+				<a
+					href={routing.pathFor(locale, "/tos")}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerTos}
+				</a>
 				<a
 					href={SOURCE_URL}
 					target="_blank"

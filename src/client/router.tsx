@@ -30,6 +30,7 @@ import {
 import { AppShell } from "./AppShell.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { HomePage } from "./HomePage.tsx";
+import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchSession } from "./lib/api.ts";
 import { loginErrorOf } from "./lib/auth.ts";
@@ -87,10 +88,26 @@ const loginRoute = createRoute({
 	component: () => <LoginPage error={loginRoute.useSearch().error} />,
 });
 
+// The legal pages. Each person reads them, with a session or with no session:
+// Google and the law ask for a public address.
+const privacyRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/privacy",
+	component: () => <LegalPage document="privacy" />,
+});
+
+const tosRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/tos",
+	component: () => <LegalPage document="tos" />,
+});
+
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
 	loginRoute,
+	privacyRoute,
+	tosRoute,
 ]);
 
 /**

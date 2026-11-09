@@ -17,7 +17,13 @@
  */
 import { type Locale, routing } from "./locale.ts";
 
-export const CLIENT_PATHS = ["/", "/dashboard", "/login"] as const;
+export const CLIENT_PATHS = [
+	"/",
+	"/dashboard",
+	"/login",
+	"/privacy",
+	"/tos",
+] as const;
 
 /**
  * Does the client hold a page at this path?

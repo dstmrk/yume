@@ -101,6 +101,8 @@ export const it = {
 	footerDisclaimer:
 		"Yume è un progetto indipendente: non appartiene ad American Express, a Revolut, a Klarna né alle compagnie aeree o ai programmi fedeltà citati. Nomi e loghi sono marchi dei rispettivi proprietari.",
 	footerSource: "Codice su GitHub",
+	footerPrivacy: "Privacy",
+	footerTos: "Termini",
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
@@ -194,6 +196,249 @@ export const it = {
 		access:
 			"Per accedere serve un account Google. Il codice è open source con licenza MIT.",
 		warnings: "Avvertenze",
+	},
+
+	// The page `/privacy`. The structure follows the policy of ScontrinoZero:
+	// articles 13 and 14 of the GDPR. Each section holds paragraphs, a list,
+	// or both. A section with `contact` ends with the address of the instance.
+	// `tos` below has the same shape, thus `LegalPage` shows the two.
+	privacy: {
+		title: "Informativa sul trattamento dei dati personali",
+		subtitle:
+			"ai sensi del Regolamento UE 2016/679 (GDPR) e del D.Lgs. 196/2003",
+		updated: "Ultimo aggiornamento: novembre 2026",
+		contactLead: "Per ogni domanda sui tuoi dati scrivi a",
+		sections: [
+			{
+				title: "1. Titolare del trattamento",
+				paragraphs: [
+					"Il titolare del trattamento è il gestore dell'istanza ufficiale di Yume, yumemiles.com.",
+					"Yume è open source. Chi lo installa sul proprio server è titolare dei dati di quella installazione, e questa informativa non vale per essa.",
+				],
+				items: [],
+				contact: true,
+			},
+			{
+				title: "2. Dati personali trattati",
+				paragraphs: [
+					"Yume tratta solo i dati che servono a mostrarti saldi e miglia potenziali.",
+				],
+				items: [
+					"Dall'account Google, al primo accesso: nome, indirizzo email, immagine del profilo e identificativo dell'account. Yume conserva anche i token che Google restituisce all'accesso.",
+					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le valute preferite.",
+					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
+					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",
+				],
+				contact: false,
+			},
+			{
+				title: "3. Finalità e basi giuridiche",
+				paragraphs: [],
+				items: [
+					"Accesso, gestione dell'account e calcolo delle miglia potenziali: esecuzione del contratto (art. 6(1)(b) GDPR).",
+					"Sicurezza delle sessioni e prevenzione degli abusi: legittimo interesse (art. 6(1)(f) GDPR).",
+					"Risposta alle autorità nei casi previsti dalla legge: obbligo di legge (art. 6(1)(c) GDPR).",
+					"Yume non fa profilazione né pubblicità, non usa servizi di analisi e non traccia il comportamento.",
+				],
+				contact: false,
+			},
+			{
+				title: "4. Natura del conferimento",
+				paragraphs: [
+					"Nome ed email dell'account Google sono necessari: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "5. Destinatari",
+				paragraphs: [
+					"I dati restano sul server dell'istanza e non sono venduti né ceduti a terzi per loro finalità. Ricevono dati solo:",
+				],
+				items: [
+					"Google Ireland Ltd, che gestisce l'accesso con il tuo account Google come titolare autonomo. Informativa: policies.google.com/privacy.",
+					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
+					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
+				],
+				contact: false,
+			},
+			{
+				title: "6. Trasferimenti extra-UE",
+				paragraphs: [
+					"Google e Cloudflare possono trattare dati negli Stati Uniti. Il trasferimento si basa sul Data Privacy Framework UE-USA e sulle Clausole Contrattuali Standard della Commissione europea (decisione 2021/914).",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "7. Periodo di conservazione",
+				paragraphs: [],
+				items: [
+					"Account, programmi e saldi: finché l'account esiste. Dopo una richiesta di cancellazione sono eliminati entro 30 giorni.",
+					"Sessione, con indirizzo IP e browser: finché la sessione esiste. Una sessione scade 7 giorni dopo l'ultimo uso e si chiude subito con Esci.",
+				],
+				contact: false,
+			},
+			{
+				title: "8. Diritti dell'interessato",
+				paragraphs: [
+					"Ai sensi degli artt. 15–22 GDPR puoi chiedere l'accesso ai tuoi dati e una copia (art. 15), la rettifica (art. 16), la cancellazione (art. 17), la limitazione (art. 18), la portabilità in formato JSON (art. 20) e opporti al trattamento basato sul legittimo interesse (art. 21).",
+					"Puoi proporre reclamo al Garante per la protezione dei dati personali (www.gpdp.it), ai sensi dell'art. 77 GDPR.",
+					"Rispondiamo entro 30 giorni dalla richiesta (art. 12 GDPR).",
+				],
+				items: [],
+				contact: true,
+			},
+			{
+				title: "9. Minori",
+				paragraphs: [
+					"Yume non è rivolto a chi ha meno di 14 anni (art. 2-quinquies D.Lgs. 196/2003). Se veniamo a sapere che un account appartiene a un minore di 14 anni, lo cancelliamo.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "10. Cookie",
+				paragraphs: [
+					"Yume usa solo cookie tecnici, necessari all'accesso: il cookie della sessione, valido 7 giorni dall'ultimo uso, e un cookie temporaneo che protegge il passaggio da Google. Nessun cookie di profilazione o di terze parti: per questo la pagina non chiede un consenso (Linee guida del Garante sui cookie del 10 giugno 2021).",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "11. Aggiornamenti",
+				paragraphs: [
+					"La data in alto indica l'ultima modifica. Una modifica sostanziale riporta in questa pagina la nuova data e il cambiamento.",
+				],
+				items: [],
+				contact: false,
+			},
+		],
+	},
+
+	// The page `/tos`. The structure follows the terms of ScontrinoZero. Yume
+	// is for private persons, not for professionals: thus the Code of the
+	// consumer applies, and the court is the court of the consumer.
+	tos: {
+		title: "Termini del servizio",
+		subtitle: "Condizioni d'uso di yumemiles.com",
+		updated: "Ultimo aggiornamento: novembre 2026",
+		contactLead: "Per informazioni o reclami scrivi a",
+		sections: [
+			{
+				title: "1. Oggetto del servizio",
+				paragraphs: [
+					"Yume è un servizio gratuito che mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
+					"Yume non si collega ai tuoi conti, non legge i saldi in automatico e non trasferisce punti. Non appartiene ad American Express, a Revolut, a Klarna né ai programmi fedeltà citati.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "2. Accettazione",
+				paragraphs: [
+					"Il primo accesso con il tuo account Google crea l'account Yume e comporta l'accettazione di questi Termini e la presa visione dell'Informativa privacy.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "3. Requisiti",
+				paragraphs: [],
+				items: [
+					"Un account Google valido.",
+					"Almeno 14 anni di età. Se hai meno di 18 anni serve il consenso di un genitore.",
+					"Uso personale e non commerciale.",
+				],
+				contact: false,
+			},
+			{
+				title: "4. Account e sicurezza",
+				paragraphs: [
+					"L'accesso dipende dal tuo account Google: sei tu a custodirlo. Se perdi l'accesso all'account Google, perdi anche l'accesso a Yume. Se noti un accesso che non hai fatto tu, esci da Yume e scrivici.",
+				],
+				items: [],
+				contact: true,
+			},
+			{
+				title: "5. Natura dei valori calcolati",
+				paragraphs: [],
+				items: [
+					"Le miglia potenziali sono un calcolo, non un saldo. Sono un massimo per ogni valuta: gli stessi punti non vanno su due programmi.",
+					"I rapporti di trasferimento vengono dalle pagine ufficiali dei programmi e hanno una data. I programmi possono cambiarli senza preavviso.",
+					"Un trasferimento di punti è definitivo. Prima di trasferire, verifica rapporto, minimi e disponibilità sul sito del programma.",
+					"Yume non fornisce consulenza finanziaria e non sceglie per te.",
+				],
+				contact: false,
+			},
+			{
+				title: "6. Obblighi dell'utente",
+				paragraphs: [],
+				items: [
+					"Usare il servizio nel rispetto della legge.",
+					"Non tentare di accedere ai dati di altri utenti né di aggirare le misure di sicurezza.",
+					"Non sovraccaricare il servizio con richieste automatiche.",
+				],
+				contact: false,
+			},
+			{
+				title: "7. Disponibilità del servizio",
+				paragraphs: [
+					"Yume è gratuito e fornito così com'è. Non garantiamo continuità né assenza di errori, e possiamo cambiare o sospendere funzioni. Se il servizio chiude, lo annunciamo su questa pagina almeno 30 giorni prima: in quel periodo puoi chiedere una copia dei tuoi dati.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "8. Responsabilità",
+				paragraphs: [
+					"Nei limiti consentiti dalla legge, il gestore non risponde di perdite di punti o miglia, di trasferimenti decisi in base ai calcoli, di modifiche dei programmi fedeltà o di interruzioni dovute a servizi di terzi. Restano salve la responsabilità per dolo o colpa grave (art. 1229 c.c.) e i diritti che il Codice del Consumo (D.Lgs. 206/2005) riconosce al consumatore.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "9. Cancellazione e sospensione",
+				paragraphs: [
+					"Puoi chiedere la cancellazione del tuo account in ogni momento scrivendoci. I dati sono rimossi come descritto nell'Informativa privacy.",
+					"Possiamo sospendere o chiudere un account che viola questi Termini, con un avviso via email quando è possibile.",
+				],
+				items: [],
+				contact: true,
+			},
+			{
+				title: "10. Proprietà intellettuale",
+				paragraphs: [
+					"Il codice di Yume è open source con licenza MIT. I nomi e i loghi dei programmi fedeltà, delle carte e delle compagnie aeree sono marchi dei rispettivi proprietari e servono solo a identificarli.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "11. Dati personali",
+				paragraphs: [
+					"Il trattamento dei dati personali è descritto nell'Informativa privacy, alla pagina /privacy.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "12. Modifiche ai Termini",
+				paragraphs: [
+					"La data in alto indica l'ultima modifica. Una modifica sostanziale riporta in questa pagina la nuova data e il cambiamento, almeno 15 giorni prima dell'entrata in vigore. Se continui a usare Yume dopo quella data, accetti i nuovi Termini.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "13. Legge applicabile e foro competente",
+				paragraphs: [
+					"Questi Termini sono regolati dalla legge italiana. Per le controversie con un consumatore è competente il foro del luogo di residenza o domicilio del consumatore (art. 66-bis D.Lgs. 206/2005).",
+				],
+				items: [],
+				contact: true,
+			},
+		],
 	},
 };
 
