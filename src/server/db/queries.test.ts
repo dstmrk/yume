@@ -11,12 +11,21 @@ import {
 	createAccount,
 	currentBalances,
 	deleteAccount,
+	deleteExpired,
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
 	removeFavorite,
 } from "./queries.ts";
-import { balanceSnapshot, user } from "./schema.ts";
+import {
+	account,
+	balanceSnapshot,
+	favoriteCurrency,
+	session,
+	user,
+	userAccount,
+	verification,
+} from "./schema.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
 const USER = "user-1";
@@ -468,5 +477,98 @@ describe("the favourites of the user", () => {
 		expect(() =>
 			addFavorite(db, { userId: USER, currencyId: "does-not-exist" }),
 		).toThrow();
+	});
+});
+
+describe("deleteExpired", () => {
+	/** The moment of the cleanup. The columns hold seconds, thus no milliseconds. */
+	const NOW = new Date("2026-11-09T12:00:00Z");
+	const BEFORE = new Date(NOW.getTime() - 1000);
+	const AFTER = new Date(NOW.getTime() + 1000);
+
+	function writeSession(id: string, expiresAt: Date): void {
+		db.insert(session)
+			.values({
+				id,
+				expiresAt,
+				token: `token-${id}`,
+				createdAt: NOW,
+				updatedAt: NOW,
+				ipAddress: "192.0.2.1",
+				userAgent: "Test",
+				userId: USER,
+			})
+			.run();
+	}
+
+	function writeVerification(id: string, expiresAt: Date): void {
+		db.insert(verification)
+			.values({
+				id,
+				identifier: `state-${id}`,
+				value: "{}",
+				expiresAt,
+				createdAt: NOW,
+				updatedAt: NOW,
+			})
+			.run();
+	}
+
+	function ids(table: typeof session | typeof verification): string[] {
+		return db
+			.select({ id: table.id })
+			.from(table)
+			.all()
+			.map((row) => row.id)
+			.sort();
+	}
+
+	it("removes an expired session and keeps a valid session", () => {
+		writeSession("expired", BEFORE);
+		writeSession("valid", AFTER);
+		expect(deleteExpired(db, NOW)).toEqual({ sessions: 1, verifications: 0 });
+		expect(ids(session)).toEqual(["valid"]);
+	});
+
+	it("keeps a session that expires at the moment of the cleanup", () => {
+		writeSession("now", NOW);
+		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 0 });
+		expect(ids(session)).toEqual(["now"]);
+	});
+
+	it("removes an expired verification and keeps a sign-in in progress", () => {
+		writeVerification("expired", BEFORE);
+		writeVerification("valid", AFTER);
+		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 1 });
+		expect(ids(verification)).toEqual(["valid"]);
+	});
+
+	it("changes no user, no credential and no data of the application", () => {
+		db.insert(account)
+			.values({
+				id: "google-1",
+				accountId: "sub-1",
+				providerId: "google",
+				userId: USER,
+				createdAt: NOW,
+				updatedAt: NOW,
+			})
+			.run();
+		const accountId = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, { accountId, points: 1000, observedAt: "2026-11-01" });
+		addFavorite(db, { userId: USER, currencyId: "avios" });
+		writeSession("expired", BEFORE);
+
+		deleteExpired(db, NOW);
+
+		expect(db.select().from(user).all()).toHaveLength(2);
+		expect(db.select().from(account).all()).toHaveLength(1);
+		expect(db.select().from(userAccount).all()).toHaveLength(1);
+		expect(db.select().from(balanceSnapshot).all()).toHaveLength(1);
+		expect(db.select().from(favoriteCurrency).all()).toHaveLength(1);
+	});
+
+	it("gives zero and throws nothing with no rows", () => {
+		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 0 });
 	});
 });

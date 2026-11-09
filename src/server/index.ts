@@ -13,6 +13,7 @@ import { pageOfPath } from "../shared/routes.ts";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
+import { deleteExpired } from "./db/queries.ts";
 
 const url = process.env.DATABASE_URL ?? "./data/yume.db";
 const port = Number(process.env.PORT ?? 3000);
@@ -57,6 +58,24 @@ const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? "")
 	.filter((origin) => origin !== "");
 
 const db = openDatabase(url);
+
+/**
+ * Removes the expired sessions at the start and then one time each day.
+ *
+ * A container can run for weeks, thus the call at the start is not
+ * sufficient. An error stops no request: the next call tries again.
+ * `unref` lets the process stop with the timer active.
+ */
+const CLEANUP_INTERVAL_MS = 24 * 60 * 60 * 1000;
+function cleanExpired(): void {
+	try {
+		deleteExpired(db, new Date());
+	} catch (error) {
+		console.error("The cleanup of the expired sessions failed.", error);
+	}
+}
+cleanExpired();
+setInterval(cleanExpired, CLEANUP_INTERVAL_MS).unref();
 
 const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
 const app = createApp(db, auth);

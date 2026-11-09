@@ -1,12 +1,14 @@
-import { and, asc, eq, sql } from "drizzle-orm";
+import { and, asc, eq, lt, sql } from "drizzle-orm";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
 	currency,
 	favoriteCurrency,
 	program,
+	session,
 	transferRule,
 	userAccount,
+	verification,
 } from "./schema.ts";
 
 /** An account of the user with its most recent snapshot. */
@@ -223,4 +225,30 @@ export function addSnapshot(
 		})
 		.run();
 	return id;
+}
+
+/**
+ * Removes each expired row of `session` and of `verification`. It gives the
+ * quantity of rows that it removes from each table.
+ *
+ * Better Auth removes an expired session only when the browser sends its
+ * cookie. The cookie expires with the session, thus the browser never sends it
+ * again, and the row keeps the IP address and the browser. Section 9 of the
+ * privacy policy says that those data stay while the session exists. Paragraph
+ * 4 of `docs/architecture.md` gives the schedule of this function.
+ *
+ * A row that expires at `now` stays until the next call.
+ */
+export function deleteExpired(
+	db: Db,
+	now: Date,
+): { sessions: number; verifications: number } {
+	return db.transaction((tx) => ({
+		sessions: tx.delete(session).where(lt(session.expiresAt, now)).run()
+			.changes,
+		verifications: tx
+			.delete(verification)
+			.where(lt(verification.expiresAt, now))
+			.run().changes,
+	}));
 }
