@@ -418,10 +418,11 @@ module. An `overrides` in `package.json` gives the version of the project to npm
 
 ### 4.6 The supporter account
 
-Status: **accepted**. Date: 2026-10-06. No code implements this decision now.
+Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. No code implements
+this decision now.
 
 The official instance gives two levels of account: the free account and the supporter
-account. The supporter account has one price: 4,99 euros for one year. No other plan
+account. The supporter account has one price: 9,99 euros for one year. No other plan
 exists.
 
 **The free account holds these limits:**
