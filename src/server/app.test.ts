@@ -8,10 +8,8 @@ import {
 	addFavorite,
 	addSnapshot,
 	createAccount,
-	createInvitation,
 	currentBalances,
 	favoriteCurrencies,
-	findInvitation,
 } from "./db/queries.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
@@ -80,8 +78,6 @@ describe("the session", () => {
 		["DELETE", "/api/accounts/an-account"],
 		["DELETE", "/api/accounts/an-account/snapshots/a-snapshot"],
 		["GET", "/api/potential"],
-		["GET", "/api/invitations"],
-		["POST", "/api/invitations"],
 		["GET", "/api/favorites"],
 		["PUT", "/api/favorites/avios"],
 		["DELETE", "/api/favorites/avios"],
@@ -394,73 +390,6 @@ describe("DELETE /api/accounts/:id/snapshots/:snapshotId", () => {
 
 		expect(response.status).toBe(404);
 		expect(currentBalances(db, OTHER_USER)).toMatchObject([{ points: 100 }]);
-	});
-});
-
-describe("the routes of the invitations", () => {
-	type Body = {
-		invitations: { code: string; expiresAt: string; state: string }[];
-		left: number;
-	};
-
-	it("gives two free slots to a user with no invitation", async () => {
-		expect(await getJson<Body>("/api/invitations")).toEqual({
-			invitations: [],
-			left: 2,
-		});
-	});
-
-	it("writes an invitation and gives the code", async () => {
-		const response = await post("/api/invitations", {});
-		expect(response.status).toBe(201);
-
-		const written = (await response.json()) as { code: string };
-		expect(written.code).toHaveLength(10);
-		expect(findInvitation(db, written.code)?.createdByUserId).toBe(userId);
-	});
-
-	it("gives the invitation and one free slot after the first code", async () => {
-		await post("/api/invitations", {});
-
-		const body = await getJson<Body>("/api/invitations");
-		expect(body.left).toBe(1);
-		expect(body.invitations).toMatchObject([{ state: "valid" }]);
-	});
-
-	it("gives the status 409 for the third invitation", async () => {
-		await post("/api/invitations", {});
-		await post("/api/invitations", {});
-
-		const response = await post("/api/invitations", {});
-		expect(response.status).toBe(409);
-		expect(await getJson<Body>("/api/invitations")).toMatchObject({ left: 0 });
-	});
-
-	// The limit belongs to one user, thus the route reads only the invitations
-	// of the user of the session.
-	it("gives no invitation of an other user", async () => {
-		createInvitation(db, {
-			code: "DI-UN-ALTRO",
-			createdByUserId: OTHER_USER,
-			expiresAt: "2099-01-01T00:00:00.000Z",
-		});
-
-		expect(await getJson<Body>("/api/invitations")).toEqual({
-			invitations: [],
-			left: 2,
-		});
-	});
-
-	it("gives the state of an invitation that expired", async () => {
-		createInvitation(db, {
-			code: "VECCHIO",
-			createdByUserId: userId,
-			expiresAt: "2020-01-01T00:00:00.000Z",
-		});
-
-		const body = await getJson<Body>("/api/invitations");
-		expect(body.invitations).toMatchObject([{ state: "expired" }]);
-		expect(body.left).toBe(2);
 	});
 });
 
