@@ -158,7 +158,6 @@ export const it = {
 	signInWithGoogle: "Accedi con Google",
 	signInNote: "Il primo accesso crea il tuo account.",
 	signInError: "Accesso con Google non riuscito.",
-	homeSignInNote: "Ti basta un account Google.",
 	signOut: "Esci",
 
 	// The structured data of the public page. Refer to `lib/jsonLd.ts`.
