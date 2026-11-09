@@ -224,7 +224,7 @@ that field necessary in the type. Then add the suppression with the reason.
 
 Do not give a name that starts with `use` to a function of the server. Biome reads such a
 name as a hook of React. Then the rule `useHookAtTopLevel` gives an error at an early
-return, also in a file with no React. Write `markInvitationUsed`, not `useInvitation`.
+return, also in a file with no React. Write `markCodeUsed`, not `useCode`.
 
 ## Commands
 
@@ -267,14 +267,6 @@ The three commands of the database use `DATABASE_URL`. The default value is
 
 Google is the only provider of the sign-in. The first sign-in of a Google account makes
 the user. Paragraph 4.1 of `docs/architecture.md` gives the reasons.
-
-Each user has two invitations and each code is valid for 24 hours. The dashboard writes
-an invitation. The administrator has the same operation on the machine of the server.
-Paragraph 4.2 of `docs/architecture.md` gives the rules:
-
-```bash
-npm run auth:invite -- <email of the user who invites> [email]
-```
 
 The server needs `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 The server stops without one of those variables. `npm run dev:server` gives a key for
@@ -322,6 +314,9 @@ bash .claude/hooks/test-block-private-data-commit.sh
 - Do work on a feature branch. Do not commit to `main`.
 - Write a commit message in the imperative form. Give the reason for the change.
 - Commit the generated migrations in `drizzle/`.
+- Test a migration on the data of an old version. Copy `drizzle/` with a short journal,
+  apply it, write the old rows, then apply the full folder. `schema.test.ts` holds the
+  example.
 - Do not commit the database file, the `data/` directory or a `.env` file.
 
 ## Hooks

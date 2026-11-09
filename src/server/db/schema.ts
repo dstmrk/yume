@@ -94,29 +94,6 @@ export const verification = sqliteTable("verification", {
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
 
-/**
- * An invitation to the application.
- *
- * Registration is possible only with an invitation. A hook of Better Auth
- * examines the code at the sign-up. Then the same operation writes `used_at`
- * and `used_by_user_id`. Paragraph 4 of `docs/architecture.md` gives the rule.
- *
- * The dates are text in the ISO 8601 format, as in the other tables of the
- * application. Better Auth does not control this table.
- */
-export const invitation = sqliteTable("invitation", {
-	id: text("id").primaryKey(),
-	code: text("code").notNull().unique(),
-	createdByUserId: text("created_by_user_id")
-		.notNull()
-		.references(() => user.id),
-	/** The address of the person who receives the code. It is only a note. */
-	email: text("email"),
-	expiresAt: text("expires_at").notNull(),
-	usedAt: text("used_at"),
-	usedByUserId: text("used_by_user_id").references(() => user.id),
-});
-
 /** A currency of points or of miles. More than one programme can use one currency. */
 export const currency = sqliteTable("currency", {
 	id: text("id").primaryKey(),

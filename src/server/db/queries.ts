@@ -1,19 +1,11 @@
-import { and, asc, count, eq, isNull, sql } from "drizzle-orm";
-import {
-	endOfValidity,
-	heldSlots,
-	INVITATION_LIMIT,
-	newCode,
-} from "../invitation.ts";
+import { and, asc, eq, sql } from "drizzle-orm";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
 	currency,
 	favoriteCurrency,
-	invitation,
 	program,
 	transferRule,
-	user,
 	userAccount,
 } from "./schema.ts";
 
@@ -93,108 +85,6 @@ export function allTransferRules(db: Db) {
 		.from(transferRule)
 		.orderBy(asc(transferRule.fromProgramId), asc(transferRule.toProgramId))
 		.all();
-}
-
-/**
- * Gives the quantity of users.
- *
- * The hook of the sign-up reads this quantity. A database with no user accepts
- * the code of the setup. Paragraph 4 of `docs/architecture.md` gives the rule.
- */
-export function countUsers(db: Db): number {
-	return db.select({ value: count() }).from(user).get()?.value ?? 0;
-}
-
-/** Finds the user with the address. The script of the invitation needs it. */
-export function findUserByEmail(db: Db, email: string) {
-	return db.select().from(user).where(eq(user.email, email)).get();
-}
-
-/** Writes an invitation. It gives the id of the new row. */
-export function createInvitation(
-	db: Db,
-	input: {
-		code: string;
-		createdByUserId: string;
-		email?: string | null;
-		expiresAt: string;
-	},
-): string {
-	const id = crypto.randomUUID();
-	db.insert(invitation)
-		.values({
-			id,
-			code: input.code,
-			createdByUserId: input.createdByUserId,
-			email: input.email ?? null,
-			expiresAt: input.expiresAt,
-		})
-		.run();
-	return id;
-}
-
-/** Gives each invitation that the user wrote, from the first date of the end. */
-export function invitationsOfUser(db: Db, userId: string) {
-	return db
-		.select()
-		.from(invitation)
-		.where(eq(invitation.createdByUserId, userId))
-		.orderBy(asc(invitation.expiresAt))
-		.all();
-}
-
-/**
- * Writes an invitation of the user. It gives null when the user has no slot.
- *
- * The limit is `INVITATION_LIMIT` slots. The two operations of this function
- * hold no `await`, thus no other request writes a row between the examination
- * and the insert.
- */
-export function createInvitationForUser(
-	db: Db,
-	input: { userId: string; email?: string | null; at: string },
-): { code: string; expiresAt: string } | null {
-	const slots = heldSlots(invitationsOfUser(db, input.userId), input.at);
-	if (slots >= INVITATION_LIMIT) {
-		return null;
-	}
-
-	const code = newCode();
-	const expiresAt = endOfValidity(input.at);
-	createInvitation(db, {
-		code,
-		createdByUserId: input.userId,
-		email: input.email,
-		expiresAt,
-	});
-	return { code, expiresAt };
-}
-
-/** Finds the invitation with the code. It gives undefined for an unknown code. */
-export function findInvitation(db: Db, code: string) {
-	return db.select().from(invitation).where(eq(invitation.code, code)).get();
-}
-
-/**
- * Marks the invitation as used by the user.
- *
- * The condition holds `used_at is null`. Therefore two sign-ups with the same
- * code cannot both mark the invitation, and the result gives the number of the
- * rows that changed. It gives true when this call marked the invitation.
- *
- * The name of this function does not start with `use`: Biome reads such a name
- * as a hook of React and it gives an error at an early return.
- */
-export function markInvitationUsed(
-	db: Db,
-	input: { code: string; userId: string; at: string },
-): boolean {
-	const result = db
-		.update(invitation)
-		.set({ usedAt: input.at, usedByUserId: input.userId })
-		.where(and(eq(invitation.code, input.code), isNull(invitation.usedAt)))
-		.run();
-	return result.changes === 1;
 }
 
 /** Adds an account of the user. It gives the id of the new account. */

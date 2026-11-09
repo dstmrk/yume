@@ -17,8 +17,7 @@
 		"build": "vite build && vite build --ssr prerender.tsx --outDir ../../dist-ssr && node dist-ssr/prerender.js",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "node --experimental-strip-types src/server/db/migrate.ts",
-		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts",
-		"auth:invite": "node --experimental-strip-types src/server/scripts/invite.ts"
+		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
 	},
 	"overrides": {
 		"better-auth": {

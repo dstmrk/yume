@@ -11,13 +11,16 @@
  * fails when a person changes `schema.ts` and does not run `npm run db:generate`.
  */
 
+import { cpSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { getAuthTables } from "better-auth/db";
 import { eq, getTableColumns, getTableName, is, sql, Table } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
-import { addSnapshot, createAccount } from "./queries.ts";
+import { addFavorite, addSnapshot, createAccount } from "./queries.ts";
 import * as schema from "./schema.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
@@ -100,34 +103,80 @@ describe("the removal of a user", () => {
 	});
 });
 
-describe("the table invitation", () => {
-	it("refuses two invitations with the same code", () => {
-		const now = new Date();
-		db.insert(schema.user)
-			.values({
-				id: "user-1",
-				name: "Uno",
-				email: "uno@example.com",
-				emailVerified: false,
-				createdAt: now,
-				updatedAt: now,
-			})
-			.run();
+/**
+ * The migration of the sign-in with Google. Paragraph 4.2 of
+ * `docs/architecture.md` gives the decision: the data of the first version goes
+ * away, and the table `invitation` goes away.
+ *
+ * The test applies the migrations of the first version from a copy of
+ * `drizzle/` with a short journal. Then it writes the rows of a user of that
+ * version and applies the other migrations.
+ */
+describe("the migration of the sign-in with Google", () => {
+	/** The last migration of the version with the invitations. */
+	const LAST_OLD = "0005_clear_maelstrom";
 
-		const invitation = {
-			code: "ABC123",
-			createdByUserId: "user-1",
-			expiresAt: "2026-12-31",
+	function oldMigrations(): string {
+		const folder = mkdtempSync(join(tmpdir(), "yume-drizzle-"));
+		cpSync("drizzle", folder, { recursive: true });
+		const path = join(folder, "meta", "_journal.json");
+		const journal = JSON.parse(readFileSync(path, "utf8")) as {
+			entries: { idx: number; tag: string }[];
 		};
-		db.insert(schema.invitation)
-			.values({ id: "invitation-1", ...invitation })
-			.run();
+		const last = journal.entries.findIndex((entry) => entry.tag === LAST_OLD);
+		expect(last).toBeGreaterThan(-1);
+		journal.entries = journal.entries.slice(0, last + 1);
+		writeFileSync(path, JSON.stringify(journal));
+		return folder;
+	}
 
-		expect(() =>
-			db
-				.insert(schema.invitation)
-				.values({ id: "invitation-2", ...invitation })
-				.run(),
-		).toThrow();
+	function tablesOf(old: Db): string[] {
+		return old
+			.all<{ name: string }>(
+				sql`select name from sqlite_master where type = 'table'`,
+			)
+			.map((row) => row.name);
+	}
+
+	it("removes the users of the first version and their data", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: oldMigrations() });
+		seedCatalogue(old);
+		expect(tablesOf(old)).toContain("invitation");
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', 'Autore', 'autore@example.com', 0, ${now}, ${now})`);
+		old.run(sql`insert into account (id, account_id, provider_id, user_id, password, created_at, updated_at)
+			values ('account-1', 'author', 'credential', 'author', 'hash', ${now}, ${now})`);
+		old.run(sql`insert into session (id, token, user_id, expires_at, created_at, updated_at)
+			values ('session-1', 'token-1', 'author', ${now + 3600}, ${now}, ${now})`);
+		old.run(sql`insert into verification (id, identifier, value, expires_at, created_at, updated_at)
+			values ('verification-1', 'x', 'y', ${now + 3600}, ${now}, ${now})`);
+		old.run(sql`insert into invitation (id, code, created_by_user_id, expires_at)
+			values ('invitation-1', 'ABCDEFGHJK', 'author', '2026-12-31')`);
+		const accountId = createAccount(old, {
+			userId: "author",
+			programId: "amex-mr",
+		});
+		addSnapshot(old, { accountId, points: 1900, observedAt: "2026-11-01" });
+		addFavorite(old, { userId: "author", currencyId: "revpoints" });
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		expect(tablesOf(old)).not.toContain("invitation");
+		for (const table of [
+			schema.user,
+			schema.account,
+			schema.session,
+			schema.verification,
+			schema.userAccount,
+			schema.balanceSnapshot,
+			schema.favoriteCurrency,
+		]) {
+			expect(old.select().from(table).all(), getTableName(table)).toEqual([]);
+		}
+		// The catalogue is application data, not user data. It stays.
+		expect(old.select().from(schema.program).all().length).toBeGreaterThan(0);
 	});
 });
