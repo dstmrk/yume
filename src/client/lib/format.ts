@@ -1,8 +1,25 @@
 /**
- * The format of the numbers and of the dates, for Italy.
+ * The format of the numbers and of the dates.
  *
- * Refer to the section Rules for the user interface in `CLAUDE.md`.
+ * Each function receives the locale of `Intl` of the language of the page.
+ * Paragraph 5.8 of `docs/architecture.md` gives the rule.
  */
+
+/**
+ * One formatter for each locale. A new formatter of `Intl` is slow, and the
+ * board writes many numbers.
+ */
+function cached<T>(make: (intl: string) => T): (intl: string) => T {
+	const made = new Map<string, T>();
+	return (intl) => {
+		let value = made.get(intl);
+		if (value === undefined) {
+			value = make(intl);
+			made.set(intl, value);
+		}
+		return value;
+	};
+}
 
 /**
  * The option `useGrouping: "always"` is necessary. The locale `it-IT` starts the
@@ -10,26 +27,32 @@
  * board the two numbers are one above the other, and the difference is an error
  * for the eye.
  */
-const points = new Intl.NumberFormat("it-IT", { useGrouping: "always" });
+const points = cached(
+	(intl) => new Intl.NumberFormat(intl, { useGrouping: "always" }),
+);
 
-const day = new Intl.DateTimeFormat("it-IT", {
-	day: "numeric",
-	month: "short",
-	year: "numeric",
-	timeZone: "UTC",
-});
+const day = cached(
+	(intl) =>
+		new Intl.DateTimeFormat(intl, {
+			day: "numeric",
+			month: "short",
+			year: "numeric",
+			timeZone: "UTC",
+		}),
+);
 
-/** Writes a quantity of points with the separators of Italy: 1900 gives 1.900. */
-export function formatPoints(value: number): string {
-	return points.format(value);
+/** Writes a quantity of points: 1900 gives 1.900 in Italian. */
+export function formatPoints(value: number, intl: string): string {
+	return points(intl).format(value);
 }
 
 /**
- * Writes a date of the ISO 8601 format for a person: 2026-08-11 gives 11 ago 2026.
+ * Writes a date of the ISO 8601 format for a person: 2026-08-11 gives 11 ago
+ * 2026 in Italian.
  *
  * The function reads the three parts of the date and makes a date in UTC. A
  * date from `new Date("2026-08-11")` is midnight in UTC, and a format in the
- * time of Italy can then give the day before.
+ * time of the user can then give the day before.
  *
  * A date that the function cannot read gives the same text.
  * Thus a defect in the data shows a value and it stops no page. The
@@ -37,7 +60,7 @@ export function formatPoints(value: number): string {
  * holds three parts, but one part is not a number and the format then gives a
  * RangeError.
  */
-export function formatDate(iso: string): string {
+export function formatDate(iso: string, intl: string): string {
 	const [year, month, date] = iso.split("-").map(Number);
 	if (
 		year === undefined ||
@@ -49,5 +72,5 @@ export function formatDate(iso: string): string {
 	) {
 		return iso;
 	}
-	return day.format(new Date(Date.UTC(year, month - 1, date)));
+	return day(intl).format(new Date(Date.UTC(year, month - 1, date)));
 }

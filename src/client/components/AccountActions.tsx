@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useI18n } from "../i18n/I18n.tsx";
 import { deleteAccount, deleteSnapshot } from "../lib/api.ts";
-import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 
 /**
@@ -19,6 +19,7 @@ export function AccountActions({
 	/** The most recent snapshot. It is null when the account has no balance. */
 	snapshotId: string | null;
 }) {
+	const { t: text } = useI18n();
 	return (
 		<div className="flex flex-wrap gap-2">
 			{snapshotId !== null && (
@@ -47,6 +48,7 @@ function Confirm({
 	question: string;
 	action: () => Promise<void>;
 }) {
+	const { t: text } = useI18n();
 	const [open, setOpen] = useState(false);
 	const queryClient = useQueryClient();
 	const remove = useMutation({

@@ -12,6 +12,7 @@ import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { Button } from "./components/ui/button.tsx";
+import { useI18n } from "./i18n/I18n.tsx";
 import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
 import {
 	fetchAccounts,
@@ -27,9 +28,9 @@ import { formatDate, formatPoints } from "./lib/format.ts";
 import type { GroupedRoute } from "./lib/routes.ts";
 import { groupRoutes } from "./lib/routes.ts";
 import { byValueDesc } from "./lib/sort.ts";
-import { text } from "./text.ts";
 
 export function Dashboard() {
+	const { t: text, intl } = useI18n();
 	const [expanded, setExpanded] = useState(false);
 	const queryClient = useQueryClient();
 	const catalogue = useQuery({
@@ -229,7 +230,7 @@ export function Dashboard() {
 										<SplitFlapNumber value={account.points} variant="balance" />
 										{account.observedAt !== null && (
 											<span className="text-board-muted text-xs">
-												{text.observedOn} {formatDate(account.observedAt)}
+												{text.observedOn} {formatDate(account.observedAt, intl)}
 											</span>
 										)}
 									</span>
@@ -261,6 +262,7 @@ export function Dashboard() {
  * `/dashboard` then finds no session and it sends the user to `/login`.
  */
 function SignOutButton() {
+	const { t: text } = useI18n();
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const leave = useMutation({
@@ -309,6 +311,7 @@ function CurrencyCard({
 	favorite: boolean;
 	onToggleFavorite: () => void;
 }) {
+	const { t: text, intl } = useI18n();
 	return (
 		<BoardPanel
 			title={title}
@@ -337,7 +340,7 @@ function CurrencyCard({
 								{name(account.programId)}
 							</ProgramName>
 							<span className="shrink-0 tabular-nums">
-								{formatPoints(account.points ?? 0)}
+								{formatPoints(account.points ?? 0, intl)}
 							</span>
 						</li>
 					))}
@@ -371,6 +374,7 @@ const AIRLINES_LINE_LENGTH = 40;
  * in the card, as the button of the routes does.
  */
 function AirlinesLine({ names }: { names: readonly string[] }) {
+	const { t: text } = useI18n();
 	const [open, setOpen] = useState(false);
 	const { shown, hidden } = airlinesSummary(names, AIRLINES_LINE_LENGTH);
 
@@ -407,6 +411,7 @@ function RouteRow({
 	route: GroupedRoute;
 	name: (programId: string) => string;
 }) {
+	const { t: text, intl } = useI18n();
 	const [open, setOpen] = useState(false);
 	const panelId = `routes-${route.fromProgramId}`;
 
@@ -437,7 +442,7 @@ function RouteRow({
 					</button>
 				</span>
 				<span className="shrink-0 text-board-amber tabular-nums">
-					+{formatPoints(route.points)}
+					+{formatPoints(route.points, intl)}
 				</span>
 			</div>
 
@@ -454,7 +459,7 @@ function RouteRow({
 									{name(option.toProgramId)}
 								</ProgramName>
 								<span className="shrink-0 tabular-nums">
-									{formatPoints(option.points)}
+									{formatPoints(option.points, intl)}
 								</span>
 							</li>
 						))}

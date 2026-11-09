@@ -13,57 +13,36 @@
  * page needs its own graph and a `BreadcrumbList`.
  */
 
+import { DEFAULT_COUNTRY } from "../../shared/catalogue.ts";
+import type { I18n } from "../i18n/messages.ts";
+
 /** The context of each item. schema.org gives the vocabulary. */
 const CONTEXT = "https://schema.org";
+
+/**
+ * The text of each item comes from the language of the page, in `t.jsonLd`.
+ * The country of `areaServed` comes from the market, not from the language:
+ * paragraph 5.8 of `docs/architecture.md` gives the difference.
+ */
 
 /** An item of the graph. Each item holds the context and the type. */
 export type JsonLdItem = Record<string, unknown>;
 
 /**
- * The subjects of the application.
- *
- * A search engine and an assistant read this list to know on what questions
- * this site is a source. Each item is a subject that the page covers with a
- * text, not a function of the product: the functions are in `featureList`.
- */
-const KNOWS_ABOUT = [
-	"Avios",
-	"Membership Rewards",
-	"RevPoints",
-	"Cashback Klarna",
-	"Miglia aeree",
-	"Trasferimento punti",
-	"Programmi fedeltà aerei",
-	"Rapporti di trasferimento",
-] as const;
-
-/** The functions that the application gives today. */
-const FEATURE_LIST = [
-	"Calcolo delle miglia potenziali per ogni valuta",
-	"Rapporti di trasferimento ufficiali per l'Italia",
-	"Saldi con la data di osservazione",
-	"Applicazione installabile (PWA)",
-] as const;
-
-/** The description of the application. It is the description of `index.html`. */
-const DESCRIPTION =
-	"Yume calcola quante miglia puoi ottenere dai tuoi punti. Un valore per ogni valuta, con i rapporti di trasferimento ufficiali per l'Italia.";
-
-/**
  * The person or the group behind the application.
  *
- * `areaServed` is `IT`: the catalogue holds the rules of Italy only. Refer to
- * the rule 6 of the data in `CLAUDE.md`.
+ * `areaServed` is the country of the rules of the catalogue. Refer to the rule
+ * 6 of the data in `CLAUDE.md`.
  */
-export function organizationJsonLd(site: string) {
+export function organizationJsonLd(site: string, i18n: I18n) {
 	return {
 		"@context": CONTEXT,
 		"@type": "Organization",
 		name: "Yume",
 		url: site,
 		logo: `${site}/icon-512.png`,
-		areaServed: "IT",
-		knowsAbout: [...KNOWS_ABOUT],
+		areaServed: DEFAULT_COUNTRY,
+		knowsAbout: [...i18n.t.jsonLd.knowsAbout],
 	} as const;
 }
 
@@ -73,13 +52,13 @@ export function organizationJsonLd(site: string) {
  * The item holds no `potentialAction`: the site has no search of its own, and a
  * declaration of a search that does not exist is a value that is not true.
  */
-export function webSiteJsonLd(site: string) {
+export function webSiteJsonLd(site: string, i18n: I18n) {
 	return {
 		"@context": CONTEXT,
 		"@type": "WebSite",
 		name: "Yume",
 		url: site,
-		inLanguage: "it-IT",
+		inLanguage: i18n.intl,
 		publisher: { "@type": "Organization", name: "Yume", url: site },
 	} as const;
 }
@@ -90,17 +69,17 @@ export function webSiteJsonLd(site: string) {
  * The price is 0: Yume gives an account with an invitation, and the code is
  * under the licence MIT.
  */
-export function softwareApplicationJsonLd(site: string) {
+export function softwareApplicationJsonLd(site: string, i18n: I18n) {
 	return {
 		"@context": CONTEXT,
 		"@type": "SoftwareApplication",
 		name: "Yume",
 		url: site,
-		inLanguage: "it-IT",
+		inLanguage: i18n.intl,
 		applicationCategory: "FinanceApplication",
 		operatingSystem: "Web, iOS, Android",
-		description: DESCRIPTION,
-		featureList: [...FEATURE_LIST],
+		description: i18n.t.siteDescription,
+		featureList: [...i18n.t.jsonLd.featureList],
 		offers: {
 			"@type": "Offer",
 			price: "0",
@@ -136,16 +115,16 @@ export function faqPageJsonLd(items: readonly FaqItem[]) {
 	} as const;
 }
 
-/** The four items of the public page, in the order of the head. */
-export function homeGraph(
-	site: string,
-	faq: readonly FaqItem[],
-): readonly JsonLdItem[] {
+/**
+ * The four items of the public page, in the order of the head. The questions
+ * are the questions of the page, in its language.
+ */
+export function homeGraph(site: string, i18n: I18n): readonly JsonLdItem[] {
 	return [
-		organizationJsonLd(site),
-		webSiteJsonLd(site),
-		softwareApplicationJsonLd(site),
-		faqPageJsonLd(faq),
+		organizationJsonLd(site, i18n),
+		webSiteJsonLd(site, i18n),
+		softwareApplicationJsonLd(site, i18n),
+		faqPageJsonLd(i18n.t.homeFaq),
 	];
 }
 

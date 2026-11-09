@@ -584,7 +584,8 @@ each variant with CVA. Do not write the classes of a variant at the point of use
   screen reader finds it.
 - **Obey `prefers-reduced-motion`.** If the user selects this option, show the new value
   immediately. Do not animate the digits.
-- **Show the numbers in the Italian format.** Use the locale `it-IT`.
+- **Show the numbers in the format of the language.** Use the locale of `Intl` of the
+  page. Paragraph 5.8 gives the rule.
 
 ### 5.3 The font of the board
 
@@ -812,7 +813,7 @@ for those crawlers.
 
 The head of `index.html` holds the first answer to that problem: the title, the
 description and the tags of Open Graph. That text is Italian, and it is the one exception
-to the rule of `text.ts` in `CLAUDE.md`. A static file imports no module, and a value that
+to the rule of `i18n/it.ts` in `CLAUDE.md`. A static file imports no module, and a value that
 JavaScript writes arrives too late for a crawler.
 
 The head holds three absolute URLs: `canonical`, `og:url` and `og:image`. The domain is
@@ -881,7 +882,7 @@ The builder replaces `<`, `>` and `&` with the escape of JSON. A value that hold
 no person wrote.
 
 `dist/llms.txt` gives the same text in markdown, for the crawlers of the assistants
-(https://llmstxt.org). `src/client/lib/llms.ts` reads `text.ts`, thus the file and the
+(https://llmstxt.org). `src/client/lib/llms.ts` reads `i18n/it.ts`, thus the file and the
 page hold the same text and no person writes that text two times. The server supplies
 `dist/` as static files, therefore that file needs no route of Hono and no path in
 `CLIENT_PATHS`. The format also gives `/llms-full.txt` for a site with many pages: add
@@ -1134,6 +1135,7 @@ yume/
       router.tsx         # the tree of the routes, in the code
       components/ui/     # shadcn/ui. Do not change these files.
       components/board/  # the theme of the departure board
+      i18n/              # the text of each language and useI18n
       lib/               # the logic of the client, with a test file
       styles/            # the tokens of the theme
       fonts/             # the font files

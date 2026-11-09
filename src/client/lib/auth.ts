@@ -6,20 +6,25 @@
  * `CLAUDE.md`.
  */
 
-import { text } from "../text.ts";
+import type { Messages } from "../i18n/messages.ts";
 
-/** The message of each code that this application knows. */
-const messages: Record<string, string> = {
-	INVITE_CODE_REQUIRED: text.inviteRequiredError,
-	INVITE_CODE_UNKNOWN: text.inviteUnknownError,
-	INVITE_CODE_EXPIRED: text.inviteExpiredError,
-	INVITE_CODE_USED: text.inviteUsedError,
-	INVALID_EMAIL_OR_PASSWORD: text.signInError,
-	USER_ALREADY_EXISTS: text.emailInUseError,
-	PASSWORD_TOO_SHORT: text.passwordShortError,
+/** The key of the text of each code that this application knows. */
+const messages: Record<string, keyof Messages> = {
+	INVITE_CODE_REQUIRED: "inviteRequiredError",
+	INVITE_CODE_UNKNOWN: "inviteUnknownError",
+	INVITE_CODE_EXPIRED: "inviteExpiredError",
+	INVITE_CODE_USED: "inviteUsedError",
+	INVALID_EMAIL_OR_PASSWORD: "signInError",
+	USER_ALREADY_EXISTS: "emailInUseError",
+	PASSWORD_TOO_SHORT: "passwordShortError",
 };
 
-/** Gives the message of the code. An unknown code gives a general message. */
-export function authMessage(code: string | undefined): string {
-	return (code === undefined ? undefined : messages[code]) ?? text.authError;
+/**
+ * Gives the message of the code in the language of `t`. An unknown code gives
+ * a general message.
+ */
+export function authMessage(code: string | undefined, t: Messages): string {
+	const key = code === undefined ? undefined : messages[code];
+	const message = key === undefined ? undefined : t[key];
+	return typeof message === "string" ? message : t.authError;
 }

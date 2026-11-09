@@ -18,8 +18,8 @@ export type FlapCell = {
  * The separator of the thousands receives a flap. A board of Solari holds one
  * flap for each position, and each flap has the same size.
  */
-export function toFlapCells(value: number): FlapCell[] {
-	return toCells(formatPoints(value));
+export function toFlapCells(value: number, intl: string): FlapCell[] {
+	return toCells(formatPoints(value, intl));
 }
 
 /**

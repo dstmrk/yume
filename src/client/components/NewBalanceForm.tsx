@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { useI18n } from "../i18n/I18n.tsx";
 import { addSnapshot } from "../lib/api.ts";
 import { parsePoints, todayIso } from "../lib/balance.ts";
-import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -15,6 +15,7 @@ import { Label } from "./ui/label.tsx";
  * `docs/architecture.md`.
  */
 export function NewBalanceForm({ accountId }: { accountId: string }) {
+	const { t: text } = useI18n();
 	const [open, setOpen] = useState(false);
 
 	if (!open) {
@@ -40,6 +41,7 @@ function Fields({
 	accountId: string;
 	onClose: () => void;
 }) {
+	const { t: text, intl } = useI18n();
 	const fieldId = useId();
 	const [points, setPoints] = useState("");
 	const [observedAt, setObservedAt] = useState(() => todayIso(new Date()));
@@ -63,7 +65,7 @@ function Fields({
 			className="flex flex-col gap-3 rounded-md border border-border bg-background p-3"
 			onSubmit={(event) => {
 				event.preventDefault();
-				const value = parsePoints(points);
+				const value = parsePoints(points, intl);
 				setInvalid(value === null);
 				if (value !== null) {
 					save.mutate(value);

@@ -9,30 +9,35 @@
  * also gives `/llms-full.txt` for the full text of a site with many pages. Add
  * that file with the first group of pages of the catalogue.
  *
- * The function reads `text.ts`. Thus the file and the page hold the same text,
+ * The function reads the text of the language. Thus the file and the page hold the same text,
  * and no person writes that text two times. Paragraph 5.5.3 of
  * `docs/architecture.md` gives the rule.
  */
 
-import { text } from "../text.ts";
+import type { Messages } from "../i18n/messages.ts";
 
 /** One block of a title and its lines. */
 function section(title: string, lines: readonly string[]): readonly string[] {
 	return [`## ${title}`, "", ...lines, ""];
 }
 
-/** The body of `/llms.txt`, for the instance at `site`. */
-export function llmsTxt(site: string): string {
+/**
+ * The body of `/llms.txt`, for the page at `page`, in the language of `text`.
+ *
+ * `page` is the address of the public page of the language, for example
+ * `https://yumemiles.com/` for Italian.
+ */
+export function llmsTxt(page: string, text: Messages): string {
 	return [
 		"# Yume",
 		"",
-		"> Yume calcola quante miglia puoi ottenere dai tuoi punti. Un valore per ogni valuta, con i rapporti di trasferimento ufficiali per l'Italia.",
+		`> ${text.siteDescription}`,
 		"",
 		text.homeLead,
 		"",
-		`Pagina pubblica: ${site}/`,
+		`${text.llms.publicPage}: ${page}`,
 		"",
-		"L'accesso è solo su invito. Il codice è open source con licenza MIT.",
+		text.llms.access,
 		"",
 		...section(
 			text.homeWhatTitle,
@@ -47,6 +52,6 @@ export function llmsTxt(site: string): string {
 				"",
 			]),
 		),
-		...section("Avvertenze", [`- ${text.footerDisclaimer}`]),
+		...section(text.llms.warnings, [`- ${text.footerDisclaimer}`]),
 	].join("\n");
 }

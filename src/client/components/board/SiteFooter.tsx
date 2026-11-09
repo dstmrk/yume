@@ -1,4 +1,4 @@
-import { text } from "../../text.ts";
+import { useI18n } from "../../i18n/I18n.tsx";
 
 /**
  * The address of the repository. The licence is MIT, and a person can install
@@ -22,6 +22,7 @@ const SOURCE_URL = "https://github.com/dstmrk/yume";
  * the application, and the pre-render of `prerender.tsx` holds no router.
  */
 export function SiteFooter() {
+	const { t: text } = useI18n();
 	return (
 		<footer className="mt-10 border-board-line border-t pt-4 pb-2 text-board-muted text-xs leading-relaxed">
 			<p>{text.footerDisclaimer}</p>

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { i18nOf } from "../i18n/messages.ts";
 import {
 	faqPageJsonLd,
 	homeGraph,
@@ -9,10 +10,11 @@ import {
 } from "./jsonLd.ts";
 
 const SITE = "https://yumemiles.com";
+const IT = i18nOf("it");
 
 describe("organizationJsonLd", () => {
 	it("gives the type and the URL of the official instance", () => {
-		const data = organizationJsonLd(SITE);
+		const data = organizationJsonLd(SITE, IT);
 
 		expect(data["@type"]).toBe("Organization");
 		expect(data.url).toBe(SITE);
@@ -20,27 +22,27 @@ describe("organizationJsonLd", () => {
 	});
 
 	it("gives the country of the rules of the catalogue", () => {
-		expect(organizationJsonLd(SITE).areaServed).toBe("IT");
+		expect(organizationJsonLd(SITE, IT).areaServed).toBe("IT");
 	});
 
 	it("names the subjects of the page in knowsAbout", () => {
-		expect(organizationJsonLd(SITE).knowsAbout).toContain("Avios");
+		expect(organizationJsonLd(SITE, IT).knowsAbout).toContain("Avios");
 	});
 });
 
 describe("webSiteJsonLd", () => {
 	it("gives the language of the page", () => {
-		expect(webSiteJsonLd(SITE).inLanguage).toBe("it-IT");
+		expect(webSiteJsonLd(SITE, IT).inLanguage).toBe("it-IT");
 	});
 
 	it("holds no SearchAction: the site has no search", () => {
-		expect(webSiteJsonLd(SITE)).not.toHaveProperty("potentialAction");
+		expect(webSiteJsonLd(SITE, IT)).not.toHaveProperty("potentialAction");
 	});
 });
 
 describe("softwareApplicationJsonLd", () => {
 	it("gives an application of the web with no price", () => {
-		const data = softwareApplicationJsonLd(SITE);
+		const data = softwareApplicationJsonLd(SITE, IT);
 
 		expect(data["@type"]).toBe("SoftwareApplication");
 		expect(data.offers.price).toBe("0");
@@ -48,9 +50,9 @@ describe("softwareApplicationJsonLd", () => {
 	});
 
 	it("names each function that the application gives today", () => {
-		expect(softwareApplicationJsonLd(SITE).featureList.length).toBeGreaterThan(
-			0,
-		);
+		expect(
+			softwareApplicationJsonLd(SITE, IT).featureList.length,
+		).toBeGreaterThan(0);
 	});
 });
 
@@ -75,7 +77,7 @@ describe("faqPageJsonLd", () => {
 
 describe("homeGraph", () => {
 	it("holds the four types of the public page", () => {
-		const graph = homeGraph(SITE, [{ question: "D?", answer: "R." }]);
+		const graph = homeGraph(SITE, IT);
 
 		expect(graph.map((item) => item["@type"])).toStrictEqual([
 			"Organization",
@@ -86,9 +88,29 @@ describe("homeGraph", () => {
 	});
 
 	it("gives the context one time, on each item", () => {
-		for (const item of homeGraph(SITE, [{ question: "D?", answer: "R." }])) {
+		for (const item of homeGraph(SITE, IT)) {
 			expect(item["@context"]).toBe("https://schema.org");
 		}
+	});
+});
+
+// The language gives the text and `inLanguage`. The market gives
+// `areaServed`. Paragraph 5.8 of `docs/architecture.md` gives the difference.
+describe("the structured data of an other language", () => {
+	const english = { ...IT, intl: "en-GB" };
+
+	it("gives the locale of the language in inLanguage", () => {
+		expect(webSiteJsonLd(SITE, english).inLanguage).toBe("en-GB");
+		expect(softwareApplicationJsonLd(SITE, english).inLanguage).toBe("en-GB");
+	});
+
+	it("keeps the country of the market in areaServed", () => {
+		expect(organizationJsonLd(SITE, english).areaServed).toBe("IT");
+	});
+
+	it("gives the questions of the language", () => {
+		const faq = homeGraph(SITE, IT).at(-1) as { mainEntity: unknown[] };
+		expect(faq.mainEntity).toHaveLength(IT.t.homeFaq.length);
 	});
 });
 

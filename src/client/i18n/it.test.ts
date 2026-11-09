@@ -3,8 +3,8 @@ import {
 	currencies,
 	programs,
 	transferRules,
-} from "../server/db/seed/catalogue.ts";
-import { text } from "./text.ts";
+} from "../../server/db/seed/catalogue.ts";
+import { it as text } from "./it.ts";
 
 /**
  * The public page names a quantity of programmes and a list of names. Those

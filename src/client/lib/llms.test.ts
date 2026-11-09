@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { text } from "../text.ts";
+import { it as text } from "../i18n/it.ts";
 import { llmsTxt } from "./llms.ts";
 
 const SITE = "https://yumemiles.com";
-const body = llmsTxt(SITE);
+const body = llmsTxt(`${SITE}/`, text);
 
 describe("llmsTxt", () => {
 	it("opens with the name of the application, as the format asks", () => {

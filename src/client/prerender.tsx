@@ -35,12 +35,14 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
+import { BASE_LOCALE } from "../shared/locale.ts";
 import { AppShell } from "./AppShell.tsx";
 import { HomePage } from "./HomePage.tsx";
+import { I18nProvider } from "./i18n/I18n.tsx";
+import { i18nOf } from "./i18n/messages.ts";
 import { homeGraph, toJsonLdScript } from "./lib/jsonLd.ts";
 import { llmsTxt } from "./lib/llms.ts";
 import { SITE_URL } from "./lib/site.ts";
-import { text } from "./text.ts";
 
 /** The file that Vite wrote. The path is from the root of the repository. */
 const INDEX_PATH = "dist/index.html";
@@ -75,13 +77,22 @@ if (!html.includes(HEAD_END)) {
 	throw new Error(`${INDEX_PATH} holds no ${HEAD_END}. The pre-render stops.`);
 }
 
+/**
+ * The language of the page. Each language receives its own page in the next
+ * step of paragraph 5.8 of `docs/architecture.md`. Now the build writes the
+ * page of the base language.
+ */
+const i18n = i18nOf(BASE_LOCALE);
+
 const markup = renderToStaticMarkup(
-	<AppShell>
-		<HomePage />
-	</AppShell>,
+	<I18nProvider locale={i18n.locale}>
+		<AppShell>
+			<HomePage />
+		</AppShell>
+	</I18nProvider>,
 );
 
-const jsonLd = toJsonLdScript(homeGraph(SITE_URL, text.homeFaq));
+const jsonLd = toJsonLdScript(homeGraph(SITE_URL, i18n));
 
 writeFileSync(
 	INDEX_PATH,
@@ -90,9 +101,9 @@ writeFileSync(
 		.replace(EMPTY_ROOT, `<div id="root">${markup}</div>`),
 );
 
-const llms = llmsTxt(SITE_URL);
+const llms = llmsTxt(`${SITE_URL}/`, i18n.t);
 writeFileSync(LLMS_PATH, llms);
 
 console.log(
-	`The pre-render wrote ${markup.length} characters in ${INDEX_PATH}, with ${text.homeFaq.length} questions of structured data, and ${llms.length} characters in ${LLMS_PATH}.`,
+	`The pre-render wrote ${markup.length} characters in ${INDEX_PATH}, with ${i18n.t.homeFaq.length} questions of structured data, and ${llms.length} characters in ${LLMS_PATH}.`,
 );

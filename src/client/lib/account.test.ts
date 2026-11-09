@@ -26,6 +26,7 @@ describe("sortPrograms", () => {
 				program("ba-club", "British Airways"),
 			],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual([
 			"Aegean",
@@ -45,6 +46,7 @@ describe("sortPrograms", () => {
 				program("ba-club", "British Airways"),
 			],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual([
 			"Amex Membership Rewards",
@@ -60,6 +62,7 @@ describe("sortPrograms", () => {
 				program("amex-mr", "Amex Membership Rewards", "mr"),
 			],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual([
 			"Amex Membership Rewards",
@@ -74,6 +77,7 @@ describe("sortPrograms", () => {
 		const result = sortPrograms(
 			[program("aegean", "Aegean"), program("other", "Altro", "unknown")],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual(["Aegean", "Altro"]);
 	});
@@ -86,6 +90,7 @@ describe("sortPrograms", () => {
 		const result = sortPrograms(
 			[program("emirates", "emirates"), program("tap", "TAP")],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual(["emirates", "TAP"]);
 	});
@@ -94,6 +99,7 @@ describe("sortPrograms", () => {
 		const result = sortPrograms(
 			[program("z", "Zurigo"), program("a", "Ãgean"), program("b", "Berlino")],
 			currencies,
+			"it-IT",
 		);
 		expect(result.map((row) => row.name)).toEqual([
 			"Ãgean",
@@ -104,7 +110,7 @@ describe("sortPrograms", () => {
 
 	it("does not change the list of the caller", () => {
 		const programs = [program("b", "Bravo"), program("a", "Alfa")];
-		sortPrograms(programs, currencies);
+		sortPrograms(programs, currencies, "it-IT");
 		expect(programs.map((row) => row.name)).toEqual(["Bravo", "Alfa"]);
 	});
 });
