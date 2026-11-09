@@ -8,16 +8,14 @@
 import { existsSync, readFileSync } from "node:fs";
 import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
-import { isClientPath } from "../shared/routes.ts";
+import { LOCALES, routing } from "../shared/locale.ts";
+import { pageOfPath } from "../shared/routes.ts";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
 
 const url = process.env.DATABASE_URL ?? "./data/yume.db";
 const port = Number(process.env.PORT ?? 3000);
-
-/** The page of the client. The build of Vite writes this file. */
-const INDEX_PATH = "./dist/index.html";
 
 /**
  * Better Auth signs the cookies and the tokens with this key. A new key at each
@@ -70,15 +68,20 @@ const app = createApp(db, auth);
 app.use("/*", serveStatic({ root: "./dist" }));
 
 /**
- * The page of the client, one time at the start.
+ * The page of the client in each language, one time at the start.
  *
- * The build writes this file, and each request gives the same bytes. The value
- * is undefined with no build: `npm run dev:server` runs alone, and Vite then
- * supplies the client on the port 5173.
+ * The build writes one page for each language: `dist/index.html` for the base
+ * language, `dist/en/index.html` for English. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rule. Each request gives the same bytes. A
+ * value is undefined with no build: `npm run dev:server` runs alone, and Vite
+ * then supplies the client on the port 5173.
  */
-const indexHtml = existsSync(INDEX_PATH)
-	? readFileSync(INDEX_PATH, "utf8")
-	: undefined;
+const pages = new Map(
+	LOCALES.map((locale) => {
+		const path = `./dist${routing.pathFor(locale, "/index.html")}`;
+		return [locale, existsSync(path) ? readFileSync(path, "utf8") : undefined];
+	}),
+);
 
 /**
  * A path that no file matches.
@@ -86,7 +89,8 @@ const indexHtml = existsSync(INDEX_PATH)
  * The client controls the routes of the pages, thus a path of the client gives
  * the page with the status 200. Each other path gives the same page with the
  * status 404: a person reads the application, and a crawler reads that the page
- * does not exist.
+ * does not exist. The prefix of the path gives the language of the page, also
+ * for the status 404.
  *
  * The status 200 for each path gives a page with no content to a search engine,
  * and that engine holds an unlimited quantity of such pages. Paragraph 5.5.3 of
@@ -94,11 +98,13 @@ const indexHtml = existsSync(INDEX_PATH)
  * therefore the page of the status 404 is the page of the application.
  */
 app.get("*", (c) => {
-	if (indexHtml === undefined) {
+	const page = pageOfPath(c.req.path);
+	const html = pages.get(page.locale);
+	if (html === undefined) {
 		return c.text("The build of the client is not in dist/.", 404);
 	}
 
-	return c.html(indexHtml, isClientPath(c.req.path) ? 200 : 404);
+	return c.html(html, page.found ? 200 : 404);
 });
 
 serve({ fetch: app.fetch, port }, (info) => {

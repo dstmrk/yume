@@ -14,6 +14,10 @@
  *
  * The root holds no title: the public page gives a title of the centre, and
  * the other two pages give the masthead `AppTitle`.
+ *
+ * The prefix of the language is the `basepath` of the router. Thus each link
+ * and each redirect keeps the language, and no route knows it. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rules.
  */
 
 import {
@@ -94,17 +98,26 @@ const signUpRoute = createRoute({
 	component: () => <LoginPage code={signUpRoute.useSearch().code ?? ""} />,
 });
 
-export const router = createRouter({
-	routeTree: rootRoute.addChildren([
-		homeRoute,
-		dashboardRoute,
-		loginRoute,
-		signUpRoute,
-	]),
-});
+const routeTree = rootRoute.addChildren([
+	homeRoute,
+	dashboardRoute,
+	loginRoute,
+	signUpRoute,
+]);
+
+/**
+ * The router of a page in one language.
+ *
+ * `basepath` is the prefix of the language, for example `/en`, or `/` for the
+ * base language. A change of the language loads a new page, thus one page
+ * holds one router.
+ */
+export function createAppRouter(basepath: string) {
+	return createRouter({ routeTree, basepath });
+}
 
 declare module "@tanstack/react-router" {
 	interface Register {
-		router: typeof router;
+		router: ReturnType<typeof createAppRouter>;
 	}
 }

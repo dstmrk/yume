@@ -6,7 +6,9 @@
  * JavaScript. The crawlers of the assistants read the HTML only, thus the
  * public page is an empty page for them.
  *
- * This file writes three items in `dist/`:
+ * This file writes one page for each language: `dist/index.html` for the base
+ * language and `dist/en/index.html` for English. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rules. Each page holds four items:
  *
  * 1. The elements of the page, in the empty `div` of `index.html`. Then a
  *    crawler that executes no JavaScript reads the blocks and the questions,
@@ -14,9 +16,11 @@
  * 2. The structured data of schema.org, in the head of the same file. A search
  *    engine reads there what the application is and what questions the page
  *    answers. Refer to `lib/jsonLd.ts`.
- * 3. The file `llms.txt`, with the same text in markdown. The server supplies
- *    `dist/` as static files, thus that file needs no route. Refer to
- *    `lib/llms.ts`.
+ * 3. The file `llms.txt`, with the same text in markdown, near the page of the
+ *    language. The server supplies `dist/` as static files, thus that file
+ *    needs no route. Refer to `lib/llms.ts`.
+ * 4. The head of the language: `lang`, the title, the description, Open Graph,
+ *    the canonical address and the links `hreflang`. Refer to `lib/head.ts`.
  *
  * `npm run build` runs this file. Vite makes the bundle of this module for
  * Node, because Node executes no JSX. The build of the client comes first: this
@@ -33,13 +37,20 @@
  * head.
  */
 
-import { readFileSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { renderToStaticMarkup } from "react-dom/server";
-import { BASE_LOCALE } from "../shared/locale.ts";
+import {
+	BASE_LOCALE,
+	LOCALE_TAGS,
+	LOCALES,
+	routing,
+} from "../shared/locale.ts";
 import { AppShell } from "./AppShell.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { I18nProvider } from "./i18n/I18n.tsx";
 import { i18nOf } from "./i18n/messages.ts";
+import { headOf, localizeHead } from "./lib/head.ts";
 import { homeGraph, toJsonLdScript } from "./lib/jsonLd.ts";
 import { llmsTxt } from "./lib/llms.ts";
 import { SITE_URL } from "./lib/site.ts";
@@ -47,8 +58,10 @@ import { SITE_URL } from "./lib/site.ts";
 /** The file that Vite wrote. The path is from the root of the repository. */
 const INDEX_PATH = "dist/index.html";
 
-/** The file of the crawlers of the assistants. Refer to https://llmstxt.org. */
-const LLMS_PATH = "dist/llms.txt";
+/** The path in `dist/` of a file of a language, for example `dist/en/llms.txt`. */
+function distPath(locale: (typeof LOCALES)[number], file: string): string {
+	return `dist${routing.pathFor(locale, `/${file}`)}`;
+}
 
 /**
  * The empty element of `index.html`.
@@ -77,33 +90,45 @@ if (!html.includes(HEAD_END)) {
 	throw new Error(`${INDEX_PATH} holds no ${HEAD_END}. The pre-render stops.`);
 }
 
-/**
- * The language of the page. Each language receives its own page in the next
- * step of paragraph 5.8 of `docs/architecture.md`. Now the build writes the
- * page of the base language.
- */
-const i18n = i18nOf(BASE_LOCALE);
+for (const locale of LOCALES) {
+	const i18n = i18nOf(locale);
 
-const markup = renderToStaticMarkup(
-	<I18nProvider locale={i18n.locale}>
-		<AppShell>
-			<HomePage />
-		</AppShell>
-	</I18nProvider>,
-);
+	const markup = renderToStaticMarkup(
+		<I18nProvider locale={locale}>
+			<AppShell>
+				<HomePage />
+			</AppShell>
+		</I18nProvider>,
+	);
 
-const jsonLd = toJsonLdScript(homeGraph(SITE_URL, i18n));
+	const head = headOf({
+		site: SITE_URL,
+		locale,
+		routing,
+		locales: LOCALES,
+		base: BASE_LOCALE,
+		tags: LOCALE_TAGS,
+		t: i18n.t,
+	});
+	const jsonLd = toJsonLdScript(homeGraph(SITE_URL, i18n));
 
-writeFileSync(
-	INDEX_PATH,
-	html
-		.replace(HEAD_END, `${jsonLd}${HEAD_END}`)
-		.replace(EMPTY_ROOT, `<div id="root">${markup}</div>`),
-);
+	const pagePath = distPath(locale, "index.html");
+	mkdirSync(dirname(pagePath), { recursive: true });
+	writeFileSync(
+		pagePath,
+		localizeHead(html, head)
+			.replace(HEAD_END, `${jsonLd}${HEAD_END}`)
+			.replace(EMPTY_ROOT, `<div id="root">${markup}</div>`),
+	);
 
-const llms = llmsTxt(`${SITE_URL}/`, i18n.t);
-writeFileSync(LLMS_PATH, llms);
+	// The address of the public page of the language, with a slash at the end
+	// for the base language as before.
+	const page = `${SITE_URL}${routing.pathFor(locale, "/")}`;
+	const llmsPath = distPath(locale, "llms.txt");
+	const llms = llmsTxt(page, i18n.t);
+	writeFileSync(llmsPath, llms);
 
-console.log(
-	`The pre-render wrote ${markup.length} characters in ${INDEX_PATH}, with ${i18n.t.homeFaq.length} questions of structured data, and ${llms.length} characters in ${LLMS_PATH}.`,
-);
+	console.log(
+		`The pre-render wrote ${markup.length} characters in ${pagePath}, with ${i18n.t.homeFaq.length} questions of structured data, and ${llms.length} characters in ${llmsPath}.`,
+	);
+}

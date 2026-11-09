@@ -79,9 +79,12 @@ describe("pathFor", () => {
 		expect(two.pathFor("it", "/login")).toBe("/login");
 	});
 
+	// The root of a language holds a slash at the end: the router writes
+	// `/en/` for the link to `/`. The canonical address and the links of the
+	// router then give one address for one page.
 	it("writes the prefix of an other language", () => {
 		expect(two.pathFor("en", "/login")).toBe("/en/login");
-		expect(two.pathFor("en", "/")).toBe("/en");
+		expect(two.pathFor("en", "/")).toBe("/en/");
 	});
 
 	it("gives back the path that localeOfPath reads", () => {

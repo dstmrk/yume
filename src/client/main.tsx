@@ -2,12 +2,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { RouterProvider } from "@tanstack/react-router";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BASE_LOCALE } from "../shared/locale.ts";
+import { routing } from "../shared/locale.ts";
 import { I18nProvider } from "./i18n/I18n.tsx";
-import { router } from "./router.tsx";
+import { createAppRouter } from "./router.tsx";
 import "./styles/theme.css";
 
 const queryClient = new QueryClient();
+
+/**
+ * The language of the page comes from the path, and from no other source.
+ * Paragraph 5.8 of `docs/architecture.md` gives the rule.
+ */
+const { locale } = routing.localeOfPath(window.location.pathname);
+const router = createAppRouter(routing.pathFor(locale, "/"));
 
 const root = document.getElementById("root");
 if (root === null) {
@@ -16,9 +23,7 @@ if (root === null) {
 
 createRoot(root).render(
 	<StrictMode>
-		{/* The language comes from the path in the next step of paragraph 5.8
-		    of `docs/architecture.md`. Now each page holds the base language. */}
-		<I18nProvider locale={BASE_LOCALE}>
+		<I18nProvider locale={locale}>
 			<QueryClientProvider client={queryClient}>
 				<RouterProvider router={router} />
 			</QueryClientProvider>
