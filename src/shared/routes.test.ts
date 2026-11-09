@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { CLIENT_PATHS, isClientPath } from "./routes.ts";
+import { localeRouting } from "./locale.ts";
+import { CLIENT_PATHS, isClientPath, pageOfPath } from "./routes.ts";
 
 describe("isClientPath", () => {
 	it("holds each page of the client", () => {
@@ -57,5 +58,84 @@ describe("the paths of the router", () => {
 		);
 
 		expect(paths.toSorted()).toStrictEqual([...CLIENT_PATHS].toSorted());
+	});
+});
+
+/**
+ * The page of a path in each language. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rules. The test gives a second language,
+ * thus the prefix has a test before the language exists.
+ */
+describe("pageOfPath", () => {
+	const two = localeRouting(["it", "en"], "it");
+
+	it("gives the base language to a page with no prefix", () => {
+		expect(pageOfPath("/", two)).toEqual({ locale: "it", found: true });
+		expect(pageOfPath("/login", two)).toEqual({ locale: "it", found: true });
+	});
+
+	it("gives the language of the prefix to a page", () => {
+		expect(pageOfPath("/en", two)).toEqual({ locale: "en", found: true });
+		expect(pageOfPath("/en/", two)).toEqual({ locale: "en", found: true });
+		expect(pageOfPath("/en/dashboard", two)).toEqual({
+			locale: "en",
+			found: true,
+		});
+		expect(pageOfPath("/en/dashboard/", two)).toEqual({
+			locale: "en",
+			found: true,
+		});
+	});
+
+	// The page of the status 404 is in the language of the prefix. A person who
+	// reads English then reads the message in English.
+	it("gives the language of the prefix to a path with no page", () => {
+		expect(pageOfPath("/en/nulla", two)).toEqual({
+			locale: "en",
+			found: false,
+		});
+		expect(pageOfPath("/nulla", two)).toEqual({ locale: "it", found: false });
+	});
+
+	// The base language has no prefix. A second address of one page divides the
+	// results of a search engine.
+	it("gives no page to the prefix of the base language", () => {
+		expect(pageOfPath("/it", two)).toEqual({ locale: "it", found: false });
+		expect(pageOfPath("/it/login", two)).toEqual({
+			locale: "it",
+			found: false,
+		});
+	});
+
+	it("gives no page to a prefix in two places", () => {
+		expect(pageOfPath("/en/en/login", two).found).toBe(false);
+	});
+
+	it("uses the languages of the application with no second argument", () => {
+		expect(pageOfPath("/login")).toEqual({ locale: "it", found: true });
+	});
+});
+
+/**
+ * `robots.txt` blocks each page that needs a session, with no prefix and with
+ * the prefix of a language. A new route that the file does not block gives a
+ * crawler a page with no data.
+ */
+describe("robots.txt", () => {
+	const lines = readFileSync("src/client/public/robots.txt", "utf8")
+		.split("\n")
+		.filter((line) => line.startsWith("Disallow: "))
+		.map((line) => line.slice("Disallow: ".length));
+
+	for (const path of CLIENT_PATHS.filter((item) => item !== "/")) {
+		it(`blocks ${path} in each language`, () => {
+			expect(lines).toContain(path);
+			expect(lines).toContain(`/*${path}`);
+		});
+	}
+
+	it("does not block the public page", () => {
+		expect(lines).not.toContain("/");
+		expect(lines).not.toContain("/*/");
 	});
 });

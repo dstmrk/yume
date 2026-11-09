@@ -86,7 +86,7 @@ export function localeRouting<L extends string>(
 			if (locale === base) {
 				return path;
 			}
-			return path === "/" ? `/${locale}` : `/${locale}${path}`;
+			return `/${locale}${path}`;
 		},
 	};
 }

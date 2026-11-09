@@ -15,6 +15,8 @@
  * server of Vite holds its own fallback, thus only the container shows that
  * defect.
  */
+import { type Locale, routing } from "./locale.ts";
+
 export const CLIENT_PATHS = ["/", "/dashboard", "/login", "/signup"] as const;
 
 /**
@@ -30,3 +32,29 @@ export function isClientPath(path: string): boolean {
 
 	return CLIENT_PATHS.some((clientPath) => clientPath === trimmed);
 }
+
+/**
+ * The page of a path: its language and if the client holds a page there.
+ *
+ * The server reads the language to give the page of that language, also with
+ * the status 404. The prefix of the base language gives no page: refer to
+ * `localeRouting` of `locale.ts`. Paragraph 5.8 of `docs/architecture.md`
+ * gives the rules.
+ */
+export function pageOfPath(path: string): { locale: Locale; found: boolean };
+export function pageOfPath<L extends string>(
+	path: string,
+	languages: LocaleOfPath<L>,
+): { locale: L; found: boolean };
+export function pageOfPath(
+	path: string,
+	languages: LocaleOfPath<string> = routing,
+): { locale: string; found: boolean } {
+	const { locale, path: rest } = languages.localeOfPath(path);
+	return { locale, found: isClientPath(rest) };
+}
+
+/** The part of `localeRouting` that this file reads. */
+type LocaleOfPath<L extends string> = {
+	localeOfPath(path: string): { locale: L; path: string };
+};

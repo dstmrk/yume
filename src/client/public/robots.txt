@@ -4,6 +4,10 @@
 # other routes need a session, and a crawler that opens one of them receives
 # the same HTML of the application with no data.
 #
+# Each language other than the base language has a prefix, for example
+# /en/dashboard. The lines with `/*/` block those paths. Google and Bing read
+# the character `*`. Refer to paragraph 5.8 of docs/architecture.md.
+#
 # This file gives no `Sitemap`, because the site holds one public page. Add
 # that line with the first group of pages of the catalogue.
 
@@ -12,3 +16,6 @@ Disallow: /api/
 Disallow: /dashboard
 Disallow: /login
 Disallow: /signup
+Disallow: /*/dashboard
+Disallow: /*/login
+Disallow: /*/signup

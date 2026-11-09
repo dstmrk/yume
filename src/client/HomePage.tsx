@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { routing } from "../shared/locale.ts";
 import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
@@ -82,7 +83,10 @@ const SCREENSHOT = {
  * the router.
  */
 export function HomePage() {
-	const { t: text } = useI18n();
+	const { t: text, locale } = useI18n();
+	// The link keeps the language of the page. Refer to `routing` of
+	// `src/shared/locale.ts`.
+	const loginPath = routing.pathFor(locale, "/login");
 	return (
 		<div className="flex flex-col gap-10">
 			{/* The masthead. The name is at the left and the access is at the right,
@@ -96,7 +100,7 @@ export function HomePage() {
 					<SplitFlapWord word={text.appName} size="md" />
 				</span>
 				<a
-					href="/login"
+					href={loginPath}
 					className={cn(buttonVariants({ variant: "outline" }), "shrink-0")}
 				>
 					{text.signIn}
@@ -228,7 +232,10 @@ export function HomePage() {
 				    then goes to the form, thus a load of the full page costs
 				    nothing. Paragraph 5.5.3 of `docs/architecture.md` gives the
 				    reason. */}
-				<a href="/login" className={cn(buttonVariants(), "w-full md:max-w-xs")}>
+				<a
+					href={loginPath}
+					className={cn(buttonVariants(), "w-full md:max-w-xs")}
+				>
 					{text.signIn}
 				</a>
 				<p className="text-board-muted text-xs">{text.inviteOnly}</p>

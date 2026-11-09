@@ -1089,9 +1089,12 @@ needs the rules of Spain and the Italian text. Thus no value of one controls the
 This paragraph gives the language only.
 
 **The path is the only source of the language.** The base language, Italian, has no
-prefix: `/`, `/login`, `/dashboard`. Each other language has its prefix: `/en`,
+prefix: `/`, `/login`, `/dashboard`. Each other language has its prefix: `/en/`,
 `/en/login`, `/en/dashboard`. The paths of the base language thus stay the same, and the
 canonical URL of paragraph 5.5.3 does not change.
+
+The root of a language with a prefix holds a slash at the end, `/en/`. The router writes
+that address for a link to `/`, thus the canonical address and the links agree.
 
 The server makes no redirect from the header `Accept-Language` and reads no cookie of the
 language. A crawler and a link then always receive the same page for one address. Google
@@ -1124,7 +1127,16 @@ text is a decimal number, thus the function refuses it.
 
 Each language receives its own static page from the build: the attribute `lang`,
 `og:locale`, a link `hreflang` for each language and the link `x-default` to the base
-language. Each language also receives its own `llms.txt`.
+language. `lib/head.ts` writes that head from the text of the language. Each language
+also receives its own `llms.txt`, near its page: `dist/llms.txt`, `dist/en/llms.txt`.
+
+The server reads the prefix with `pageOfPath` of `src/shared/routes.ts`. It gives the
+page of that language, also with the status 404. The client gives the prefix to the
+router as `basepath`, thus each link and each redirect keeps the language.
+`robots.txt` blocks the private pages with the prefix `/*/` also.
+
+The test of the head gives the Italian head of `index.html` from the dictionary. Thus
+the head and the dictionary cannot hold two different texts.
 
 ## 6. Repository layout
 
