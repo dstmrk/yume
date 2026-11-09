@@ -212,7 +212,8 @@ Obey these three rules in a form:
 - **Read a quantity of points with `parsePoints`.** The interface writes each number with
   the locale of the page. Thus the user reads `1.900` and can write the same text. A field
   of the type `number` refuses that text. The function also refuses a group that is not
-  of three digits: without that examination, `1.9` gives 19. The separator follows the
+  of three digits: without that examination, `1.9` gives 19. A space between the groups
+  is also a separator, with the same rule: `1 9` is refused. The separator follows the
   locale: in English `1.900` is a decimal number, thus the function refuses it.
 - **Make an empty field null.** The schemas of `src/shared/api.ts` ask for one character
   or for null. An empty string gives the status 400.
