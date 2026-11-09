@@ -34,19 +34,18 @@ function literal(value: string): string {
  * gives 19, and the balance of the user becomes incorrect. Refer to rule 1 of
  * the section Rules for the data in `CLAUDE.md`.
  *
- * A locale with a space as the separator, for example French, reads each space
- * as that separator. Thus "1 9" is refused there. The other locales remove the
- * spaces.
+ * A space between the groups is the separator of the thousands in each locale,
+ * with the same rule of three digits. Thus "1 900" gives 1900, and "1 9" is
+ * refused: without that examination it gives 19, the same defect as "1.9". A
+ * locale with a space as its separator, for example French, gives the same
+ * result.
  *
  * It gives null when the text is not a quantity of points. Then the form shows
  * a message and it sends no request.
  */
 export function parsePoints(input: string, intl: string): number | null {
 	const group = groupOf(intl);
-	const spaced = group.replace(SPACES, "") === "";
-	const clean = spaced
-		? input.trim().replace(SPACES, group)
-		: input.replace(SPACES, "");
+	const clean = input.trim().replace(SPACES, group);
 
 	const points =
 		group === ""

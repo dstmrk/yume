@@ -16,11 +16,27 @@ describe("parsePoints", () => {
 		expect(parsePoints("1.234.567", IT)).toBe(1234567);
 	});
 
-	it("removes the spaces", () => {
+	it("removes the spaces at the start and at the end", () => {
 		expect(parsePoints("  1900  ", IT)).toBe(1900);
+	});
+
+	// A person can write a space between the groups. The space is then the
+	// separator of the thousands, with the same rule of three digits.
+	it("reads a space between the groups as the separator", () => {
 		expect(parsePoints("1 900", IT)).toBe(1900);
+		expect(parsePoints("1 234 567", IT)).toBe(1234567);
 		// A telephone can write a space that does not break the line.
-		expect(parsePoints("1 900", IT)).toBe(1900);
+		expect(parsePoints("1\u00a0900", IT)).toBe(1900);
+	});
+
+	// Without this examination "1 9" gives 19: the same defect as "1.9". A wrong
+	// balance is the most dangerous defect of this application.
+	it("refuses a space that does not separate a group of three digits", () => {
+		expect(parsePoints("1 9", IT)).toBeNull();
+		expect(parsePoints("19 00", IT)).toBeNull();
+		expect(parsePoints("1 9000", IT)).toBeNull();
+		expect(parsePoints("1  900", IT)).toBeNull();
+		expect(parsePoints("1 9", "en-GB")).toBeNull();
 	});
 
 	// A group of the thousands holds three digits. Without this examination
