@@ -8,6 +8,8 @@ describe("isClientPath", () => {
 		expect(isClientPath("/")).toBe(true);
 		expect(isClientPath("/dashboard")).toBe(true);
 		expect(isClientPath("/login")).toBe(true);
+		expect(isClientPath("/privacy")).toBe(true);
+		expect(isClientPath("/tos")).toBe(true);
 	});
 
 	it("holds a path with a slash at the end", () => {
@@ -128,15 +130,30 @@ describe("robots.txt", () => {
 		.filter((line) => line.startsWith("Disallow: "))
 		.map((line) => line.slice("Disallow: ".length));
 
-	for (const path of CLIENT_PATHS.filter((item) => item !== "/")) {
+	/** The pages that need a session. A crawler receives no data there. */
+	const PRIVATE = ["/dashboard", "/login"] as const;
+
+	for (const path of PRIVATE) {
 		it(`blocks ${path} in each language`, () => {
 			expect(lines).toContain(path);
 			expect(lines).toContain(`/*${path}`);
 		});
 	}
 
-	it("does not block the public page", () => {
-		expect(lines).not.toContain("/");
-		expect(lines).not.toContain("/*/");
+	// Each path of the client is private or public. A new path must take one
+	// of the two places, thus this test fails until a person decides.
+	it("knows each path of the client", () => {
+		const known = new Set<string>([...PRIVATE, ...PUBLIC]);
+		expect(CLIENT_PATHS.filter((path) => !known.has(path))).toEqual([]);
 	});
+
+	/** The pages with content for each person, also with no session. */
+	const PUBLIC = ["/", "/privacy", "/tos"] as const;
+
+	for (const path of PUBLIC) {
+		it(`does not block ${path}`, () => {
+			expect(lines).not.toContain(path);
+			expect(lines).not.toContain(`/*${path}`);
+		});
+	}
 });

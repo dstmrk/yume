@@ -757,8 +757,11 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds three routes: `/` for the public page, `/dashboard` for the dashboard
-and `/login` for the access. The tree is in
+The client holds five routes: `/` for the public page, `/dashboard` for the dashboard,
+`/login` for the access, `/privacy` for the policy of the personal data and `/tos` for
+the terms of the service. The two legal pages are public: Google asks for their
+addresses before it publishes the sign-in for each account. `LegalPage` shows the two
+from the dictionary, and `robots.txt` does not block them. The tree is in
 `src/client/router.tsx`, in the code. The project needs no plugin of the router and no
 step of generation.
 

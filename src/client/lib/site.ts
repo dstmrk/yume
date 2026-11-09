@@ -10,3 +10,10 @@
  * Thus the four places move together at a change of the domain.
  */
 export const SITE_URL = "https://yumemiles.com";
+
+/**
+ * The address of the official instance for the personal data and for the
+ * terms of the service. The pages `/privacy` and `/tos` give it. An instance
+ * on an other server has its own holder of the data: refer to those pages.
+ */
+export const CONTACT_EMAIL = "privacy@yumemiles.com";

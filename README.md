@@ -23,13 +23,15 @@ manually.
 
 ## The pages
 
-Yume has three pages:
+Yume has five pages:
 
 | Page | Address | Who reads it |
 |---|---|---|
 | The public page | `/` | Each visitor. It says what Yume calculates and it gives the two limits of that value. |
 | The dashboard | `/dashboard` | A user with an account. |
 | The access | `/login` | Each visitor. The sign-in uses Google, and the first sign-in makes the account. |
+| The privacy policy | `/privacy` | Each visitor. It gives the personal data that Yume keeps and the rights of the user. |
+| The terms of the service | `/tos` | Each visitor. |
 
 The application on the home screen of a telephone opens the dashboard.
 
