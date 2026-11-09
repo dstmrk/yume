@@ -8,7 +8,6 @@ describe("isClientPath", () => {
 		expect(isClientPath("/")).toBe(true);
 		expect(isClientPath("/dashboard")).toBe(true);
 		expect(isClientPath("/login")).toBe(true);
-		expect(isClientPath("/signup")).toBe(true);
 	});
 
 	it("holds a path with a slash at the end", () => {
@@ -17,6 +16,8 @@ describe("isClientPath", () => {
 	});
 
 	it("refuses a path that the client does not hold", () => {
+		// The link of an invitation. Google is the only provider now.
+		expect(isClientPath("/signup")).toBe(false);
 		expect(isClientPath("/questa-pagina-non-esiste")).toBe(false);
 		expect(isClientPath("/wp-admin")).toBe(false);
 	});

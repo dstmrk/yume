@@ -45,7 +45,7 @@ const SCREENSHOT = {
 /**
  * The public page of the application. A visitor with no session reads it.
  *
- * Yume gives an account only with an invitation, thus this page sells nothing.
+ * The registration is open, thus this page is the entry of a new user.
  * It gives the context that the form of the access does not give: what Yume
  * calculates, and that the value is a calculation and not a balance. Refer to
  * paragraph 5.5.1 of `docs/architecture.md`.
@@ -238,7 +238,7 @@ export function HomePage() {
 				>
 					{text.signIn}
 				</a>
-				<p className="text-board-muted text-xs">{text.inviteOnly}</p>
+				<p className="text-board-muted text-xs">{text.homeSignInNote}</p>
 			</Rise>
 		</div>
 	);

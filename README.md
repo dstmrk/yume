@@ -29,8 +29,7 @@ Yume has three pages:
 |---|---|---|
 | The public page | `/` | Each visitor. It says what Yume calculates and it gives the two limits of that value. |
 | The dashboard | `/dashboard` | A user with an account. |
-| The access | `/login` | A visitor with an account. |
-| The sign-up | `/signup` | A visitor with a link of invitation. |
+| The access | `/login` | Each visitor. The sign-in uses Google, and the first sign-in makes the account. |
 
 The application on the home screen of a telephone opens the dashboard.
 

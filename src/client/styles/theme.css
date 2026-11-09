@@ -76,6 +76,14 @@
 	--color-flap-top: #262a2f;
 	--color-flap-base: #1a1d21;
 
+	/* The button of the sign-in with Google, in the dark theme of the rules of
+	   Google: the fill, the stroke and the text. The rules ask for these
+	   values, thus they are not colours of the board. Refer to paragraph 4.1
+	   of docs/architecture.md. */
+	--color-google-fill: #131314;
+	--color-google-stroke: #8e918f;
+	--color-google-text: #e3e3e3;
+
 	/* JetBrains Mono is the font of the board. The list gives the monospace font
 	   of the system for the time of the load. Refer to paragraph 5.3 of
 	   docs/architecture.md. */

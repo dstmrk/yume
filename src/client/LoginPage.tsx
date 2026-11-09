@@ -1,30 +1,18 @@
-import { useNavigate, useRouter } from "@tanstack/react-router";
-import { AccessForm } from "./components/AccessForm.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
+import { GoogleSignIn } from "./components/GoogleSignIn.tsx";
 
 /**
- * The page of the access. It holds the sign-in and the sign-up.
+ * The page of the access: the sign-in with Google. The first sign-in also
+ * makes the account, thus the page holds no form of the sign-up.
  *
- * After the access the router examines the session again, thus the route
- * `/dashboard` finds the new session and shows the dashboard.
- *
- * The route `/signup` gives the code of the link. Then the page opens the form
- * of the sign-up.
+ * After the page of Google, Better Auth opens the dashboard, or this page with
+ * the parameter `error`. The route reads that parameter and gives it here.
  */
-export function LoginPage({ code }: { code?: string }) {
-	const navigate = useNavigate();
-	const router = useRouter();
-
+export function LoginPage({ error }: { error?: string }) {
 	return (
 		<>
 			<AppTitle />
-			<AccessForm
-				code={code}
-				onAccess={async () => {
-					await router.invalidate();
-					await navigate({ to: "/dashboard" });
-				}}
-			/>
+			<GoogleSignIn error={error} />
 		</>
 	);
 }
