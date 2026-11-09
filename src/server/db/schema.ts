@@ -204,6 +204,11 @@ export const favoriteCurrency = sqliteTable(
  * The current balance is the most recent snapshot of the account. The database
  * keeps no record of the changes. Paragraph 3.2 of `docs/architecture.md` gives
  * the reason.
+ *
+ * The column `observed_at` holds a date with no time. The column `created_at`
+ * holds the moment of the write, with the milliseconds. Thus of two snapshots
+ * with the same date, the snapshot that the user wrote last is the current
+ * balance.
  */
 export const balanceSnapshot = sqliteTable(
 	"balance_snapshot",
@@ -214,12 +219,14 @@ export const balanceSnapshot = sqliteTable(
 			.references(() => userAccount.id, { onDelete: "cascade" }),
 		points: integer("points").notNull(),
 		observedAt: text("observed_at").notNull(),
+		createdAt: text("created_at").notNull(),
 	},
 	(table) => [
 		// The application reads the most recent snapshot of an account.
 		index("balance_snapshot_account_observed_at").on(
 			table.accountId,
 			sql`${table.observedAt} desc`,
+			sql`${table.createdAt} desc`,
 		),
 	],
 );

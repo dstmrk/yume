@@ -20,7 +20,12 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
-import { addFavorite, addSnapshot, createAccount } from "./queries.ts";
+import {
+	addFavorite,
+	addSnapshot,
+	createAccount,
+	currentBalances,
+} from "./queries.ts";
 import * as schema from "./schema.ts";
 import { seedCatalogue } from "./seed/seed.ts";
 
@@ -167,7 +172,10 @@ describe("the migration of the sign-in with Google", () => {
 			userId: "author",
 			programId: "amex-mr",
 		});
-		addSnapshot(old, { accountId, points: 1900, observedAt: "2026-11-01" });
+		// The table of that version has no column `created_at`, thus the test
+		// writes the snapshot with SQL and not with `addSnapshot`.
+		old.run(sql`insert into balance_snapshot (id, account_id, points, observed_at)
+			values ('snapshot-1', ${accountId}, 1900, '2026-11-01')`);
 		addFavorite(old, { userId: "author", currencyId: "revpoints" });
 
 		migrate(old, { migrationsFolder: "drizzle" });
@@ -210,5 +218,93 @@ describe("the migration that removes the profile of Google", () => {
 		expect(rows[0]?.email).toBe("autore@example.com");
 		expect(rows[0]?.name).toBe("");
 		expect(rows[0]?.image).toBeNull();
+	});
+});
+
+/**
+ * The migration 0008 adds the moment of the write to each snapshot. Paragraph
+ * 3.2 of `docs/architecture.md` gives the rule. The table of the version before
+ * holds rows, and SQLite refuses `ADD COLUMN ... NOT NULL` on a table with
+ * rows. A test on an empty database does not find that error.
+ */
+describe("the migration that adds the moment of the write", () => {
+	/** The ids of the old rows. The order of the text is not the order of the writes. */
+	const FIRST = "ffffffff-ffff-4fff-bfff-ffffffffffff";
+	const SECOND = "00000000-0000-4000-8000-000000000000";
+	const OLDER_DATE = "88888888-8888-4888-8888-888888888888";
+
+	/**
+	 * A database of the version before, with three snapshots of one account. The
+	 * user wrote 10 000, then corrected it to 12 000 on the same day.
+	 */
+	function oldDatabase(): { old: Db; accountId: string } {
+		const old = openDatabase(":memory:");
+		migrate(old, {
+			migrationsFolder: migrationsUntil("0007_drop_google_profile"),
+		});
+		seedCatalogue(old);
+		insertUser(old, "author");
+		const accountId = createAccount(old, {
+			userId: "author",
+			programId: "amex-mr",
+		});
+		for (const [id, points, observedAt] of [
+			[OLDER_DATE, 9000, "2026-10-01"],
+			[FIRST, 10000, "2026-11-01"],
+			[SECOND, 12000, "2026-11-01"],
+		] as const) {
+			old.run(sql`insert into balance_snapshot (id, account_id, points, observed_at)
+				values (${id}, ${accountId}, ${points}, ${observedAt})`);
+		}
+		return { old, accountId };
+	}
+
+	it("gives a moment to each old snapshot and keeps its data", () => {
+		const { old, accountId } = oldDatabase();
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		const rows = old.select().from(schema.balanceSnapshot).all();
+		expect(rows.map(({ createdAt, ...row }) => row)).toEqual(
+			expect.arrayContaining([
+				{ id: OLDER_DATE, accountId, points: 9000, observedAt: "2026-10-01" },
+				{ id: FIRST, accountId, points: 10000, observedAt: "2026-11-01" },
+				{ id: SECOND, accountId, points: 12000, observedAt: "2026-11-01" },
+			]),
+		);
+		expect(rows).toHaveLength(3);
+		for (const row of rows) {
+			expect(row.createdAt).toMatch(
+				/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/,
+			);
+			expect(Date.parse(row.createdAt)).toBeLessThanOrEqual(Date.now());
+		}
+	});
+
+	// The order of rowid is the order of the writes. The id sorts the other way.
+	it("keeps the order of the writes of the old rows", () => {
+		const { old } = oldDatabase();
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		expect(currentBalances(old, "author")).toMatchObject([
+			{ snapshotId: SECOND, points: 12000 },
+		]);
+	});
+
+	// A correction after the migration replaces each old value of the same date.
+	it("gives the current balance to a snapshot written after the migration", () => {
+		const { old, accountId } = oldDatabase();
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		const correction = addSnapshot(old, {
+			accountId,
+			points: 13000,
+			observedAt: "2026-11-01",
+		});
+
+		expect(currentBalances(old, "author")).toMatchObject([
+			{ snapshotId: correction, points: 13000 },
+		]);
 	});
 });
