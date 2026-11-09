@@ -1076,6 +1076,55 @@ same test fails without it.
 The logos are trademarks of their owners. The foot of each surface says it. Refer to
 paragraph 5.5.4.
 
+### 5.8 The languages of the interface
+
+Status: **accepted**. Date: 2026-11-09. The interface holds one language, Italian. The
+code makes a second language an addition: a file of text and one item of a list.
+
+**The language is different from the market.** The language gives the text and the
+format of the numbers and of the dates. The market gives the catalogue and the transfer
+rules: the column `country` of paragraph 3.3.2. A person from Italy who lives in Spain
+needs the rules of Spain and the Italian text. Thus no value of one controls the other.
+This paragraph gives the language only.
+
+**The path is the only source of the language.** The base language, Italian, has no
+prefix: `/`, `/login`, `/dashboard`. Each other language has its prefix: `/en`,
+`/en/login`, `/en/dashboard`. The paths of the base language thus stay the same, and the
+canonical URL of paragraph 5.5.3 does not change.
+
+The server makes no redirect from the header `Accept-Language` and reads no cookie of the
+language. A crawler and a link then always receive the same page for one address. Google
+gives the same recommendation. A person changes the language with a selector. The
+selector shows only with two languages or more.
+
+The path `/it/login` is not a second address of `/login`. The base language has no
+prefix, thus that path gives the status 404. Two addresses for one page divide the
+results of a search engine.
+
+`src/shared/locale.ts` holds the list `LOCALES`, the base language and the tags of each
+language: the attribute `lang`, the locale of `Intl` and the value of `og:locale`. The
+function `localeRouting` gives `localeOfPath` and `pathFor` for a list of languages. The
+client and the server both use it.
+
+**The tests examine a second language now.** The functions receive the list of the
+languages as a parameter. A test gives the list `it` and `en`, with a text of the test.
+Thus the routing, the pages and the format of a second language have a test before the
+language exists. In production the list holds `it` only.
+
+**Each language has a typed text.** The text of the base language gives the type. A
+second text must hold each key of that type, or the typecheck fails. Yume uses no library
+of translation. The language is known from the path before the render, and
+`Intl.PluralRules` gives the plurals. A library adds a change of language at runtime and
+a load of the text from the network: Yume needs neither.
+
+**The format of a number follows the language.** `parsePoints` reads the separator of
+the thousands from the locale of `Intl`. In Italian `1.900` is 1900. In English the same
+text is a decimal number, thus the function refuses it.
+
+Each language receives its own static page from the build: the attribute `lang`,
+`og:locale`, a link `hreflang` for each language and the link `x-default` to the base
+language. Each language also receives its own `llms.txt`.
+
 ## 6. Repository layout
 
 ```
@@ -1092,7 +1141,7 @@ yume/
       auth.ts          # the Better Auth instance, with the provider Google
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
-    shared/            # Zod schemas and the conversion logic. Both sides use them.
+    shared/            # Zod schemas, the conversion and the languages, for both sides
   drizzle/             # the generated migrations, under version control
   docs/
   Dockerfile
