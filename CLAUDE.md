@@ -69,8 +69,12 @@ mechanical.
    logic has a test file.
 3. **Examine the edge cases after each implementation.** Make a list of the edge cases.
    Add a test for each one. Do these operations before the commit.
-4. **Divide a large task.** If a task changes more than 3 files, stop. Then divide the
-   task into sub-tasks.
+4. **Divide a task by its contract.** One artefact must accept or refuse a sub-task: a
+   test, a screen or one command. The quantity of files is not the criterion. A rename
+   can change 12 files and stay one sub-task. Two files can hold three decisions. A
+   sub-task is ready when the implementation receives each decision and makes no new
+   decision. If you start to change items that are not related, stop. Then divide the
+   task again.
 5. **Find the cause of a correction.** If the user corrects you, find the reason for the
    error. Then prevent the same error.
 6. **Keep this file and the skills correct.** If you solve a difficult problem, write the
@@ -78,8 +82,8 @@ mechanical.
    user.
 7. **Remove an internal path that is obsolete.** Remove the call sites, the tests and the
    dead columns. Do not write a compatibility layer. Do not write an `if (legacy)`
-   branch. If the removal changes more than 3 files, obey the rule 4. These three items
-   are not compatibility layers:
+   branch. If the removal holds more than one contract, obey the rule 4. These three
+   items are not compatibility layers:
    - A migration in `drizzle/` that ran one time. A migration is immutable. Add a new
      migration.
    - A transfer rule with a `validTo` that is not null. A closed rule is historical data.
