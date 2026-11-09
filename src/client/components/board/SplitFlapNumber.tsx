@@ -1,4 +1,5 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import { useI18n } from "../../i18n/I18n.tsx";
 import { flapSize, toFlapCells } from "../../lib/flaps.ts";
 import { formatPoints } from "../../lib/format.ts";
 import { SplitFlapCell } from "./SplitFlapCell.tsx";
@@ -70,15 +71,16 @@ export function SplitFlapNumber({
 	value: number;
 	variant?: VariantProps<typeof flapCell>["variant"];
 }) {
+	const { intl } = useI18n();
 	// The component gives the size. A balance is in a line of a list, thus it
 	// always holds the medium size.
 	const size = variant === "balance" ? "md" : flapSize(value);
 
 	return (
 		<span className="inline-flex items-stretch gap-0.5">
-			<span className="sr-only">{formatPoints(value)}</span>
+			<span className="sr-only">{formatPoints(value, intl)}</span>
 			<span aria-hidden="true" className="inline-flex items-stretch gap-0.5">
-				{toFlapCells(value).map((cell) => (
+				{toFlapCells(value, intl).map((cell) => (
 					<SplitFlapCell
 						key={cell.position}
 						char={cell.char}

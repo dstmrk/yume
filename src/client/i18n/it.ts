@@ -1,12 +1,16 @@
 /**
- * The text of the user interface, in Italian.
+ * The text of the user interface, in Italian, the base language.
  *
  * This file is the only place with Italian text. The server code and the shared
  * code hold no Italian text. Refer to the section Language rules in `CLAUDE.md`.
  *
+ * This text gives the type `Messages`. The text of a second language must hold
+ * each key of that type, or the typecheck fails. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rule.
+ *
  * Keep each item short. One short sentence is sufficient for a warning.
  */
-export const text = {
+export const it = {
 	appName: "Yume",
 
 	// The title of the page. It is the `h1`, and it holds the words of the
@@ -168,4 +172,44 @@ export const text = {
 	emailInUseError: "Email già registrata.",
 	passwordShortError: "Password troppo corta.",
 	authError: "Operazione non riuscita.",
-} as const;
+
+	// The structured data of the public page. Refer to `lib/jsonLd.ts`.
+	jsonLd: {
+		// The subjects of the application. Each item is a subject that the page
+		// covers with a text, not a function of the product.
+		knowsAbout: [
+			"Avios",
+			"Membership Rewards",
+			"RevPoints",
+			"Cashback Klarna",
+			"Miglia aeree",
+			"Trasferimento punti",
+			"Programmi fedeltà aerei",
+			"Rapporti di trasferimento",
+		],
+		// The functions that the application gives today.
+		featureList: [
+			"Calcolo delle miglia potenziali per ogni valuta",
+			"Rapporti di trasferimento ufficiali per l'Italia",
+			"Saldi con la data di osservazione",
+			"Applicazione installabile (PWA)",
+		],
+	},
+
+	// The description of the application. It is the description of
+	// `index.html`, of the structured data and the summary of `llms.txt`.
+	siteDescription:
+		"Yume calcola quante miglia puoi ottenere dai tuoi punti. Un valore per ogni valuta, con i rapporti di trasferimento ufficiali per l'Italia.",
+
+	// The lines of `llms.txt` that the page does not hold. Refer to
+	// `lib/llms.ts`.
+	llms: {
+		publicPage: "Pagina pubblica",
+		access:
+			"L'accesso è solo su invito. Il codice è open source con licenza MIT.",
+		warnings: "Avvertenze",
+	},
+};
+
+/** The shape of the text of each language. The base language gives it. */
+export type Messages = typeof it;

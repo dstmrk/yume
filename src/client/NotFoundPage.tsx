@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
+import { useI18n } from "./i18n/I18n.tsx";
 import { cn } from "./lib/cn.ts";
-import { text } from "./text.ts";
 
 /**
  * The code of a page that the site does not hold.
@@ -28,6 +28,7 @@ const NOT_FOUND_CODE = 404;
  * explanation.
  */
 export function NotFoundPage() {
+	const { t: text } = useI18n();
 	// The page holds one surface, thus that surface holds the centre of the
 	// screen. The other pages start at the top, because their content arrives
 	// below the first surface.

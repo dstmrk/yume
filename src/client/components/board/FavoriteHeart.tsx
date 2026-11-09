@@ -1,4 +1,4 @@
-import { text } from "../../text.ts";
+import { useI18n } from "../../i18n/I18n.tsx";
 
 /**
  * The heart of a card. The user marks a currency of interest.
@@ -17,6 +17,7 @@ export function FavoriteHeart({
 	favorite: boolean;
 	onToggle: () => void;
 }) {
+	const { t: text } = useI18n();
 	return (
 		<button
 			type="button"

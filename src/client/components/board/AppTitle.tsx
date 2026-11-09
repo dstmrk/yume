@@ -1,4 +1,4 @@
-import { text } from "../../text.ts";
+import { useI18n } from "../../i18n/I18n.tsx";
 import { SplitFlapWord } from "./SplitFlapWord.tsx";
 
 /**
@@ -13,6 +13,7 @@ import { SplitFlapWord } from "./SplitFlapWord.tsx";
  * the icon of the tab and the icon of the home screen.
  */
 export function AppTitle() {
+	const { t: text } = useI18n();
 	return (
 		<h1>
 			<SplitFlapWord word={text.appName} size="md" />

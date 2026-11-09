@@ -1,8 +1,8 @@
 import { useMutation } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { useI18n } from "../i18n/I18n.tsx";
 import { AuthError, signIn, signUp } from "../lib/api.ts";
 import { authMessage } from "../lib/auth.ts";
-import { text } from "../text.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -30,6 +30,7 @@ export function AccessForm({
 	 */
 	code?: string;
 }) {
+	const { t: text } = useI18n();
 	const fieldId = useId();
 	const [isNew, setIsNew] = useState(code !== undefined);
 	const [name, setName] = useState("");
@@ -114,6 +115,7 @@ export function AccessForm({
 				<p className="text-destructive text-sm">
 					{authMessage(
 						send.error instanceof AuthError ? send.error.code : undefined,
+						text,
 					)}
 				</p>
 			)}

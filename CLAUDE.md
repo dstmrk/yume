@@ -33,8 +33,9 @@ ASD-STE100 gives these rules for the documents:
 - Use `must` for a requirement. Use `can` for a possibility. Do not use `should`.
 - Do not use idioms and do not use technical slang.
 
-Keep the Italian text of the interface in one place. Do not put Italian text in the
-server code.
+Keep the Italian text of the interface in one place: `src/client/i18n/it.ts`. Do not put
+Italian text in the server code. A component reads the text with `useI18n`. Paragraph 5.8
+of `docs/architecture.md` gives the rules of the languages.
 
 The head of `src/client/index.html` is the one exception. The title, the description and
 the tags of Open Graph are Italian, because a static file imports no module and a crawler
@@ -189,7 +190,10 @@ only. Obey these rules:
 - Give `aria-hidden` to the digits that move. Put the correct value in an element that
   is not visible.
 - If the user selects `prefers-reduced-motion`, show the new value immediately.
-- Show all the numbers with the locale `it-IT`.
+- Show each number with the locale of the language of the page. `useI18n` gives that
+  locale as `intl`. Give `intl` as a parameter to each function of `lib/` that writes a
+  number, a date or an order. Do not write `"it-IT"` in the code: `LOCALE_TAGS` of
+  `src/shared/locale.ts` holds it.
 - Give each programme of the catalogue a logo in `src/client/lib/logos.ts`. A logo is one
   SVG path in a box of 24 x 24, with `currentColor`. Take a logo from Simple Icons, from
   a file of Wikimedia Commons in the public domain, or from an official file that the
@@ -206,9 +210,10 @@ writes.
 Obey these three rules in a form:
 
 - **Read a quantity of points with `parsePoints`.** The interface writes each number with
-  the locale `it-IT`. Thus the user reads `1.900` and can write the same text. A field of
-  the type `number` refuses that text. The function also refuses a group that is not of
-  three digits: without that examination, `1.9` gives 19.
+  the locale of the page. Thus the user reads `1.900` and can write the same text. A field
+  of the type `number` refuses that text. The function also refuses a group that is not
+  of three digits: without that examination, `1.9` gives 19. The separator follows the
+  locale: in English `1.900` is a decimal number, thus the function refuses it.
 - **Make an empty field null.** The schemas of `src/shared/api.ts` ask for one character
   or for null. An empty string gives the status 400.
 - **Give `appearance-none` to a field of the type `date`.** Safari on iOS gives the theme

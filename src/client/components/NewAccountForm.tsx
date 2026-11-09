@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { Currency, Program } from "../../shared/catalogue.ts";
+import { useI18n } from "../i18n/I18n.tsx";
 import {
 	matchesProgram,
 	programAirlinesLine,
@@ -10,7 +11,6 @@ import {
 import { airlinesOf } from "../lib/airlines.ts";
 import { addSnapshot, createAccount } from "../lib/api.ts";
 import { readOptionalPoints, todayIso } from "../lib/balance.ts";
-import { text } from "../text.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
 import { Button } from "./ui/button.tsx";
 import {
@@ -45,6 +45,7 @@ export function NewAccountForm({
 	/** The dashboard of a user with no account opens the form immediately. */
 	defaultOpen?: boolean;
 }) {
+	const { t: text } = useI18n();
 	const [open, setOpen] = useState(defaultOpen);
 
 	if (!open) {
@@ -73,6 +74,7 @@ function Fields({
 	currencies: readonly Currency[];
 	onClose: () => void;
 }) {
+	const { t: text, intl } = useI18n();
 	const fieldId = useId();
 	const [programId, setProgramId] = useState("");
 	const [points, setPoints] = useState("");
@@ -101,7 +103,7 @@ function Fields({
 		onSuccess: onClose,
 	});
 
-	const options = sortPrograms(programs, currencies);
+	const options = sortPrograms(programs, currencies, intl);
 	const searchNames = searchNamesOf(options, currencies);
 	const selected = options.find((program) => program.id === programId);
 
@@ -110,7 +112,7 @@ function Fields({
 			className="flex flex-col gap-4 rounded-lg border border-border bg-muted p-4"
 			onSubmit={(event) => {
 				event.preventDefault();
-				const balance = readOptionalPoints(points);
+				const balance = readOptionalPoints(points, intl);
 				setInvalid(!balance.ok);
 				if (balance.ok) {
 					save.mutate(balance.points);
@@ -189,6 +191,7 @@ function ProgramPicker({
 	selected: Program | undefined;
 	onSelect: (programId: string) => void;
 }) {
+	const { t: text } = useI18n();
 	const [open, setOpen] = useState(false);
 
 	return (

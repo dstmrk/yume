@@ -2,14 +2,23 @@ import type { Currency, Program } from "../../shared/catalogue.ts";
 import { airlinesOf } from "./airlines.ts";
 
 /**
- * The comparison of the names, for Italy.
+ * The comparison of the names, in the order of the dictionary of the language.
  *
  * The default comparison of JavaScript reads the numbers of the characters.
  * With that comparison each capital letter comes before each small letter, and
  * a letter with an accent comes after `z`. The catalogue holds 29
  * programmes, thus the list needs the order of a dictionary.
  */
-const byName = new Intl.Collator("it-IT");
+const collators = new Map<string, Intl.Collator>();
+
+function collatorOf(intl: string): Intl.Collator {
+	let collator = collators.get(intl);
+	if (collator === undefined) {
+		collator = new Intl.Collator(intl);
+		collators.set(intl, collator);
+	}
+	return collator;
+}
 
 /**
  * Gives a new list of the programmes. Each source comes first, then the order
@@ -25,6 +34,7 @@ const byName = new Intl.Collator("it-IT");
 export function sortPrograms(
 	programs: readonly Program[],
 	currencies: readonly Currency[],
+	intl: string,
 ): Program[] {
 	const sources = new Set(
 		currencies
@@ -32,6 +42,7 @@ export function sortPrograms(
 			.map((currency) => currency.id),
 	);
 	const rank = (program: Program) => (sources.has(program.currencyId) ? 0 : 1);
+	const byName = collatorOf(intl);
 	return [...programs].sort(
 		(a, b) => rank(a) - rank(b) || byName.compare(a.name, b.name),
 	);

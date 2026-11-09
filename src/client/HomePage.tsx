@@ -3,9 +3,9 @@ import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
+import { useI18n } from "./i18n/I18n.tsx";
 import { cn } from "./lib/cn.ts";
 import { catalogueLogos } from "./lib/logos.ts";
-import { text } from "./text.ts";
 
 /**
  * The value of the board of the example.
@@ -82,6 +82,7 @@ const SCREENSHOT = {
  * the router.
  */
 export function HomePage() {
+	const { t: text } = useI18n();
 	return (
 		<div className="flex flex-col gap-10">
 			{/* The masthead. The name is at the left and the access is at the right,

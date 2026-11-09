@@ -193,5 +193,5 @@ these three rules:
 - **Do not show a total of all the currencies.** The user cannot send the same
   points to two programmes. A sum gives a value that is not possible.
 
-Show all the numbers with the locale `it-IT`. The text of the interface is in
-Italian, and it stays in one place.
+Show each number with the locale of the language of the page, from `useI18n`. The
+text of each language stays in one file of `src/client/i18n/`.
