@@ -310,6 +310,13 @@ and no user finds the defect at the sign-in.
 Those four tables hold a `Date`, therefore those columns are integers of seconds. The
 other tables of the application hold text in the ISO 8601 format.
 
+Better Auth removes an expired session only when the browser sends its cookie. The
+cookie expires with the session, thus the row stays with the IP address and the browser.
+Therefore the server calls `deleteExpired` of `src/server/db/queries.ts` at the start
+and then one time each day. That function removes each expired row of `session` and of
+`verification`. Section 9 of the privacy policy then stays true, with a delay of one day
+at most.
+
 ### 4.1 Google is the only provider
 
 The sign-in uses Google only, with `socialProviders.google` of Better Auth. Yume holds no

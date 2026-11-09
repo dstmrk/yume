@@ -2,7 +2,8 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
 import { type Db, openDatabase } from "./db/index.ts";
-import { account, user } from "./db/schema.ts";
+import { deleteExpired } from "./db/queries.ts";
+import { account, session, user, verification } from "./db/schema.ts";
 
 const BASE_URL = "http://localhost:3000";
 const SECRET = "a-secret-for-the-test";
@@ -208,6 +209,35 @@ describe("the callback of Google", () => {
 		expect(response.status).toBe(302);
 		expect(response.headers.get("location")).toContain("error=");
 		expect(db.select().from(user).all()).toHaveLength(0);
+	});
+});
+
+// The cleanup reads the columns that Better Auth writes. This test uses the real
+// flow, thus a change of the unit of `expires_at` in the library breaks it.
+describe("the cleanup of the expired rows", () => {
+	const DAY = 24 * 60 * 60 * 1000;
+
+	it("removes a session of Better Auth after its expiry", async () => {
+		const response = await signInWithGoogle("google-1", "primo@example.com");
+		const headers = new Headers({ cookie: cookiesOf(response) });
+		expect(await auth.api.getSession({ headers })).not.toBeNull();
+
+		expect(deleteExpired(db, new Date()).sessions).toBe(0);
+		expect(db.select().from(session).all()).toHaveLength(1);
+
+		expect(deleteExpired(db, new Date(Date.now() + 8 * DAY)).sessions).toBe(1);
+		expect(db.select().from(session).all()).toHaveLength(0);
+		expect(await auth.api.getSession({ headers })).toBeNull();
+		expect(db.select().from(user).all()).toHaveLength(1);
+	});
+
+	it("removes the state of a sign-in that the person did not complete", async () => {
+		await startSignIn();
+		expect(deleteExpired(db, new Date()).verifications).toBe(0);
+		expect(db.select().from(verification).all()).toHaveLength(1);
+
+		expect(deleteExpired(db, new Date(Date.now() + DAY)).verifications).toBe(1);
+		expect(db.select().from(verification).all()).toHaveLength(0);
 	});
 });
 
