@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
@@ -22,6 +22,11 @@ import { seedCatalogue } from "./seed/seed.ts";
 const USER = "user-1";
 const OTHER_USER = "user-2";
 
+/** Three ids of a snapshot. The order of the text is LOW, MIDDLE, HIGH. */
+const LOW_ID = "00000000-0000-4000-8000-000000000000";
+const MIDDLE_ID = "88888888-8888-4888-8888-888888888888";
+const HIGH_ID = "ffffffff-ffff-4fff-bfff-ffffffffffff";
+
 let db: Db;
 
 beforeEach(() => {
@@ -31,6 +36,26 @@ beforeEach(() => {
 	insertUser(db, USER);
 	insertUser(db, OTHER_USER);
 });
+
+afterEach(() => {
+	vi.restoreAllMocks();
+	vi.useRealTimers();
+});
+
+/**
+ * Writes a snapshot at a given moment and with a given id.
+ *
+ * The test then sets the order of the writes and the order of the ids. Thus a
+ * random id cannot give the expected row by chance.
+ */
+function writeSnapshot(
+	input: { accountId: string; points: number; observedAt: string },
+	at: { moment: string; id: ReturnType<Crypto["randomUUID"]> },
+): string {
+	vi.setSystemTime(at.moment);
+	vi.spyOn(crypto, "randomUUID").mockReturnValueOnce(at.id);
+	return addSnapshot(db, input);
+}
 
 /** The quantity of snapshots of an account, also the rows that no query gives. */
 function snapshotCount(accountId: string): number {
@@ -113,20 +138,60 @@ describe("currentBalances", () => {
 		);
 	});
 
-	it("keeps one row for each account when the dates are equal", () => {
+	// The form gives the date of today. Thus a correction on the same day holds
+	// the same date. The id of the correction sorts first, thus an order by the
+	// id gives the old value.
+	it("gives the snapshot written last when the dates are equal", () => {
 		const account = createAccount(db, { userId: USER, programId: "ba-club" });
-		addSnapshot(db, {
-			accountId: account,
-			points: 100,
-			observedAt: "2026-08-01",
-		});
-		addSnapshot(db, {
-			accountId: account,
-			points: 200,
-			observedAt: "2026-08-01",
-		});
+		writeSnapshot(
+			{ accountId: account, points: 10000, observedAt: "2026-11-09" },
+			{ moment: "2026-11-09T09:00:00.000Z", id: HIGH_ID },
+		);
+		const correction = writeSnapshot(
+			{ accountId: account, points: 12000, observedAt: "2026-11-09" },
+			{ moment: "2026-11-09T09:05:00.000Z", id: LOW_ID },
+		);
 
-		expect(currentBalances(db, USER)).toHaveLength(1);
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ snapshotId: correction, points: 12000, observedAt: "2026-11-09" },
+		]);
+	});
+
+	// A snapshot of an older date is a late record of an old balance. It is not
+	// a correction of the current balance.
+	it("keeps the current snapshot after a write of an older date", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		const current = writeSnapshot(
+			{ accountId: account, points: 1500, observedAt: "2026-08-01" },
+			{ moment: "2026-08-01T09:00:00.000Z", id: LOW_ID },
+		);
+		writeSnapshot(
+			{ accountId: account, points: 1200, observedAt: "2026-04-01" },
+			{ moment: "2026-08-02T09:00:00.000Z", id: HIGH_ID },
+		);
+
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ snapshotId: current, points: 1500, observedAt: "2026-08-01" },
+		]);
+	});
+
+	// Two calls of `addSnapshot` one after the other fall in one millisecond
+	// nine times in ten. Then `rowid` gives the order of the writes.
+	it("gives the snapshot written last when the moments are equal", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		const moment = "2026-11-09T09:00:00.000Z";
+		writeSnapshot(
+			{ accountId: account, points: 10000, observedAt: "2026-11-09" },
+			{ moment, id: HIGH_ID },
+		);
+		const correction = writeSnapshot(
+			{ accountId: account, points: 12000, observedAt: "2026-11-09" },
+			{ moment, id: LOW_ID },
+		);
+
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ snapshotId: correction, points: 12000 },
+		]);
 	});
 
 	it("gives the id of the most recent snapshot", () => {
@@ -282,6 +347,37 @@ describe("deleteSnapshot", () => {
 
 		expect(currentBalances(db, USER)).toMatchObject([
 			{ points: 1900, observedAt: "2026-01-01" },
+		]);
+	});
+
+	// The user corrects a balance two times on one day, then removes the last
+	// correction. The balance goes back to the correction before it, not to the
+	// first value of the day. A late record of an older date stays behind them.
+	it("gives the snapshot written before it on the same date", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		writeSnapshot(
+			{ accountId: account, points: 10000, observedAt: "2026-11-09" },
+			{ moment: "2026-11-09T09:00:00.000Z", id: HIGH_ID },
+		);
+		const previous = writeSnapshot(
+			{ accountId: account, points: 11000, observedAt: "2026-11-09" },
+			{ moment: "2026-11-09T09:05:00.000Z", id: LOW_ID },
+		);
+		const last = writeSnapshot(
+			{ accountId: account, points: 12000, observedAt: "2026-11-09" },
+			{ moment: "2026-11-09T09:10:00.000Z", id: MIDDLE_ID },
+		);
+		vi.setSystemTime("2026-11-09T09:15:00.000Z");
+		addSnapshot(db, {
+			accountId: account,
+			points: 9000,
+			observedAt: "2026-10-01",
+		});
+
+		deleteSnapshot(db, last, account);
+
+		expect(currentBalances(db, USER)).toMatchObject([
+			{ snapshotId: previous, points: 11000, observedAt: "2026-11-09" },
 		]);
 	});
 

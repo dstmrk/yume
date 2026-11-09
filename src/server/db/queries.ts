@@ -27,9 +27,11 @@ export type AccountWithBalance = {
 /**
  * Gives each account of the user with its current balance.
  *
- * The current balance is the most recent snapshot of the account. Two snapshots
- * with the same date keep the row with the larger id, thus the result of two
- * calls is the same.
+ * The current balance is the most recent snapshot of the account: the latest
+ * `observed_at`, then the latest `created_at`. Thus a correction on the same
+ * day replaces the value before it. The id is random and it gives no order of
+ * the writes. `rowid` is the last key, for two writes in one millisecond.
+ * Paragraph 3.2 of `docs/architecture.md` gives the reason.
  */
 export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
 	return db
@@ -47,7 +49,7 @@ export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
 				balanceSnapshot.id,
 				sql`(select ${balanceSnapshot.id} from ${balanceSnapshot}
 					where ${balanceSnapshot.accountId} = ${userAccount.id}
-					order by ${balanceSnapshot.observedAt} desc, ${balanceSnapshot.id} desc
+					order by ${balanceSnapshot.observedAt} desc, ${balanceSnapshot.createdAt} desc, ${balanceSnapshot}.rowid desc
 					limit 1)`,
 			),
 		)
@@ -198,7 +200,9 @@ export function removeFavorite(
 /**
  * Adds a snapshot of the balance. It gives the id of the new snapshot.
  *
- * The database keeps each snapshot. It keeps no record of the changes.
+ * The database keeps each snapshot. It keeps no record of the changes. The
+ * column `created_at` receives the moment of the write, thus this snapshot
+ * comes after each snapshot of the same date.
  */
 export function addSnapshot(
 	db: Db,
@@ -215,6 +219,7 @@ export function addSnapshot(
 			accountId: input.accountId,
 			points: input.points,
 			observedAt: input.observedAt,
+			createdAt: new Date().toISOString(),
 		})
 		.run();
 	return id;

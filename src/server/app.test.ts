@@ -1,5 +1,5 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
@@ -39,6 +39,11 @@ beforeEach(async () => {
 
 	userId = insertUser(db, "primo");
 	cookie = await sessionCookie(auth, userId);
+});
+
+afterEach(() => {
+	vi.restoreAllMocks();
+	vi.useRealTimers();
 });
 
 type PotentialRow = {
@@ -430,6 +435,34 @@ describe("GET /api/potential", () => {
 				{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 400 },
 			],
 		});
+	});
+
+	// The user writes a balance and corrects it on the same day. The id of the
+	// correction sorts first, thus an order by the id gives the old balance.
+	it("uses the balance that the user corrected on the same day", async () => {
+		const account = createAccount(db, { userId, programId: "amex-mr" });
+		const randomUUID = vi.spyOn(crypto, "randomUUID");
+		const now = Date.now();
+		vi.setSystemTime(now - 60_000);
+		randomUUID.mockReturnValueOnce("ffffffff-ffff-4fff-bfff-ffffffffffff");
+		addSnapshot(db, {
+			accountId: account,
+			points: 10000,
+			observedAt: "2026-11-09",
+		});
+		vi.setSystemTime(now);
+		randomUUID.mockReturnValueOnce("00000000-0000-4000-8000-000000000000");
+		addSnapshot(db, {
+			accountId: account,
+			points: 12000,
+			observedAt: "2026-11-09",
+		});
+		vi.useRealTimers();
+
+		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
+		const avios = body.potential.find((row) => row.currencyId === "avios");
+		// Iberia Club gives 4 Avios for 5 points: 12 000 points give 9 600 Avios.
+		expect(avios).toMatchObject({ fromTransfers: 9600 });
 	});
 
 	it("ignores an account with no snapshot", async () => {

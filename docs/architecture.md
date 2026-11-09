@@ -141,12 +141,26 @@ does not know the quantity of points of each transaction.
 Thus the basic record is a snapshot:
 
 ```
-balance_snapshot(account_id, points, observed_at)
+balance_snapshot(account_id, points, observed_at, created_at)
 ```
 
 The current balance is the most recent snapshot of the account. The system calculates
 the changes between two snapshots only for the display. It does not keep the changes in
 the database.
+
+The field `observed_at` holds a date with no time. The form gives the date of today, thus
+a correction on the same day holds the same date. The field `created_at` holds the moment
+of the write, with the milliseconds. The most recent snapshot has the latest
+`observed_at`, then the latest `created_at`. Thus a snapshot of an older date that the
+user writes later does not become the current balance.
+
+Do not use the id for the order: the id is a random UUID. Do not use `rowid` as the first
+key. `VACUUM` can change the `rowid` of a table with no `INTEGER PRIMARY KEY`, and the
+backup of paragraph 2.3 uses `VACUUM INTO`. `rowid` is only the last key, for two writes
+in one millisecond. No `VACUUM` comes between those two writes.
+
+The true moment of a row before the migration `0008` is lost. That migration gives those
+rows a moment before its own moment, in the order of `rowid`.
 
 ### 3.3 Integers only. No floating-point numbers
 
@@ -234,7 +248,7 @@ program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
 transfer_rule(...)                    -- refer to paragraph 3.3
 
 user_account(id, userId, programId)
-balance_snapshot(id, accountId, points, observedAt)
+balance_snapshot(id, accountId, points, observedAt, createdAt)
 favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragraph 5.0.2
 ```
 

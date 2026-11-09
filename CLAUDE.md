@@ -115,6 +115,9 @@ These rules prevent the most dangerous defects in this application:
    count the same balance more than one time.
 3. **Keep snapshots.** The table `balance_snapshot` holds the balance at a date. The
    current balance is the most recent snapshot. Do not keep a record of the changes.
+   The most recent snapshot has the latest `observed_at`, then the latest `created_at`.
+   Do not use the id for the order of the writes: the id is random. Paragraph 3.2 of
+   `docs/architecture.md` gives the reason.
 4. **Make the transfer rules versioned.** Each rule has `validFrom` and `validTo`. Do
    not change a rule in its place. Close the old rule and add a new rule.
 5. **Give a source for each ratio.** Read the official page. Do not write a ratio from
@@ -323,6 +326,12 @@ bash .claude/hooks/test-block-private-data-commit.sh
 - Test a migration on the data of an old version. Copy `drizzle/` with a short journal,
   apply it, write the old rows, then apply the full folder. `schema.test.ts` holds the
   example.
+- Write the old rows with SQL. A function of `queries.ts` writes the columns of the
+  current schema, and the old table does not have them.
+- Examine each `ADD ... NOT NULL` that drizzle-kit writes. SQLite refuses that statement
+  on a table with rows if the column has no default. A test on an empty database does
+  not find the error. Make the table again and fill the column, as
+  `drizzle/0008_snapshot_created_at.sql` does.
 - Do not commit the database file, the `data/` directory or a `.env` file.
 
 ## Hooks
