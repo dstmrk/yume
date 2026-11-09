@@ -16,9 +16,9 @@ These constraints control all the decisions in this document:
 
 | Constraint | Decision |
 |---|---|
-| Cost | Zero. The system uses no paid service and no necessary external service. The supporter account of paragraph 4.6 adds a payment service to the official instance only. |
+| Cost | Zero. The system uses no paid service. Google is the one necessary external service, for the sign-in: refer to paragraph 4.1. The supporter account of paragraph 4.6 adds a payment service to the official instance only. |
 | Deployment | One Docker container on a home server, a NAS or a Raspberry Pi with arm64. |
-| Users | A small, closed group. Registration is possible only with an invitation. |
+| Users | Open. Each person with a Google account can make an account. |
 | Data input | Manual. Amex and Revolut do not give a public API for balances. The team refused the automatic collection of data from the web sites. |
 | Types | TypeScript for all the code. Zod for all the data validation. |
 
@@ -32,7 +32,7 @@ These constraints control all the decisions in this document:
 | User interface | Tailwind CSS v4, shadcn/ui | The repository contains the components. No external design system at runtime. |
 | Database | SQLite with `better-sqlite3` | One node, few writes, backup of one file. |
 | Schema and migrations | Drizzle and drizzle-kit | SQL-first. The repository contains the generated migrations. |
-| Authentication | Better Auth with the Drizzle adapter | Sessions on your own server. No external identity provider. |
+| Authentication | Better Auth with the Drizzle adapter, Google as the only provider | Sessions on your own server. No password and no service of email. Refer to paragraph 4.1. |
 | Validation | Zod | `src/shared/api.ts` holds one schema for each shape, and both sides read it. |
 | Tests | Vitest | |
 | Lint and format | Biome | One tool in the place of ESLint and Prettier. |
@@ -51,8 +51,10 @@ TanStack Start also adds server-side rendering. Yume does not need server-side
 rendering, because Yume is a private dashboard behind a login. Search engines do not
 read it.
 
-The public page of paragraph 5.5.1 does not change this decision. Yume gives an account
-only with an invitation, thus a position in the results of a search engine has no value.
+The public page of paragraph 5.5.1 does not change this decision. That page is one
+static route, and paragraph 5.5.3 gives the text for the crawlers in the head of
+`index.html`. The dashboard stays behind the sign-in, thus it needs no rendering on the
+server.
 
 The cost of TanStack Start is a smaller set of tools and a Docker build that is more
 difficult to examine. Vite with Hono gives two processes in development, but only **one
@@ -219,15 +221,13 @@ this country.
 The catalogue holds the rules of Italy only. No surface selects a country, therefore the
 server gives the constant `DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the
 calculation. A second country in the catalogue needs the country of the user: the
-sign-up must then ask for that value, and the table `user` must hold it. Yume adds that
+dashboard must then ask for that value, and the table `user` must hold it. Yume adds that
 field with that requirement, and not before it.
 
 ### 3.4 Tables
 
 ```
 -- Better Auth controls these tables: user, session, account, verification
-
-invitation(id, code, createdByUserId, email?, expiresAt, usedAt, usedByUserId)
 
 currency(id, code, name, kind)        -- 'airline' | 'flexible' | 'hotel' | 'rail'
 program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
@@ -278,6 +278,10 @@ client and the server use the same function.
 
 ## 4. Authentication
 
+Status: **accepted**. Date: 2026-11-09. This decision replaces the sign-in with a
+password, the invitations and the code of the setup. The code still holds those
+functions. Three sub-tasks remove them: the server, the invitations and the client.
+
 Better Auth controls the sessions. It keeps the sessions in SQLite with the Drizzle
 adapter. The tables `user`, `session`, `account` and `verification` are in
 `src/server/db/schema.ts`, with the tables of the application. Then one pipeline controls
@@ -292,78 +296,57 @@ and no user finds the defect at the sign-in.
 Those four tables hold a `Date`, therefore those columns are integers of seconds. The
 other tables of the application hold text in the ISO 8601 format.
 
-Registration is possible only with an invitation. The sign-up request must include the
-field `inviteCode`. Two hooks control the operation:
+### 4.1 Google is the only provider
 
-1. A `before` hook of the request examines the code. The pure function
-   `invitationState` of `src/server/invitation.ts` gives the state. The hook refuses an
-   unknown code, an expired code and a used code.
-2. A hook of the database, after the creation of the user, marks the invitation. This
-   hook is the second one, because the id of the user does not exist before the
-   creation. The condition of the update holds `used_at is null`.
+The sign-in uses Google only, with `socialProviders.google` of Better Auth. Yume holds no
+password, sends no email and writes no invitation. The registration is open: the first
+sign-in of a Google account makes the user.
 
-A sign-up that stops between the two hooks keeps the code free. Example: an address that
-an other user has.
+These are the reasons:
 
-Email verification is OFF. There is no SMTP dependency. Thus the user cannot change a
-forgotten password without help. The administrator must do this operation.
+- One provider gives one path in the code. A password needs a reset, and a reset needs a
+  service of email.
+- A service of email is not free. Amazon SES costs 0,10 dollars for 1.000 messages, and
+  the AWS free tier gives credits for 6 months only. useSend on the server of the
+  installation needs Postgres, Redis and Amazon SES.
+- Google verifies the email address. Thus Yume needs no verification of the address.
+- The scopes `openid`, `email` and `profile` are not sensitive. Google then asks for no
+  review of the application.
 
-### 4.1 The first user
+Sign in with Apple is not available. It needs the Apple Developer Program, for 99 dollars
+for one year. Its client secret expires after six months, and Apple refuses `localhost`
+also in development. Add that provider with a requirement, for example an iOS
+application. The table `account` holds the provider in each row, thus a second provider
+needs no change of the schema.
 
-The first user needs an invitation, and an invitation needs a user. Therefore the server
-makes a code of the setup at the start, but only while the table `user` holds no row. It
-writes that code in the log with the link of the sign-up:
+### 4.2 The consequences
+
+**A user who loses the Google account loses the access to Yume.** The administrator has
+no procedure of recovery. The team accepts this risk: the user can write the balances
+again.
+
+**Google accepts a redirect URI with `https` on a public domain, or on `localhost`.**
+Thus a sign-in on `http://nas.local:3000` is not possible. The cookie of the session
+gives the same limit: refer to paragraph 4.3. Paragraph 7 gives the three tools for the
+TLS.
+
+**An installation on the public network accepts each Google account.** The code holds no
+list of addresses and no option for that list. An administrator who wants a private
+installation puts Cloudflare Access, or a reverse proxy with authentication, in front of
+Yume.
+
+**Each installation needs its own OAuth client.** The administrator makes a project in
+the Google Cloud Console and publishes the consent screen. Then the administrator makes a
+client of the type "Web application" with this redirect URI:
 
 ```
-The database holds no user. Open http://localhost:3000/signup?code=XK47DYTNP2 to make
-the first user.
+https://<domain of the installation>/api/auth/callback/google
 ```
 
-The administrator reads the log with `docker compose logs`, opens the link and writes the
-address and the password. Thus a self-hosted installation needs no shell of the server.
-
-The code is not a fixed value of the image. Many self-hosted applications give a default
-user and a default password. Yume is on the public network and its image is public, thus
-a person who reads the repository knows that value and makes the first user before the
-administrator. A code that the server makes at each start has no such risk.
-
-The hook `before` reads the quantity of users at each request. Therefore the code of the
-setup dies with the first user, also in the same process. A start with a user in the
-database makes no code.
-
-The setup writes no row in `invitation`: no user wrote that code.
-
-### 4.2 The invitations of a user
-
-Each user holds two slots of invitation. An invitation that a person used holds its slot
-forever, thus one user brings a maximum of two users. An invitation that expires with no
-use gives its slot back. The pure function `heldSlots` of `src/server/invitation.ts`
-counts the slots, and `createInvitationForUser` refuses a code above the limit.
-
-The examination at the moment of the creation is sufficient: a used invitation never
-gives its slot back. Therefore the sign-up needs no second examination of the limit.
-
-Each code is valid for 24 hours. A code travels in a message, thus a short time keeps the
-risk small. The user writes a new code after the end of the old one.
-
-Each code holds 10 characters. The alphabet holds 32 characters and no character that a
-person reads in a wrong way: no `I`, no `O`, no `0` and no `1`. One byte gives 8 values
-for each character, thus no character is more frequent.
-
-The user writes an invitation from the dashboard with `POST /api/invitations`, and the
-panel shows the link of each code that is valid. The administrator has the same operation
-on the machine of the server:
-
-```bash
-npm run auth:invite -- <email of the user who invites> [email]
-```
-
-The image of the container holds no npm. Run the script in the container with node:
-
-```bash
-docker compose exec yume node --experimental-strip-types \
-  src/server/scripts/invite.ts <email of the user who invites>
-```
+**The data of the first version goes away.** The first version held one user, the
+author. A migration removes the table `invitation` and the rows of the four tables of
+Better Auth. The foreign keys remove the accounts and the snapshots of that user. Then
+the author makes a new account with Google. No code keeps the old path.
 
 ### 4.3 The variables of the environment
 
@@ -371,6 +354,8 @@ docker compose exec yume node --experimental-strip-types \
 |---|---|
 | `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. |
 | `BETTER_AUTH_URL` | The origin of the application. Better Auth refuses a request from an other origin. The default value is `http://localhost:<PORT>`. |
+| `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
+| `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
 
 A default value of the key in the code gives no security. Therefore the server writes a
@@ -392,10 +377,11 @@ The machine itself is the exception: a browser accepts a `secure` cookie from
 `npm run dev:server` needs no certificate. A value that the function cannot read gives
 the attribute: a defect in the variable must not remove the protection.
 
-The file `.env.example` holds the two variables of Docker Compose, with no value. Copy
+The file `.env.example` holds the four variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
-the origin of the client of Vite for development.
+the origin of the client of Vite for development. The two variables of Google need a
+real OAuth client also in development, with the redirect URI on `localhost`.
 
 ### 4.4 The protection of the routes
 
@@ -770,24 +756,19 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds four routes: `/` for the public page, `/dashboard` for the dashboard,
-`/login` for the access and `/signup` for the link of an invitation. The tree is in
+The client holds three routes: `/` for the public page, `/dashboard` for the dashboard
+and `/login` for the access. The tree is in
 `src/client/router.tsx`, in the code. The project needs no plugin of the router and no
 step of generation.
 
 The route `/dashboard` reads the session before the load. With no session it sends the
 user to `/login`, therefore the dashboard makes no request that gives the status 401. The
-three other routes do the contrary operation: a user with a session reads the dashboard.
-
-The route `/signup` reads the parameter `code` and gives that value to the form of the
-sign-up. Thus the person who receives the link writes only the address and the password.
-The pure function `inviteCodeOf` of `src/client/lib/invite.ts` examines the parameter,
-and `inviteLink` writes the link of a code in the dashboard.
+two other routes do the contrary operation: a user with a session reads the dashboard.
 
 The route `/` is the only route that a visitor with no session reads. It gives the
 context that the form of the access does not give: what Yume calculates, and that the
-value is a calculation and not a balance. Yume gives an account only with an invitation,
-thus that page sells nothing.
+value is a calculation and not a balance. The registration is open, thus that page is
+the entry of a new user.
 
 That page does not say that a transfer of points is permanent. Yume moves no point, and
 the page shows the balance of no person: the value on it is an example. The dashboard
@@ -814,9 +795,10 @@ image. Do not replace each white pixel: the status bar, the icon of the battery 
 light edge of the frame are also white, and a replacement of all the white makes a hole
 in each one.
 
-The form of the access holds the sign-in and the sign-up. The sign-up needs the code of
-the invitation. The server holds no Italian text: it gives the field `code` of the error,
-and the pure function `authMessage` of `src/client/lib/auth.ts` gives the message.
+The page of the access holds one button: the sign-in with Google. The first sign-in
+also makes the account, thus the client holds no form of the sign-up. The server holds no
+Italian text: it gives the field `code` of the error, and the pure function
+`authMessage` of `src/client/lib/auth.ts` gives the message.
 
 ### 5.5.3 The search engines and the assistants
 
@@ -843,10 +825,11 @@ The canonical URL holds the domain of the official instance. An instance of anot
 person then gives the same value, thus that instance does not compete with the official
 page in the results of a search.
 
-`public/robots.txt` blocks `/api/`, `/dashboard`, `/login` and `/signup`. Those three
-routes need a session, and a crawler receives the same HTML with no data. The file gives
-no `Sitemap`: the site holds one public page, and a search engine finds one page with no
-sitemap. Add that line with the first group of pages of the catalogue.
+`public/robots.txt` blocks `/api/`, `/dashboard` and `/login`. The dashboard needs a
+session, thus a crawler receives the same HTML with no data. The page of the access holds
+one button and no content for a search. The file gives no `Sitemap`: the site holds one
+public page, and a search engine finds one page with no sitemap. Add that line with the
+first group of pages of the catalogue.
 
 **The order of the public page is the product, then the detail.** The masthead gives the
 name and the link of the access. Then the `h1` says what Yume calculates, the board of
@@ -1106,9 +1089,7 @@ yume/
       styles/            # the tokens of the theme
       fonts/             # the font files
     server/            # the Hono application
-      auth.ts          # the Better Auth instance, with the hooks of the invitation
-      invitation.ts    # the pure rules of a code: the state, the limit and the time
-      scripts/         # the script of the administrator: the invitation
+      auth.ts          # the Better Auth instance, with the provider Google
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
     shared/            # Zod schemas and the conversion logic. Both sides use them.
