@@ -39,6 +39,7 @@
 
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
+import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import {
 	BASE_LOCALE,
@@ -49,7 +50,8 @@ import {
 import { AppShell } from "./AppShell.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { I18nProvider } from "./i18n/I18n.tsx";
-import { i18nOf } from "./i18n/messages.ts";
+import { type I18n, i18nOf, type Messages } from "./i18n/messages.ts";
+import { LegalPage } from "./LegalPage.tsx";
 import { headOf, localizeHead } from "./lib/head.ts";
 import { homeGraph, toJsonLdScript } from "./lib/jsonLd.ts";
 import { llmsTxt } from "./lib/llms.ts";
@@ -90,45 +92,92 @@ if (!html.includes(HEAD_END)) {
 	throw new Error(`${INDEX_PATH} holds no ${HEAD_END}. The pre-render stops.`);
 }
 
+/** A static page of the build: its path, its elements and its head. */
+type StaticPage = {
+	/** The path with no prefix of the language. */
+	path: string;
+	element: ReactNode;
+	title: (t: Messages) => string;
+	description: (t: Messages) => string;
+	/** The structured data of the page. Only the public page holds it. */
+	jsonLd?: (i18n: I18n) => string;
+};
+
+/**
+ * The pages with content for a crawler. The legal pages are static also:
+ * Google reads the policy of the privacy before it publishes the sign-in, and
+ * its crawler executes no JavaScript there. A page that the client writes in
+ * the browser is the public page for such a crawler.
+ */
+const PAGES: readonly StaticPage[] = [
+	{
+		path: "/",
+		element: <HomePage />,
+		title: (t) => `Yume — ${t.homeTitle}`,
+		description: (t) => t.siteDescription,
+		jsonLd: (i18n) => toJsonLdScript(homeGraph(SITE_URL, i18n)),
+	},
+	{
+		path: "/privacy",
+		element: <LegalPage document="privacy" />,
+		title: (t) => `${t.privacy.title} — Yume`,
+		description: (t) => t.privacy.description,
+	},
+	{
+		path: "/tos",
+		element: <LegalPage document="tos" />,
+		title: (t) => `${t.tos.title} — Yume`,
+		description: (t) => t.tos.description,
+	},
+];
+
 for (const locale of LOCALES) {
 	const i18n = i18nOf(locale);
 
-	const markup = renderToStaticMarkup(
-		<I18nProvider locale={locale}>
-			<AppShell>
-				<HomePage />
-			</AppShell>
-		</I18nProvider>,
-	);
+	for (const page of PAGES) {
+		const markup = renderToStaticMarkup(
+			<I18nProvider locale={locale}>
+				<AppShell>{page.element}</AppShell>
+			</I18nProvider>,
+		);
 
-	const head = headOf({
-		site: SITE_URL,
-		locale,
-		routing,
-		locales: LOCALES,
-		base: BASE_LOCALE,
-		tags: LOCALE_TAGS,
-		t: i18n.t,
-	});
-	const jsonLd = toJsonLdScript(homeGraph(SITE_URL, i18n));
+		const head = headOf({
+			site: SITE_URL,
+			locale,
+			path: page.path,
+			routing,
+			locales: LOCALES,
+			base: BASE_LOCALE,
+			tags: LOCALE_TAGS,
+			title: page.title(i18n.t),
+			description: page.description(i18n.t),
+		});
+		const jsonLd = page.jsonLd?.(i18n) ?? "";
 
-	const pagePath = distPath(locale, "index.html");
-	mkdirSync(dirname(pagePath), { recursive: true });
-	writeFileSync(
-		pagePath,
-		localizeHead(html, head)
-			.replace(HEAD_END, `${jsonLd}${HEAD_END}`)
-			.replace(EMPTY_ROOT, `<div id="root">${markup}</div>`),
-	);
+		// `/privacy` gives `dist/privacy/index.html`. The server supplies the
+		// files of `dist/` before its own routes, thus that file answers.
+		const file =
+			page.path === "/" ? "index.html" : `${page.path.slice(1)}/index.html`;
+		const pagePath = distPath(locale, file);
+		mkdirSync(dirname(pagePath), { recursive: true });
+		writeFileSync(
+			pagePath,
+			localizeHead(html, head)
+				.replace(HEAD_END, `${jsonLd}${HEAD_END}`)
+				.replace(EMPTY_ROOT, `<div id="root">${markup}</div>`),
+		);
+		console.log(
+			`The pre-render wrote ${markup.length} characters in ${pagePath}.`,
+		);
+	}
 
 	// The address of the public page of the language, with a slash at the end
 	// for the base language as before.
-	const page = `${SITE_URL}${routing.pathFor(locale, "/")}`;
+	const home = `${SITE_URL}${routing.pathFor(locale, "/")}`;
 	const llmsPath = distPath(locale, "llms.txt");
-	const llms = llmsTxt(page, i18n.t);
+	const llms = llmsTxt(home, i18n.t);
 	writeFileSync(llmsPath, llms);
-
 	console.log(
-		`The pre-render wrote ${markup.length} characters in ${pagePath}, with ${i18n.t.homeFaq.length} questions of structured data, and ${llms.length} characters in ${llmsPath}.`,
+		`The pre-render wrote ${llms.length} characters in ${llmsPath}, with ${i18n.t.homeFaq.length} questions of structured data on the public page.`,
 	);
 }

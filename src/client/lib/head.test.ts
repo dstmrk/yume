@@ -20,15 +20,18 @@ const english = {
 	siteDescription: 'Yume gives the "potential" miles & more.',
 };
 
-function head(locale: "it" | "en") {
+function head(locale: "it" | "en", path = "/") {
+	const t = locale === "it" ? italian : english;
 	return headOf({
 		site: SITE,
 		locale,
+		path,
 		routing: two,
 		locales: ["it", "en"],
 		base: "it",
 		tags,
-		t: locale === "it" ? italian : english,
+		title: `Yume — ${t.homeTitle}`,
+		description: t.siteDescription,
 	});
 }
 
@@ -106,5 +109,22 @@ describe("localizeHead with a template that is not correct", () => {
 	it("stops when an element is two times in the template", () => {
 		const twice = template.replace("</head>", "<title>X</title></head>");
 		expect(() => localizeHead(twice, head("en"))).toThrow(/title/);
+	});
+});
+
+// Each page of the build has its own address. A legal page with the address of
+// the home page says to Google that the policy is the home page.
+describe("headOf for a page that is not the home page", () => {
+	it("gives the address of the page in each language", () => {
+		expect(head("it", "/privacy").url).toBe(`${SITE}/privacy`);
+		expect(head("en", "/privacy").url).toBe(`${SITE}/en/privacy`);
+	});
+
+	it("gives the links hreflang of the same page", () => {
+		expect(head("en", "/privacy").alternates).toEqual([
+			{ hreflang: "it", href: `${SITE}/privacy` },
+			{ hreflang: "en", href: `${SITE}/en/privacy` },
+			{ hreflang: "x-default", href: `${SITE}/privacy` },
+		]);
 	});
 });

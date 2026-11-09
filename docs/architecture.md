@@ -762,7 +762,9 @@ The client holds five routes: `/` for the public page, `/dashboard` for the dash
 `/login` for the access, `/privacy` for the policy of the personal data and `/tos` for
 the terms of the service. The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
-from the dictionary, and `robots.txt` does not block them. The tree is in
+from the dictionary, and `robots.txt` does not block them. The build writes a static
+page for each one, with its own title and canonical address. The check of Google reads
+no JavaScript: with no static page, it reads the public page at `/privacy`. The tree is in
 `src/client/router.tsx`, in the code. The project needs no plugin of the router and no
 step of generation.
 
