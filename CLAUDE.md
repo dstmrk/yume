@@ -261,9 +261,8 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 The three commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
 
-The interface makes the first user. The server writes a code of setup in the log, but
-only while the database holds no user. Paragraph 4.1 of `docs/architecture.md` gives the
-rule. Do not write a default code in the code of the application.
+Google is the only provider of the sign-in. The first sign-in of a Google account makes
+the user. Paragraph 4.1 of `docs/architecture.md` gives the reasons.
 
 Each user has two invitations and each code is valid for 24 hours. The dashboard writes
 an invitation. The administrator has the same operation on the machine of the server.
@@ -273,8 +272,11 @@ Paragraph 4.2 of `docs/architecture.md` gives the rules:
 npm run auth:invite -- <email of the user who invites> [email]
 ```
 
-The server needs `BETTER_AUTH_SECRET`. The server stops without that variable.
-`npm run dev:server` gives a value for development only.
+The server needs `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
+The server stops without one of those variables. `npm run dev:server` gives a key for
+development only. It gives no client of Google: export the two values of your own client.
+A test makes a session with `sessionCookie` of `src/server/db/fixtures.ts`, because no
+test reaches Google.
 
 Run these commands for the container:
 

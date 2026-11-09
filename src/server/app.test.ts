@@ -2,7 +2,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
-import { insertUser } from "./db/fixtures.ts";
+import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import {
 	addFavorite,
@@ -17,8 +17,6 @@ import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
 const BASE_URL = "http://localhost:3000";
-const EMAIL = "primo@example.com";
-const PASSWORD = "una-parola-lunga";
 const OTHER_USER = "an-other-user";
 
 let db: Db;
@@ -37,32 +35,13 @@ beforeEach(async () => {
 	const auth = createAuth(db, {
 		secret: "a-secret-for-the-test",
 		baseURL: BASE_URL,
+		google: { clientId: "client-id-test", clientSecret: "client-secret-test" },
 	});
 	app = createApp(db, auth);
 
-	// The call of `auth.api` holds no request, thus it needs no invitation.
-	// Refer to the hook `before` of `auth.ts`.
-	const created = await auth.api.signUpEmail({
-		body: { name: "Primo", email: EMAIL, password: PASSWORD },
-	});
-	userId = created.user.id;
-	cookie = await signIn();
+	userId = insertUser(db, "primo");
+	cookie = await sessionCookie(auth, userId);
 });
-
-/** Signs in and gives the cookie of the session. */
-async function signIn(): Promise<string> {
-	const response = await app.request("/api/auth/sign-in/email", {
-		method: "POST",
-		headers: { "content-type": "application/json", origin: BASE_URL },
-		body: JSON.stringify({ email: EMAIL, password: PASSWORD }),
-	});
-	expect(response.status).toBe(200);
-
-	// The header holds the attributes of the cookie after the first `;`. A
-	// request sends only the name and the value.
-	const header = response.headers.get("set-cookie") ?? "";
-	return header.split(";")[0] ?? "";
-}
 
 type PotentialRow = {
 	currencyId: string;

@@ -120,12 +120,15 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # The server stops without BETTER_AUTH_SECRET. Refer to paragraph 4 of
-      # docs/architecture.md. This value is only for the workflow.
+      # The server stops without BETTER_AUTH_SECRET and without the OAuth
+      # client of Google. Refer to paragraph 4.3 of docs/architecture.md. These
+      # values are only for the workflow: no sign-in reaches Google.
       - name: Start the container
         run: |
           docker run -d --name yume-ci -p 3000:3000 \
             -e BETTER_AUTH_SECRET=a-secret-for-the-workflow-and-for-no-server \
+            -e GOOGLE_CLIENT_ID=client-id-of-the-workflow \
+            -e GOOGLE_CLIENT_SECRET=client-secret-of-the-workflow \
             yume:ci
 
       # The container applies the migrations and writes the catalogue before
@@ -151,33 +154,31 @@ jobs:
             http://127.0.0.1:3000/api/catalogue)"
           test "$code" = "401"
 
-      # The catalogue shows that the migrations and the seed ran. The page
-      # shows that the server supplies the files of the client from dist/.
+      # The row of the catalogue shows that the migrations and the seed ran.
+      # The route of the catalogue needs a session, and a session needs
+      # Google. Therefore node in the container reads the database.
       #
-      # The container holds no user, thus the log gives the code of the setup.
-      # This step is the only examination of that code with a real container.
-      #
+      # The start of the sign-in shows that the server holds the OAuth client.
       # The origin of the request is the value of BETTER_AUTH_URL, and the
       # default value of that variable holds the name localhost. Better Auth
       # refuses a request from an other origin.
-      - name: Examine the catalogue and the page
+      #
+      # The page shows that the server supplies the files of the client from
+      # dist/.
+      - name: Examine the catalogue, the sign-in and the page
         run: |
-          code="$(docker logs yume-ci 2>&1 | grep -o 'code=[A-Z0-9]*' | cut -d= -f2)"
-          test -n "$code"
+          docker exec yume-ci node -e "
+            const Database = require('better-sqlite3');
+            const db = new Database(process.env.DATABASE_URL, { readonly: true });
+            const row = db.prepare('select id from program where id = ?').get('ba-club');
+            process.exit(row ? 0 : 1);
+          "
           curl -fsS -X POST \
-            http://127.0.0.1:3000/api/auth/sign-up/email \
+            http://127.0.0.1:3000/api/auth/sign-in/social \
             -H 'content-type: application/json' \
             -H 'origin: http://localhost:3000' \
-            -d "{\"name\":\"CI\",\"email\":\"ci@example.com\",\"password\":\"una-parola-lunga\",\"inviteCode\":\"$code\"}" \
-            > /dev/null
-          curl -fsS -c cookies.txt -X POST \
-            http://127.0.0.1:3000/api/auth/sign-in/email \
-            -H 'content-type: application/json' \
-            -H 'origin: http://localhost:3000' \
-            -d '{"email":"ci@example.com","password":"una-parola-lunga"}' \
-            > /dev/null
-          curl -fsS -b cookies.txt http://127.0.0.1:3000/api/catalogue \
-            | grep -q ba-club
+            -d '{"provider":"google","callbackURL":"/dashboard"}' \
+            | grep -q 'accounts.google.com'
           curl -fsS http://127.0.0.1:3000/ | grep -q 'id="root"'
 
       - name: Give the log of the container

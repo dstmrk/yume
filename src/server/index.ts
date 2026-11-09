@@ -12,8 +12,6 @@ import { isClientPath } from "../shared/routes.ts";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
-import { countUsers } from "./db/queries.ts";
-import { newCode } from "./invitation.ts";
 
 const url = process.env.DATABASE_URL ?? "./data/yume.db";
 const port = Number(process.env.PORT ?? 3000);
@@ -35,6 +33,21 @@ if (secret === undefined || secret === "") {
 }
 
 /**
+ * The OAuth client of Google. Google is the only provider, thus a server
+ * without the client gives no sign-in. Therefore the server stops. Paragraph
+ * 4.2 of `docs/architecture.md` gives the procedure for the client.
+ */
+const clientId = process.env.GOOGLE_CLIENT_ID;
+const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+if (!clientId || !clientSecret) {
+	console.error(
+		"GOOGLE_CLIENT_ID or GOOGLE_CLIENT_SECRET holds no value. Make an OAuth client in the Google Cloud Console.",
+	);
+	process.exit(1);
+}
+const google = { clientId, clientSecret };
+
+/**
  * The origin of the application. Better Auth refuses a request from an other
  * origin. In development the client of Vite is on the port 5173, thus
  * `TRUSTED_ORIGINS` gives that origin to the server.
@@ -47,22 +60,7 @@ const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? "")
 
 const db = openDatabase(url);
 
-/**
- * The code of the first user.
- *
- * The server makes this code only while the database holds no user. Thus the
- * image holds no fixed value, and no person on the network knows the code. The
- * administrator reads the log and opens the link. A new start with no user
- * gives a new code.
- */
-const setupCode = countUsers(db) === 0 ? newCode() : undefined;
-if (setupCode !== undefined) {
-	console.log(
-		`The database holds no user. Open ${baseURL}/signup?code=${setupCode} to make the first user.`,
-	);
-}
-
-const auth = createAuth(db, { secret, baseURL, trustedOrigins, setupCode });
+const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
 const app = createApp(db, auth);
 
 /**
