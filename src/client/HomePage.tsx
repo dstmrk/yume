@@ -1,8 +1,8 @@
 import type { CSSProperties, ReactNode } from "react";
-import { routing } from "../shared/locale.ts";
 import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
+import { GoogleButton } from "./components/GoogleButton.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { cn } from "./lib/cn.ts";
@@ -42,6 +42,9 @@ const SCREENSHOT = {
 	height: 1613,
 };
 
+/** The anchor of the button of Google, for the link of the masthead. */
+const SIGN_IN_ID = "accedi";
+
 /**
  * The public page of the application. A visitor with no session reads it.
  *
@@ -69,13 +72,15 @@ const SCREENSHOT = {
  * the `h1` as the subject of the page, and the name alone gives no subject.
  *
  * The access is in the masthead and at the end. A visitor who arrives with the
- * decision already made finds the link with no movement of the page.
+ * decision already made finds the link with no movement of the page. The
+ * button of Google is at the end only, and the link of the masthead goes to
+ * it. The page of the access is not a step: the button opens Google.
  *
  * Each block of text holds the left: a paragraph at the centre gives a
  * different start to each line, and the eye then finds no start. The masthead,
  * the title and the board hold the centre.
  *
- * The link of the access holds `buttonVariants` of `components/ui/button.tsx`.
+ * The link of the masthead holds `buttonVariants` of `components/ui/button.tsx`.
  * Thus the link has the appearance of the standard button.
  *
  * This page holds no element of the router. The build writes the page with
@@ -83,15 +88,13 @@ const SCREENSHOT = {
  * the router.
  */
 export function HomePage() {
-	const { t: text, locale } = useI18n();
-	// The link keeps the language of the page. Refer to `routing` of
-	// `src/shared/locale.ts`.
-	const loginPath = routing.pathFor(locale, "/login");
+	const { t: text } = useI18n();
 	return (
 		<div className="flex flex-col gap-10">
 			{/* The masthead. The name is at the left and the access is at the right,
-			    as the two ends of a board. The element is an `a` and not a `Link` of
-			    the router: refer to the note of the link at the end of the page. */}
+			    as the two ends of a board. The link goes to the button of Google at
+			    the end of the page: two buttons of Google on one page say the same
+			    thing two times. */}
 			<Rise
 				index={0}
 				className="flex items-center justify-between gap-4 border-board-line border-b pb-4"
@@ -100,7 +103,7 @@ export function HomePage() {
 					<SplitFlapWord word={text.appName} size="md" />
 				</span>
 				<a
-					href={loginPath}
+					href={`#${SIGN_IN_ID}`}
 					className={cn(buttonVariants({ variant: "outline" }), "shrink-0")}
 				>
 					{text.signIn}
@@ -224,21 +227,16 @@ export function HomePage() {
 				</section>
 			</Rise>
 
-			<Rise index={9} className="flex w-full flex-col items-center gap-2">
-				{/* The element is an `a` and not a `Link` of the router. The build
-				    writes this page with `renderToStaticMarkup`, and a `Link` needs
-				    the context of the router: the page then holds no router and no
-				    session. A visitor with no session reads this page one time and
-				    then goes to the form, thus a load of the full page costs
-				    nothing. Paragraph 5.5.3 of `docs/architecture.md` gives the
-				    reason. */}
-				<a
-					href={loginPath}
-					className={cn(buttonVariants(), "w-full md:max-w-xs")}
-				>
-					{text.signIn}
-				</a>
-				<p className="text-board-muted text-xs">{text.homeSignInNote}</p>
+			<Rise
+				index={9}
+				id={SIGN_IN_ID}
+				className="flex w-full flex-col gap-2 text-center md:mx-auto md:max-w-xs"
+			>
+				{/* The button opens Google with no page between. It works after the
+				    load of the bundle: the static page holds the button, and
+				    `main.tsx` writes it again with its handler. */}
+				<GoogleButton />
+				<p className="text-board-muted text-xs">{text.signInNote}</p>
 			</Rise>
 		</div>
 	);
@@ -252,15 +250,18 @@ export function HomePage() {
  */
 function Rise({
 	index,
+	id,
 	className,
 	children,
 }: {
 	index: number;
+	id?: string;
 	className?: string;
 	children: ReactNode;
 }) {
 	return (
 		<div
+			id={id}
 			className={cn("board-rise", className)}
 			style={{ "--rise-index": index } as CSSProperties}
 		>

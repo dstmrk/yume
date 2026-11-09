@@ -802,17 +802,28 @@ image. Do not replace each white pixel: the status bar, the icon of the battery 
 light edge of the frame are also white, and a replacement of all the white makes a hole
 in each one.
 
-The page of the access holds one button: the sign-in with Google. The first sign-in
-also makes the account, thus the client holds no form of the sign-up. After an error on
-the page of Google, Better Auth opens `/login` with the parameter `error`. The page then
-shows one message in its language: the server holds no Italian text.
+The button of the sign-in with Google is on the public page, at the end. The link
+`Accedi` of the masthead goes to that button. The button opens Google with no page
+between: a page with one button only adds one step. The first sign-in also makes the
+account, thus the client holds no form of the sign-up.
+
+The page of the access, `/login`, stays for two cases. After an error on the page of
+Google, Better Auth opens `/login` with the parameter `error`. The page then shows one
+message in its language: the server holds no Italian text. The route `/dashboard` with
+no session also opens `/login`. The public page cannot do these two tasks: it is a
+static file, and it reads no parameter.
+
+The button works after the load of the bundle. The static page holds the button with no
+handler, and `main.tsx` writes it again with the handler. `GoogleButton` keeps its state
+with `useState`: the pre-render holds no client of TanStack Query.
 
 The button follows the dark theme of the rules of Google: the fill, the stroke, the
 text and the official mark "G". The mark is a PNG, `public/google-g.png`, cut from the
 official file of Google. The SVG of Google draws its gradient with `foreignObject`, and
 the project cannot examine that element in Safari on iOS. A PNG shows the same on each
 browser. The three colours are tokens of the
-theme, because the rules of Google give them.
+theme, because the rules of Google give them. The rules of Google forbid a mark "G" of
+one colour, thus the mark keeps its four colours.
 
 ### 5.5.3 The search engines and the assistants
 
@@ -846,7 +857,7 @@ public page, and a search engine finds one page with no sitemap. Add that line w
 first group of pages of the catalogue.
 
 **The order of the public page is the product, then the detail.** The masthead gives the
-name and the link of the access. Then the `h1` says what Yume calculates, the board of
+name and the link to the button of the access. Then the `h1` says what Yume calculates, the board of
 the example shows that value, and three blocks give the three rules of the calculation.
 The logos of the catalogue come after those blocks, then the picture of the dashboard.
 The detail of the catalogue is in the questions at the end of the page.
