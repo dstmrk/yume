@@ -74,6 +74,19 @@ export function createAuth(db: Db, options: AuthOptions) {
 			google: {
 				clientId: options.google.clientId,
 				clientSecret: options.google.clientSecret,
+				/**
+				 * Yume asks for the email address only. The scope `profile`
+				 * gives the name and the photo, and Yume shows neither: the GDPR
+				 * asks for the minimum of data (art. 5(1)(c)).
+				 */
+				disableDefaultScope: true,
+				scope: ["openid", "email"],
+				/**
+				 * The token of Google can hold the name and the photo also with
+				 * no scope `profile`. The table `user` then keeps an empty name,
+				 * because the column is not null in the model of Better Auth.
+				 */
+				mapProfileToUser: () => ({ name: "", image: undefined }),
 			},
 		},
 

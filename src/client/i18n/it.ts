@@ -224,7 +224,7 @@ export const it = {
 					"Yume tratta solo i dati che servono a mostrarti saldi e miglia potenziali.",
 				],
 				items: [
-					"Dall'account Google, al primo accesso: nome, indirizzo email, immagine del profilo e identificativo dell'account. Yume conserva anche i token che Google restituisce all'accesso.",
+					"Dall'account Google, al primo accesso: l'indirizzo email e l'identificativo dell'account. Yume non chiede a Google il nome né la foto del profilo. Conserva anche i token che Google restituisce all'accesso.",
 					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le valute preferite.",
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
 					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",

@@ -39,7 +39,8 @@ function profile(sub: string, email: string) {
 		sub,
 		email,
 		email_verified: true,
-		name: "Utente",
+		name: "Mario Rossi",
+		picture: "https://lh3.googleusercontent.com/a/photo",
 	};
 }
 
@@ -112,13 +113,14 @@ describe("the start of the sign-in with Google", () => {
 		);
 	});
 
-	// The scopes `openid`, `email` and `profile` are not sensitive. A sensitive
-	// scope needs a review of the application by Google.
-	it("asks for the scopes that are not sensitive only", async () => {
+	// Yume needs the address only. The scope `profile` gives the name and the
+	// photo of the person, and Yume shows neither. Refer to paragraph 4.1 of
+	// `docs/architecture.md`.
+	it("asks for the email address only", async () => {
 		const response = await startSignIn();
 		const { url } = (await response.json()) as { url: string };
 		const scopes = new URL(url).searchParams.get("scope")?.split(" ") ?? [];
-		expect(scopes.sort()).toEqual(["email", "openid", "profile"]);
+		expect(scopes.sort()).toEqual(["email", "openid"]);
 	});
 
 	it("refuses an other provider", async () => {
@@ -145,6 +147,17 @@ describe("the callback of Google", () => {
 		expect(users.map((row) => row.email)).toEqual(["primo@example.com"]);
 		const accounts = db.select().from(account).all();
 		expect(accounts.map((row) => row.providerId)).toEqual(["google"]);
+	});
+
+	// Google can add the name and the photo to the token, for example for an
+	// account that gave the scope `profile` to an other application. Yume keeps
+	// neither of them.
+	it("keeps no name and no photo of the Google account", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+
+		const [row] = db.select().from(user).all();
+		expect(row?.name).toBe("");
+		expect(row?.image).toBeNull();
 	});
 
 	// The registration is open: no invitation, also with a user in the database.
