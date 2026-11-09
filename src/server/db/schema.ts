@@ -58,8 +58,10 @@ export const session = sqliteTable("session", {
 /**
  * The credentials of a user. Better Auth controls this table.
  *
- * This table is not `user_account`. Better Auth keeps the password of the
- * sign-in here. `user_account` holds the account of the user with a loyalty
+ * This table is not `user_account`. Better Auth keeps the account of Google
+ * here, one row for each provider of the user. The column `password` stays
+ * empty: Google is the only provider, but the model of Better Auth holds that
+ * field. `user_account` holds the account of the user with a loyalty
  * programme.
  */
 export const account = sqliteTable("account", {

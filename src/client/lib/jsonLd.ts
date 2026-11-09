@@ -66,7 +66,7 @@ export function webSiteJsonLd(site: string, i18n: I18n) {
 /**
  * The application.
  *
- * The price is 0: Yume gives an account with an invitation, and the code is
+ * The price is 0: the sign-in with Google makes the account, and the code is
  * under the licence MIT.
  */
 export function softwareApplicationJsonLd(site: string, i18n: I18n) {

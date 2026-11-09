@@ -71,8 +71,8 @@ export function createApp(db: Db, auth: Auth) {
 	});
 
 	/**
-	 * The routes of Better Auth: the sign-up, the sign-in, the sign-out and the
-	 * session. The library reads the request and writes the cookies.
+	 * The routes of Better Auth: the sign-in with Google, its callback, the
+	 * sign-out and the session. The library reads the request and writes the cookies.
 	 */
 	app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 

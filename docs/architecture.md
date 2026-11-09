@@ -279,8 +279,8 @@ client and the server use the same function.
 ## 4. Authentication
 
 Status: **accepted**. Date: 2026-11-09. This decision replaces the sign-in with a
-password, the invitations and the code of the setup. The code still holds those
-functions. Three sub-tasks remove them: the server, the invitations and the client.
+password, the invitations and the code of the setup. The code holds none of those
+functions.
 
 Better Auth controls the sessions. It keeps the sessions in SQLite with the Drizzle
 adapter. The tables `user`, `session`, `account` and `verification` are in
@@ -797,9 +797,16 @@ light edge of the frame are also white, and a replacement of all the white makes
 in each one.
 
 The page of the access holds one button: the sign-in with Google. The first sign-in
-also makes the account, thus the client holds no form of the sign-up. The server holds no
-Italian text: it gives the field `code` of the error, and the pure function
-`authMessage` of `src/client/lib/auth.ts` gives the message.
+also makes the account, thus the client holds no form of the sign-up. After an error on
+the page of Google, Better Auth opens `/login` with the parameter `error`. The page then
+shows one message in its language: the server holds no Italian text.
+
+The button follows the dark theme of the rules of Google: the fill, the stroke, the
+text and the official mark "G". The mark is a PNG, `public/google-g.png`, cut from the
+official file of Google. The SVG of Google draws its gradient with `foreignObject`, and
+the project cannot examine that element in Safari on iOS. A PNG shows the same on each
+browser. The three colours are tokens of the
+theme, because the rules of Google give them.
 
 ### 5.5.3 The search engines and the assistants
 

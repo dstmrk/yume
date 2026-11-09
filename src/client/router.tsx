@@ -9,8 +9,8 @@
  * no request that gives the status 401, and a user with a session reads the
  * dashboard and not the public page.
  *
- * The route `/signup` is the link of an invitation. It gives the code to the
- * form, and the person writes only the address and the password.
+ * The route `/login` reads the parameter `error`. Better Auth adds it after an
+ * error on the page of Google.
  *
  * The root holds no title: the public page gives a title of the centre, and
  * the other two pages give the masthead `AppTitle`.
@@ -32,7 +32,7 @@ import { Dashboard } from "./Dashboard.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchSession } from "./lib/api.ts";
-import { inviteCodeOf } from "./lib/invite.ts";
+import { loginErrorOf } from "./lib/auth.ts";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 
 const rootRoute = createRootRoute({
@@ -73,36 +73,24 @@ const dashboardRoute = createRoute({
 const loginRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/login",
-	// A user with a session reads the dashboard, not the form of the access.
+	// The parameter is not necessary: a link to `/login` holds no error.
+	validateSearch: (search: Record<string, unknown>): { error?: string } => {
+		const error = loginErrorOf(search);
+		return error === undefined ? {} : { error };
+	},
+	// A user with a session reads the dashboard, not the page of the access.
 	beforeLoad: async () => {
 		if ((await fetchSession()) !== null) {
 			throw redirect({ to: "/dashboard" });
 		}
 	},
-	component: LoginPage,
-});
-
-const signUpRoute = createRoute({
-	getParentRoute: () => rootRoute,
-	path: "/signup",
-	validateSearch: (search: Record<string, unknown>) => ({
-		code: inviteCodeOf(search),
-	}),
-	beforeLoad: async () => {
-		if ((await fetchSession()) !== null) {
-			throw redirect({ to: "/dashboard" });
-		}
-	},
-	// A link with no code opens the same form. The person then writes the code
-	// of the message in the field.
-	component: () => <LoginPage code={signUpRoute.useSearch().code ?? ""} />,
+	component: () => <LoginPage error={loginRoute.useSearch().error} />,
 });
 
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
 	loginRoute,
-	signUpRoute,
 ]);
 
 /**

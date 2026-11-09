@@ -1,30 +1,70 @@
 /**
- * The message of an error of the authentication.
+ * The sign-in with Google, the only provider. Paragraph 4.1 of
+ * `docs/architecture.md` gives the decision.
  *
- * The server holds no Italian text: it gives the field `code` of the error.
- * This file gives the message. Refer to the section Language rules in
- * `CLAUDE.md`.
+ * The functions are pure. The page of the access calls them, and `api.ts`
+ * sends the request.
  */
 
-import type { Messages } from "../i18n/messages.ts";
+import { type Locale, routing } from "../../shared/locale.ts";
 
-/** The key of the text of each code that this application knows. */
-const messages: Record<string, keyof Messages> = {
-	INVITE_CODE_REQUIRED: "inviteRequiredError",
-	INVITE_CODE_UNKNOWN: "inviteUnknownError",
-	INVITE_CODE_EXPIRED: "inviteExpiredError",
-	INVITE_CODE_USED: "inviteUsedError",
-	INVALID_EMAIL_OR_PASSWORD: "signInError",
-	USER_ALREADY_EXISTS: "emailInUseError",
-	PASSWORD_TOO_SHORT: "passwordShortError",
+/** The body of `POST /api/auth/sign-in/social`. */
+export type GoogleSignInBody = {
+	provider: "google";
+	/** The page after a sign-in that is correct. */
+	callbackURL: string;
+	/** The page after an error. Better Auth adds the parameter `error`. */
+	errorCallbackURL: string;
 };
 
 /**
- * Gives the message of the code in the language of `t`. An unknown code gives
- * a general message.
+ * Gives the body of the start of the sign-in with Google.
+ *
+ * The two addresses hold the origin of the page. In development the client of
+ * Vite is on the port 5173 and the server on the port 3000: a path with no
+ * origin gives the page of the server. The server accepts the origin of Vite
+ * from `TRUSTED_ORIGINS`.
+ *
+ * The two addresses keep the prefix of the language. Thus the person reads the
+ * same language after the page of Google. Paragraph 5.8 of
+ * `docs/architecture.md` gives the rule.
  */
-export function authMessage(code: string | undefined, t: Messages): string {
-	const key = code === undefined ? undefined : messages[code];
-	const message = key === undefined ? undefined : t[key];
-	return typeof message === "string" ? message : t.authError;
+export function googleSignInBody(
+	origin: string,
+	locale: Locale,
+): GoogleSignInBody;
+export function googleSignInBody<L extends string>(
+	origin: string,
+	locale: L,
+	languages: PathFor<L>,
+): GoogleSignInBody;
+export function googleSignInBody(
+	origin: string,
+	locale: string,
+	languages: PathFor<string> = routing,
+): GoogleSignInBody {
+	return {
+		provider: "google",
+		callbackURL: `${origin}${languages.pathFor(locale, "/dashboard")}`,
+		errorCallbackURL: `${origin}${languages.pathFor(locale, "/login")}`,
+	};
+}
+
+/** The part of `localeRouting` that this file reads. */
+type PathFor<L extends string> = {
+	pathFor(locale: L, path: string): string;
+};
+
+/**
+ * Reads the code of the error of the address of the page of the access.
+ *
+ * It gives undefined with no error. The page then shows no message. The code
+ * stays in the address only: the page shows one message for each error, in
+ * the language of the page.
+ */
+export function loginErrorOf(
+	search: Record<string, unknown>,
+): string | undefined {
+	const value = search.error;
+	return typeof value === "string" && value.trim() !== "" ? value : undefined;
 }

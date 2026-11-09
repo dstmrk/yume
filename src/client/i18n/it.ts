@@ -83,7 +83,7 @@ export const it = {
 		{
 			question: "Come ottengo un account?",
 			answer:
-				"Solo con un invito di chi usa già Yume. Ogni utente ha due inviti e ogni codice vale 24 ore.",
+				"Accedi con il tuo account Google: il primo accesso crea l'account.",
 		},
 	],
 
@@ -152,26 +152,12 @@ export const it = {
 	loadError: "Dati non disponibili.",
 
 	signInTitle: "Accedi",
-	signUpTitle: "Crea il tuo account",
-	emailLabel: "Email",
-	passwordLabel: "Password",
-	nameLabel: "Nome",
-	inviteCodeLabel: "Codice di invito",
 	signIn: "Accedi",
-	signUp: "Crea account",
+	signInWithGoogle: "Accedi con Google",
+	signInNote: "Il primo accesso crea il tuo account.",
+	signInError: "Accesso con Google non riuscito.",
+	homeSignInNote: "Ti basta un account Google.",
 	signOut: "Esci",
-	toSignUp: "Ho un codice di invito",
-	toSignIn: "Ho già un account",
-	inviteOnly: "Puoi registrarti solo con un invito.",
-
-	signInError: "Email o password non corretti.",
-	inviteRequiredError: "Serve un codice di invito.",
-	inviteUnknownError: "Codice non valido.",
-	inviteExpiredError: "Codice scaduto.",
-	inviteUsedError: "Codice già usato.",
-	emailInUseError: "Email già registrata.",
-	passwordShortError: "Password troppo corta.",
-	authError: "Operazione non riuscita.",
 
 	// The structured data of the public page. Refer to `lib/jsonLd.ts`.
 	jsonLd: {
@@ -206,7 +192,7 @@ export const it = {
 	llms: {
 		publicPage: "Pagina pubblica",
 		access:
-			"L'accesso è solo su invito. Il codice è open source con licenza MIT.",
+			"Per accedere serve un account Google. Il codice è open source con licenza MIT.",
 		warnings: "Avvertenze",
 	},
 };

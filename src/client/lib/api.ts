@@ -6,6 +6,7 @@ import type {
 	FavoritesResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
+import type { GoogleSignInBody } from "./auth.ts";
 
 /**
  * The client of the API.
@@ -55,34 +56,25 @@ async function put(path: string): Promise<void> {
 	}
 }
 
-/**
- * An error of Better Auth, with the field `code` of the answer.
- *
- * The client shows the message of that code in Italian. Refer to
- * `src/client/lib/auth.ts`.
- */
-export class AuthError extends Error {
-	constructor(readonly code: string | undefined) {
-		super(code ?? "auth");
-		this.name = "AuthError";
-	}
-}
-
 /** The user of the session, or null with no session. */
 export type Session = { user: { id: string; name: string; email: string } };
 
-async function postToAuth(path: string, body: unknown): Promise<void> {
+/**
+ * Sends a request to Better Auth and gives the body of the answer.
+ *
+ * An error gives no text for the person: the page shows one message in its
+ * language.
+ */
+async function postToAuth<T>(path: string, body: unknown): Promise<T> {
 	const response = await fetch(`/api/auth/${path}`, {
 		method: "POST",
 		headers: { "content-type": "application/json" },
 		body: JSON.stringify(body),
 	});
 	if (!response.ok) {
-		const error = (await response.json().catch(() => null)) as {
-			code?: string;
-		} | null;
-		throw new AuthError(error?.code);
+		throw new Error(`The request ${path} gave the status ${response.status}.`);
 	}
+	return (await response.json().catch(() => null)) as T;
 }
 
 /**
@@ -99,25 +91,25 @@ export async function fetchSession(): Promise<Session | null> {
 	return ((await response.json().catch(() => null)) as Session | null) ?? null;
 }
 
-export function signIn(input: {
-	email: string;
-	password: string;
-}): Promise<void> {
-	return postToAuth("sign-in/email", input);
+/**
+ * Starts the sign-in with Google. It gives the address of the page of Google.
+ *
+ * Better Auth writes the cookie of the state and gives the address. The page
+ * then opens that address: the request holds no redirect, because `fetch`
+ * cannot follow a redirect to an other origin as a page.
+ */
+export async function startGoogleSignIn(
+	body: GoogleSignInBody,
+): Promise<string> {
+	const answer = await postToAuth<{ url?: unknown }>("sign-in/social", body);
+	if (typeof answer?.url !== "string") {
+		throw new Error("Better Auth gave no address of Google.");
+	}
+	return answer.url;
 }
 
-/** The sign-up needs an invitation. Refer to paragraph 4 of the architecture. */
-export function signUp(input: {
-	name: string;
-	email: string;
-	password: string;
-	inviteCode: string;
-}): Promise<void> {
-	return postToAuth("sign-up/email", input);
-}
-
-export function signOut(): Promise<void> {
-	return postToAuth("sign-out", {});
+export async function signOut(): Promise<void> {
+	await postToAuth("sign-out", {});
 }
 
 export function fetchCatalogue(): Promise<CatalogueResponse> {
