@@ -212,7 +212,7 @@ export const it = {
 			{
 				title: "1. Titolare del trattamento",
 				paragraphs: [
-					"Il titolare del trattamento è il gestore dell'istanza ufficiale di Yume, yumemiles.com.",
+					"Il titolare del trattamento per l'istanza ufficiale di Yume, yumemiles.com, è Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015.",
 					"Yume è open source. Chi lo installa sul proprio server è titolare dei dati di quella installazione, e questa informativa non vale per essa.",
 				],
 				items: [],
@@ -253,10 +253,11 @@ export const it = {
 			{
 				title: "5. Destinatari",
 				paragraphs: [
-					"I dati restano sul server dell'istanza e non sono venduti né ceduti a terzi per loro finalità. Ricevono dati solo:",
+					"I dati non sono venduti né ceduti a terzi per loro finalità. Ricevono dati solo:",
 				],
 				items: [
 					"Google Ireland Ltd, che gestisce l'accesso con il tuo account Google come titolare autonomo. Informativa: policies.google.com/privacy.",
+					"IONOS SE (Germania), che fornisce il server su cui girano Yume e il suo database, come responsabile del trattamento (art. 28 GDPR). Informativa: ionos.it/terms-gtc/terms-privacy.",
 					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
 					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
 				],
@@ -328,7 +329,7 @@ export const it = {
 			{
 				title: "1. Oggetto del servizio",
 				paragraphs: [
-					"Yume è un servizio gratuito che mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
+					"Yume è un servizio gratuito di Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015. Mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
 					"Yume non si collega ai tuoi conti, non legge i saldi in automatico e non trasferisce punti. Non appartiene ad American Express, a Revolut, a Klarna né ai programmi fedeltà citati.",
 				],
 				items: [],
@@ -384,7 +385,7 @@ export const it = {
 			{
 				title: "7. Disponibilità del servizio",
 				paragraphs: [
-					"Yume è gratuito e fornito così com'è. Non garantiamo continuità né assenza di errori, e possiamo cambiare o sospendere funzioni. Se il servizio chiude, lo annunciamo su questa pagina almeno 30 giorni prima: in quel periodo puoi chiedere una copia dei tuoi dati.",
+					"Yume è gratuito e fornito così com'è. Non garantiamo continuità né assenza di errori, e possiamo cambiare o sospendere funzioni.",
 				],
 				items: [],
 				contact: false,
@@ -392,7 +393,7 @@ export const it = {
 			{
 				title: "8. Responsabilità",
 				paragraphs: [
-					"Nei limiti consentiti dalla legge, il gestore non risponde di perdite di punti o miglia, di trasferimenti decisi in base ai calcoli, di modifiche dei programmi fedeltà o di interruzioni dovute a servizi di terzi. Restano salve la responsabilità per dolo o colpa grave (art. 1229 c.c.) e i diritti che il Codice del Consumo (D.Lgs. 206/2005) riconosce al consumatore.",
+					"Nei limiti consentiti dalla legge, Annadermolab non risponde di perdite di punti o miglia, di trasferimenti decisi in base ai calcoli, di modifiche dei programmi fedeltà o di interruzioni dovute a servizi di terzi. Restano salve la responsabilità per dolo o colpa grave (art. 1229 c.c.) e i diritti che il Codice del Consumo (D.Lgs. 206/2005) riconosce al consumatore.",
 				],
 				items: [],
 				contact: false,
@@ -425,7 +426,7 @@ export const it = {
 			{
 				title: "12. Modifiche ai Termini",
 				paragraphs: [
-					"La data in alto indica l'ultima modifica. Una modifica sostanziale riporta in questa pagina la nuova data e il cambiamento, almeno 15 giorni prima dell'entrata in vigore. Se continui a usare Yume dopo quella data, accetti i nuovi Termini.",
+					"La data in alto indica l'ultima modifica. Una modifica sostanziale è pubblicata su questa pagina con un preavviso ragionevole prima dell'entrata in vigore. Se continui a usare Yume dopo quella data, accetti i nuovi Termini.",
 				],
 				items: [],
 				contact: false,
