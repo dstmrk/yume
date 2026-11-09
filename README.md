@@ -60,8 +60,8 @@ The catalogue holds all the 21 airline programmes that receive points from Amex 
 from Revolut or from Klarna. It also holds Miles & More, Korean Air, ANA, JAL and Qantas,
 which no source can increase.
 
-Authentication is present. Registration is possible only with an invitation. The log of
-the container gives the link of the first user, and each user then has two invitations.
+Authentication is present. The sign-in uses a Google account, and the first sign-in makes
+the account.
 
 ## Potential future functions
 
@@ -91,16 +91,14 @@ docker compose up -d
 The container applies the migrations, writes the catalogue and then starts the server.
 The directory `data/` holds the database. That directory stays outside the image.
 
-Then make the first user. The server writes a link in the log while the database holds no
-user. Read that link and open it:
+The sign-in needs an OAuth client of Google. Make a project in the Google Cloud Console,
+publish the consent screen, and make a client of the type "Web application". The
+redirect URI is `https://<domain of the installation>/api/auth/callback/google`. Write
+the two values in `.env`. Paragraph 4.2 of `docs/architecture.md` gives the procedure.
 
-```bash
-docker compose logs | grep signup
-```
-
-The link holds a code of one use. That code dies with the first user, and a new start
-with no user gives a new code. Each user then has two invitations, with a code that is
-valid for 24 hours. The dashboard writes those invitations.
+Each Google account can make an account on the installation. For a private
+installation, put Cloudflare Access or a reverse proxy with authentication in front of
+Yume.
 
 Yume then listens on `127.0.0.1:3000`. Put TLS in front of that port: Tailscale, a
 Cloudflare Tunnel, or Caddy with a local certificate. A browser installs a progressive

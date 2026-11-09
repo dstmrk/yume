@@ -1,15 +1,15 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
 import { type Db, openDatabase } from "./db/index.ts";
-import { findInvitation } from "./db/queries.ts";
-import { invitation } from "./db/schema.ts";
+import { account, user } from "./db/schema.ts";
 
 const BASE_URL = "http://localhost:3000";
-const PASSWORD = "una-parola-lunga";
 const SECRET = "a-secret-for-the-test";
-/** The code that the server writes in the log while the database has no user. */
-const SETUP_CODE = "SETUP-2345";
+const GOOGLE = {
+	clientId: "client-id-test",
+	clientSecret: "client-secret-test",
+};
 
 let db: Db;
 let auth: Auth;
@@ -17,261 +17,218 @@ let auth: Auth;
 beforeEach(() => {
 	db = openDatabase(":memory:");
 	migrate(db, { migrationsFolder: "drizzle" });
-	auth = createAuth(db, { secret: SECRET, baseURL: BASE_URL });
+	auth = createAuth(db, { secret: SECRET, baseURL: BASE_URL, google: GOOGLE });
 });
 
-/** An instance with the code of the setup, as the server makes it at the start. */
-function authWithSetup(): Auth {
-	return createAuth(db, {
-		secret: SECRET,
-		baseURL: BASE_URL,
-		setupCode: SETUP_CODE,
-	});
+afterEach(() => {
+	vi.restoreAllMocks();
+});
+
+/** A JWT with no signature. The provider of Better Auth only decodes it. */
+function idToken(claims: Record<string, unknown>): string {
+	const part = (value: unknown) =>
+		Buffer.from(JSON.stringify(value)).toString("base64url");
+	return `${part({ alg: "none", typ: "JWT" })}.${part(claims)}.`;
 }
 
-/** The sign-up of the script. It holds no request, thus it needs no code. */
-function signUpFromScript(email: string) {
-	return auth.api.signUpEmail({
-		body: { name: "Amministratore", email, password: PASSWORD },
-	});
+/** The claims of a Google account. */
+function profile(sub: string, email: string) {
+	return {
+		iss: "https://accounts.google.com",
+		aud: GOOGLE.clientId,
+		sub,
+		email,
+		email_verified: true,
+		name: "Utente",
+	};
 }
 
-/** The sign-up of the network, with the handler of Better Auth. */
-function signUpFromNetwork(
-	body: Record<string, string>,
-	instance: Auth = auth,
-) {
+/** The cookies of a response, without the attributes. */
+function cookiesOf(response: Response): string {
+	return response.headers
+		.getSetCookie()
+		.map((header) => header.split(";")[0])
+		.join("; ");
+}
+
+/** The start of the sign-in: Better Auth gives the page of Google. */
+function startSignIn(instance: Auth = auth, baseURL = BASE_URL) {
 	return instance.handler(
-		new Request(`${BASE_URL}/api/auth/sign-up/email`, {
+		new Request(`${baseURL}/api/auth/sign-in/social`, {
 			method: "POST",
-			headers: { "content-type": "application/json", origin: BASE_URL },
-			body: JSON.stringify({ name: "Utente", password: PASSWORD, ...body }),
+			headers: { "content-type": "application/json", origin: baseURL },
+			body: JSON.stringify({ provider: "google", callbackURL: "/dashboard" }),
 		}),
 	);
 }
 
-/** Writes an invitation of the first user. It gives the code. */
-async function makeInvitation(input: { code: string; expiresAt: string }) {
-	const first = await signUpFromScript("primo@example.com");
-	db.insert(invitation)
-		.values({
-			id: crypto.randomUUID(),
-			code: input.code,
-			createdByUserId: first.user.id,
-			expiresAt: input.expiresAt,
-		})
-		.run();
-	return input.code;
+/**
+ * The complete sign-in with a Google account.
+ *
+ * The test replaces the token endpoint of Google. Better Auth decodes the
+ * `id_token` of that answer and finds or makes the user.
+ */
+async function signInWithGoogle(sub: string, email: string) {
+	const start = await startSignIn();
+	expect(start.status).toBe(200);
+	const { url } = (await start.json()) as { url: string };
+	const state = new URL(url).searchParams.get("state") ?? "";
+
+	const realFetch = globalThis.fetch;
+	vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+		const target = input instanceof Request ? input.url : String(input);
+		if (target.startsWith("https://oauth2.googleapis.com/token")) {
+			return Response.json({
+				access_token: "access-token-test",
+				token_type: "Bearer",
+				expires_in: 3600,
+				id_token: idToken(profile(sub, email)),
+			});
+		}
+		return realFetch(input, init);
+	});
+
+	const callback = await auth.handler(
+		new Request(
+			`${BASE_URL}/api/auth/callback/google?code=code-test&state=${state}`,
+			{ headers: { cookie: cookiesOf(start) } },
+		),
+	);
+	vi.restoreAllMocks();
+	return callback;
 }
 
-async function errorCodeOf(response: Response): Promise<string> {
-	expect(response.status).toBe(400);
-	const body = (await response.json()) as { code?: string };
-	return body.code ?? "";
-}
+describe("the start of the sign-in with Google", () => {
+	it("gives the page of Google with the client and the redirect URI", async () => {
+		const response = await startSignIn();
+		expect(response.status).toBe(200);
 
-describe("the sign-up from a script", () => {
-	it("makes the first user with no invitation", async () => {
-		const result = await signUpFromScript("primo@example.com");
-		expect(result.user.email).toBe("primo@example.com");
+		const { url } = (await response.json()) as { url: string };
+		const target = new URL(url);
+		expect(target.origin).toBe("https://accounts.google.com");
+		expect(target.searchParams.get("client_id")).toBe(GOOGLE.clientId);
+		expect(target.searchParams.get("redirect_uri")).toBe(
+			`${BASE_URL}/api/auth/callback/google`,
+		);
+	});
+
+	// The scopes `openid`, `email` and `profile` are not sensitive. A sensitive
+	// scope needs a review of the application by Google.
+	it("asks for the scopes that are not sensitive only", async () => {
+		const response = await startSignIn();
+		const { url } = (await response.json()) as { url: string };
+		const scopes = new URL(url).searchParams.get("scope")?.split(" ") ?? [];
+		expect(scopes.sort()).toEqual(["email", "openid", "profile"]);
+	});
+
+	it("refuses an other provider", async () => {
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/sign-in/social`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: BASE_URL },
+				body: JSON.stringify({ provider: "github" }),
+			}),
+		);
+		expect(response.status).not.toBe(200);
 	});
 });
 
-describe("the sign-up of the first user", () => {
-	it("makes the first user with the code of the setup", async () => {
-		const response = await signUpFromNetwork(
-			{ email: "primo@example.com", inviteCode: SETUP_CODE },
-			authWithSetup(),
-		);
+describe("the callback of Google", () => {
+	it("makes the user at the first sign-in and gives a session", async () => {
+		const response = await signInWithGoogle("google-1", "primo@example.com");
 
-		expect(response.status).toBe(200);
-		const body = (await response.json()) as { user: { email: string } };
-		expect(body.user.email).toBe("primo@example.com");
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toBe("/dashboard");
+		expect(cookiesOf(response)).toContain("session_token");
+
+		const users = db.select().from(user).all();
+		expect(users.map((row) => row.email)).toEqual(["primo@example.com"]);
+		const accounts = db.select().from(account).all();
+		expect(accounts.map((row) => row.providerId)).toEqual(["google"]);
 	});
 
-	it("refuses a code that is not the code of the setup", async () => {
-		const response = await signUpFromNetwork(
-			{ email: "primo@example.com", inviteCode: "UN-ALTRO" },
-			authWithSetup(),
-		);
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
+	// The registration is open: no invitation, also with a user in the database.
+	it("makes a second user with no invitation", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+		const response = await signInWithGoogle("google-2", "due@example.com");
+
+		expect(response.status).toBe(302);
+		expect(db.select().from(user).all()).toHaveLength(2);
 	});
 
-	// No user wrote the invitation of the first user. Therefore the setup writes
-	// no row, and the table holds only the invitations of the users.
-	it("writes no invitation for the first user", async () => {
-		await signUpFromNetwork(
-			{ email: "primo@example.com", inviteCode: SETUP_CODE },
-			authWithSetup(),
-		);
-		expect(db.select().from(invitation).all()).toEqual([]);
+	it("gives the same user at a second sign-in", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+		const response = await signInWithGoogle("google-1", "primo@example.com");
+
+		expect(response.status).toBe(302);
+		expect(db.select().from(user).all()).toHaveLength(1);
+		expect(db.select().from(account).all()).toHaveLength(1);
 	});
 
-	// The code of the setup dies with the first user, also in the same process.
-	it("refuses the code of the setup after the first user", async () => {
-		const setup = authWithSetup();
-		await signUpFromNetwork(
-			{ email: "primo@example.com", inviteCode: SETUP_CODE },
-			setup,
+	// The person presses "Cancel" on the page of Google. Google then gives an
+	// error and no code.
+	it("makes no user when the person refuses the consent", async () => {
+		const start = await startSignIn();
+		const { url } = (await start.json()) as { url: string };
+		const state = new URL(url).searchParams.get("state") ?? "";
+
+		const response = await auth.handler(
+			new Request(
+				`${BASE_URL}/api/auth/callback/google?error=access_denied&state=${state}`,
+				{ headers: { cookie: cookiesOf(start) } },
+			),
 		);
 
-		const response = await signUpFromNetwork(
-			{ email: "due@example.com", inviteCode: SETUP_CODE },
-			setup,
-		);
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toContain("error=");
+		expect(cookiesOf(response)).not.toContain("session_token");
+		expect(db.select().from(user).all()).toHaveLength(0);
 	});
 
-	// The server gives no code of the setup when it starts with a user. A
-	// database that then loses each user gives access to no person.
-	it("refuses each code when the server gives no code of the setup", async () => {
-		const response = await signUpFromNetwork({
-			email: "primo@example.com",
-			inviteCode: SETUP_CODE,
-		});
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
-	});
-
-	it("refuses a sign-up with no code", async () => {
-		const response = await signUpFromNetwork(
-			{ email: "primo@example.com" },
-			authWithSetup(),
+	it("refuses a state that the server did not give", async () => {
+		const response = await auth.handler(
+			new Request(
+				`${BASE_URL}/api/auth/callback/google?code=code-test&state=unknown`,
+			),
 		);
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_REQUIRED");
+
+		expect(response.status).toBe(302);
+		expect(response.headers.get("location")).toContain("error=");
+		expect(db.select().from(user).all()).toHaveLength(0);
 	});
 });
 
-describe("the sign-up from the network", () => {
-	it("refuses a sign-up with no code", async () => {
-		const response = await signUpFromNetwork({ email: "due@example.com" });
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_REQUIRED");
-	});
-
-	it("refuses a code that is empty", async () => {
-		const response = await signUpFromNetwork({
-			email: "due@example.com",
-			inviteCode: "",
-		});
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_REQUIRED");
-	});
-
-	it("refuses a code that no invitation has", async () => {
-		await signUpFromScript("primo@example.com");
-		const response = await signUpFromNetwork({
-			email: "due@example.com",
-			inviteCode: "NO-SUCH-CODE",
-		});
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_UNKNOWN");
-	});
-
-	it("refuses a code that expired", async () => {
-		const code = await makeInvitation({
-			code: "VECCHIO",
-			expiresAt: "2020-01-01T00:00:00.000Z",
-		});
-		const response = await signUpFromNetwork({
-			email: "due@example.com",
-			inviteCode: code,
-		});
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_EXPIRED");
-	});
-
-	it("makes the user with a code that is valid", async () => {
-		const code = await makeInvitation({
-			code: "BUONO",
-			expiresAt: "2099-01-01T00:00:00.000Z",
-		});
-		const response = await signUpFromNetwork({
-			email: "due@example.com",
-			inviteCode: code,
-		});
-
-		expect(response.status).toBe(200);
-		const body = (await response.json()) as { user: { email: string } };
-		expect(body.user.email).toBe("due@example.com");
-	});
-
-	it("marks the invitation with the id of the new user", async () => {
-		const code = await makeInvitation({
-			code: "BUONO",
-			expiresAt: "2099-01-01T00:00:00.000Z",
-		});
-		const response = await signUpFromNetwork({
-			email: "due@example.com",
-			inviteCode: code,
-		});
-		const body = (await response.json()) as { user: { id: string } };
-
-		const used = findInvitation(db, code);
-		expect(used?.usedByUserId).toBe(body.user.id);
-		expect(used?.usedAt).toEqual(expect.any(String));
-	});
-
-	it("refuses the same code a second time", async () => {
-		const code = await makeInvitation({
-			code: "BUONO",
-			expiresAt: "2099-01-01T00:00:00.000Z",
-		});
-		await signUpFromNetwork({ email: "due@example.com", inviteCode: code });
-
-		const response = await signUpFromNetwork({
-			email: "tre@example.com",
-			inviteCode: code,
-		});
-		expect(await errorCodeOf(response)).toBe("INVITE_CODE_USED");
-	});
-
-	// The sign-up stops after the hook `before` and before the creation of the
-	// user. The code must stay free for an other sign-up.
-	it("keeps the code free when the email address is already in use", async () => {
-		const code = await makeInvitation({
-			code: "BUONO",
-			expiresAt: "2099-01-01T00:00:00.000Z",
-		});
-		const response = await signUpFromNetwork({
-			email: "primo@example.com",
-			inviteCode: code,
-		});
+describe("the email address and the password", () => {
+	it("give no sign-up", async () => {
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/sign-up/email`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: BASE_URL },
+				body: JSON.stringify({
+					name: "Utente",
+					email: "primo@example.com",
+					password: "una-parola-lunga",
+				}),
+			}),
+		);
 
 		expect(response.status).not.toBe(200);
-		expect(findInvitation(db, code)?.usedAt).toBeNull();
+		expect(db.select().from(user).all()).toHaveLength(0);
 	});
-});
 
-describe("the sign-in", () => {
-	it("gives a session to the user of the script", async () => {
-		await signUpFromScript("primo@example.com");
-
+	it("give no sign-in", async () => {
 		const response = await auth.handler(
 			new Request(`${BASE_URL}/api/auth/sign-in/email`, {
 				method: "POST",
 				headers: { "content-type": "application/json", origin: BASE_URL },
 				body: JSON.stringify({
 					email: "primo@example.com",
-					password: PASSWORD,
+					password: "una-parola-lunga",
 				}),
 			}),
 		);
 
-		expect(response.status).toBe(200);
-		expect(response.headers.get("set-cookie")).toContain("session_token");
-	});
-
-	it("refuses a password that is not correct", async () => {
-		await signUpFromScript("primo@example.com");
-
-		const response = await auth.handler(
-			new Request(`${BASE_URL}/api/auth/sign-in/email`, {
-				method: "POST",
-				headers: { "content-type": "application/json", origin: BASE_URL },
-				body: JSON.stringify({
-					email: "primo@example.com",
-					password: "un-altra-parola",
-				}),
-			}),
-		);
-
-		expect(response.status).toBe(401);
+		expect(response.status).not.toBe(200);
 	});
 });
 
@@ -299,46 +256,35 @@ describe("needsSecureCookies", () => {
 });
 
 /**
- * The cookie of the session holds the attribute `secure` on each origin of the
- * network. Then a browser removes that cookie on a plain HTTP connection, and
+ * The cookies of Better Auth hold the attribute `secure` on each origin of the
+ * network. Then a browser removes those cookies on a plain HTTP connection, and
  * the session of the user does not travel in clear text.
+ *
+ * The start of the sign-in gives the cookie of the state. That cookie and the
+ * cookie of the session receive the same attributes.
  */
-describe("the cookie of the session", () => {
-	/** Signs in the first user and gives the header `set-cookie`. */
+describe("the cookies of the sign-in", () => {
 	async function cookieOf(baseURL: string): Promise<string> {
-		const instance = createAuth(db, { secret: SECRET, baseURL });
-		await instance.api.signUpEmail({
-			body: {
-				name: "Amministratore",
-				email: "primo@example.com",
-				password: PASSWORD,
-			},
+		const instance = createAuth(db, {
+			secret: SECRET,
+			baseURL,
+			google: GOOGLE,
 		});
-
-		const response = await instance.handler(
-			new Request(`${baseURL}/api/auth/sign-in/email`, {
-				method: "POST",
-				headers: { "content-type": "application/json", origin: baseURL },
-				body: JSON.stringify({
-					email: "primo@example.com",
-					password: PASSWORD,
-				}),
-			}),
-		);
+		const response = await startSignIn(instance, baseURL);
 		expect(response.status).toBe(200);
-		return response.headers.get("set-cookie") ?? "";
+		return response.headers.getSetCookie().join("\n");
 	}
 
-	it("holds the attribute Secure on a host of the network with no TLS", async () => {
+	it("hold the attribute Secure on a host of the network with no TLS", async () => {
 		expect(await cookieOf("http://nas.local:3000")).toContain("Secure");
 	});
 
-	it("holds the attribute Secure on an origin with TLS", async () => {
+	it("hold the attribute Secure on an origin with TLS", async () => {
 		expect(await cookieOf("https://yume.example.com")).toContain("Secure");
 	});
 
 	// The client of Vite operates on the machine itself with no certificate.
-	it("holds no attribute Secure on the machine itself", async () => {
+	it("hold no attribute Secure on the machine itself", async () => {
 		expect(await cookieOf("http://localhost:3000")).not.toContain("Secure");
 	});
 });
