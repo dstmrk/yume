@@ -49,6 +49,9 @@ services:
       # two values in `.env`. The server stops without them.
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?write the OAuth client of Google in .env}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?write the OAuth client of Google in .env}
+      # The email address of the administrator. With no value, the installation
+      # has no administrator.
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
     # The limits keep the other services of the home server free. The largest
     # quantity of memory is at the start, with the migrations and the seed.
     mem_limit: 512m

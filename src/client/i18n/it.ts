@@ -174,6 +174,27 @@ export const it = {
 	signInError: "Accesso con Google non riuscito.",
 	signOut: "Esci",
 
+	// The page of the administrator. Paragraph 4.8 of `docs/architecture.md`.
+	// The names of the levels are the names of the plans.
+	adminLink: "Amministrazione",
+	adminTitle: "Utenti",
+	adminTotal: "Totale",
+	adminRecent: "Ultimi 30 giorni",
+	adminSearch: "Cerca per email",
+	adminAll: "Tutti",
+	adminEmail: "Email",
+	adminJoined: "Iscrizione",
+	adminTier: "Piano",
+	adminSupporterUntil: "fino al",
+	adminNoMatch: "Nessun utente.",
+	adminPrevious: "Pagina precedente",
+	adminNext: "Pagina successiva",
+	adminUpdateError: "Modifica non riuscita.",
+	adminBack: "Torna al tabellone",
+	tierFree: "Free",
+	tierSupporter: "Supporter",
+	tierUnlimited: "Unlimited",
+
 	// The structured data of the public page. Refer to `lib/jsonLd.ts`.
 	jsonLd: {
 		// The subjects of the application. Each item is a subject that the page

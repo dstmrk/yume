@@ -283,6 +283,9 @@ development only. It gives no client of Google: export the two values of your ow
 A test makes a session with `sessionCookie` of `src/server/db/fixtures.ts`, because no
 test reaches Google.
 
+`ADMIN_EMAIL` is not necessary. It gives the administrator of the page `/admin`.
+Paragraph 4.8 of `docs/architecture.md` gives the rules.
+
 Run these commands for the container:
 
 ```bash

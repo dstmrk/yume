@@ -5,23 +5,23 @@ import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
 import {
 	type AccountsResponse,
-	addSnapshotSchema,
+	type AdminUsersResponse,
 	type CatalogueResponse,
 	createAccountSchema,
 	type FavoritesResponse,
+	type MeResponse,
 	type PotentialResponse,
+	setUnlimitedSchema,
 	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
-import { potentialMiles } from "../shared/potential.ts";
+import { accountTier } from "../shared/tier.ts";
+import { isAdmin } from "./admin.ts";
 import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
 	addFavorite,
-	addSnapshot,
 	allCurrencies,
 	allPrograms,
-	allTransferRules,
 	countAccounts,
 	createAccount,
 	currentBalances,
@@ -29,8 +29,16 @@ import {
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
+	listUsers,
 	removeFavorite,
+	setUnlimited,
 } from "./db/queries.ts";
+import {
+	latestObservedAt,
+	potentialOf,
+	recordSnapshot,
+	today,
+} from "./operations.ts";
 
 /**
  * The routes with no session.
@@ -60,38 +68,19 @@ export const MAX_ACCOUNTS_PER_USER = 100;
 export const MAX_BODY_BYTES = 16 * 1024;
 
 /**
- * The date of today, in the ISO 8601 format.
- *
- * The date comes from the clock in UTC. Rome is one hour or two hours in front
- * of UTC. Therefore a rule that starts today enters the calculation some hours
- * late. No ratio changes at night, thus this difference is acceptable.
- */
-function today(): string {
-	return new Date().toISOString().slice(0, 10);
-}
-
-/**
- * The latest date of a snapshot: the date of tomorrow in UTC.
- *
- * The current balance is the snapshot with the latest date. A snapshot of 2062
- * in place of 2026 then hides each later update for 36 years. The one day is
- * for the user in front of UTC: at 00:30 in Rome, UTC holds the day before.
- * An ISO 8601 date gives the order of the dates in a comparison of the text.
- */
-function latestObservedAt(): string {
-	const date = new Date();
-	date.setUTCDate(date.getUTCDate() + 1);
-	return date.toISOString().slice(0, 10);
-}
-
-/**
  * Makes the application.
  *
  * `origins` holds the origin of the application and each origin of
- * `TRUSTED_ORIGINS`: Better Auth receives the same list.
+ * `TRUSTED_ORIGINS`: Better Auth receives the same list. `adminEmail` is the
+ * value of `ADMIN_EMAIL`. With no value, the instance has no administrator.
  */
-export function createApp(db: Db, auth: Auth, origins: string[]) {
-	const app = new Hono<{ Variables: { userId: string } }>();
+export function createApp(
+	db: Db,
+	auth: Auth,
+	origins: string[],
+	adminEmail?: string,
+) {
+	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
 
 	/**
 	 * The security headers, on each answer: the API, the files of the client
@@ -133,6 +122,7 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 		}
 
 		c.set("userId", session.user.id);
+		c.set("admin", isAdmin(session.user, adminEmail));
 		return next();
 	});
 
@@ -217,7 +207,7 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 			return c.json({ error: "unknown_program" }, 404);
 		}
 		const observedAt = body.data.snapshot?.observedAt;
-		if (observedAt !== undefined && observedAt > latestObservedAt()) {
+		if (observedAt !== undefined && observedAt > latestObservedAt(new Date())) {
 			return c.json({ error: "future_date" }, 400);
 		}
 		// better-sqlite3 is synchronous and no `await` is between the count and
@@ -229,22 +219,30 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 		return c.json({ id }, 201);
 	});
 
+	/**
+	 * Adds a snapshot to an account of the user.
+	 *
+	 * `recordSnapshot` holds each examination, because the tool `add_snapshot`
+	 * of the MCP server gives the same result.
+	 */
 	app.post("/api/accounts/:id/snapshots", async (c) => {
-		const accountId = c.req.param("id");
-		if (findAccount(db, accountId, c.get("userId")) === undefined) {
-			return c.json({ error: "unknown_account" }, 404);
+		const result = recordSnapshot(db, {
+			userId: c.get("userId"),
+			accountId: c.req.param("id"),
+			body: await c.req.json().catch(() => null),
+			now: new Date(),
+		});
+		if (result.ok) {
+			return c.json({ id: result.id }, 201);
 		}
-		const body = addSnapshotSchema.safeParse(
-			await c.req.json().catch(() => null),
-		);
-		if (!body.success) {
-			return c.json({ error: "invalid_body", issues: body.error.issues }, 400);
+		switch (result.error) {
+			case "unknown_account":
+				return c.json({ error: result.error }, 404);
+			case "invalid_body":
+				return c.json({ error: result.error, issues: result.issues }, 400);
+			case "future_date":
+				return c.json({ error: result.error }, 400);
 		}
-		if (body.data.observedAt > latestObservedAt()) {
-			return c.json({ error: "future_date" }, 400);
-		}
-		const id = addSnapshot(db, { accountId, ...body.data });
-		return c.json({ id }, 201);
 	});
 
 	/**
@@ -324,36 +322,73 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 	/**
 	 * The potential miles of each airline currency.
 	 *
-	 * A flexible currency is a source, thus it has no potential. The client must
-	 * not add the values of two currencies: the user cannot send the same points
-	 * to two currencies.
-	 *
-	 * The route uses the rules of `DEFAULT_COUNTRY`. The user selects no country
-	 * now. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
+	 * `potentialOf` holds the calculation, because the tool `get_potential` of
+	 * the MCP server gives the same result. The client must not add the values
+	 * of two currencies: the user cannot send the same points to two currencies.
 	 */
 	app.get("/api/potential", (c) => {
-		const programs = allPrograms(db);
-		const rules = allTransferRules(db);
-		const at = today();
-		const balances = currentBalances(db, c.get("userId"))
-			.filter((row) => row.points !== null)
-			.map((row) => ({ programId: row.programId, points: row.points ?? 0 }));
-
-		const potential = allCurrencies(db)
-			.filter((currency) => currency.kind === "airline")
-			.map((currency) =>
-				potentialMiles({
-					currencyId: currency.id,
-					balances,
-					programs,
-					rules,
-					country: DEFAULT_COUNTRY,
-					at,
-				}),
-			);
-
-		const body: PotentialResponse = { at, potential };
+		const body: PotentialResponse = potentialOf(
+			db,
+			c.get("userId"),
+			today(new Date()),
+		);
 		return c.json(body);
+	});
+
+	/** The user of the session. The client reads if it is the administrator. */
+	app.get("/api/me", (c) => {
+		const body: MeResponse = { admin: c.get("admin") };
+		return c.json(body);
+	});
+
+	/**
+	 * The routes of the administrator.
+	 *
+	 * A user that is not the administrator receives the answer of a path that
+	 * does not exist. Thus no answer says that these routes exist. The
+	 * middleware of the session is before this one: with no session, the
+	 * status is 401. Paragraph 4.8 of `docs/architecture.md` gives the rules.
+	 */
+	app.use("/api/admin/*", async (c, next) => {
+		if (!c.get("admin")) {
+			return c.json({ error: "not_found" }, 404);
+		}
+		return next();
+	});
+
+	/** Each user, with the level at the clock of the server. */
+	app.get("/api/admin/users", (c) => {
+		const now = new Date();
+		const body: AdminUsersResponse = {
+			users: listUsers(db).map((row) => ({
+				id: row.id,
+				email: row.email,
+				createdAt: row.createdAt.toISOString(),
+				tier: accountTier(row, now),
+				supporterUntil: row.supporterUntil?.toISOString() ?? null,
+				unlimited: row.unlimited,
+			})),
+		};
+		return c.json(body);
+	});
+
+	/**
+	 * Writes the flag `unlimited` of a user.
+	 *
+	 * The method is `PUT`, because the request gives a state: the same request
+	 * two times gives the same result.
+	 */
+	app.put("/api/admin/users/:id/unlimited", async (c) => {
+		const body = setUnlimitedSchema.safeParse(
+			await c.req.json().catch(() => null),
+		);
+		if (!body.success) {
+			return c.json({ error: "invalid_body", issues: body.error.issues }, 400);
+		}
+		if (!setUnlimited(db, c.req.param("id"), body.data.unlimited)) {
+			return c.json({ error: "unknown_user" }, 404);
+		}
+		return c.body(null, 204);
 	});
 
 	/**
