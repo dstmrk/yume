@@ -334,6 +334,10 @@ These are the reasons:
 - Yume asks for the scopes `openid` and `email` only. Those scopes are not sensitive,
   thus Google asks for no review of the application. Yume keeps no name and no photo of
   the Google account: the GDPR asks for the minimum of data, and no surface shows them.
+  Yume gives `includeGrantedScopes: false` to Google: otherwise Google adds each scope
+  that the user granted in the past, also `profile`.
+- Yume keeps no token of Google: a database hook writes null in the five token columns
+  of `account`. The `sub` of Google stays in `account_id`.
 
 Sign in with Apple is not available. It needs the Apple Developer Program, for 99 dollars
 for one year. Its client secret expires after six months, and Apple refuses `localhost`
