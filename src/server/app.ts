@@ -1,6 +1,8 @@
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
+import { csrf } from "hono/csrf";
+import { secureHeaders } from "hono/secure-headers";
 import {
 	type AccountsResponse,
 	addSnapshotSchema,
@@ -82,8 +84,36 @@ function latestObservedAt(): string {
 	return date.toISOString().slice(0, 10);
 }
 
-export function createApp(db: Db, auth: Auth) {
+/**
+ * Makes the application.
+ *
+ * `origins` holds the origin of the application and each origin of
+ * `TRUSTED_ORIGINS`: Better Auth receives the same list.
+ */
+export function createApp(db: Db, auth: Auth, origins: string[]) {
 	const app = new Hono<{ Variables: { userId: string } }>();
+
+	/**
+	 * The security headers, on each answer: the API, the files of the client
+	 * and the pages. A page of an other site cannot show Yume in a frame.
+	 *
+	 * Two values are not the defaults of Hono:
+	 *
+	 * - `Referrer-Policy` is the default of the browser. `no-referrer` changes
+	 *   the header `Origin` of some POST requests, and Better Auth examines that
+	 *   header.
+	 * - No `Strict-Transport-Security`. The default holds `includeSubDomains`:
+	 *   on a domain with other services, it forces HTTPS on each subdomain. The
+	 *   proxy of the TLS gives that header. Refer to paragraph 7 of
+	 *   `docs/architecture.md`.
+	 */
+	app.use(
+		"*",
+		secureHeaders({
+			referrerPolicy: "strict-origin-when-cross-origin",
+			strictTransportSecurity: false,
+		}),
+	);
 
 	/**
 	 * Each route of the data needs a session.
@@ -105,6 +135,22 @@ export function createApp(db: Db, auth: Auth) {
 		c.set("userId", session.user.id);
 		return next();
 	});
+
+	/**
+	 * Refuses a form of an other origin, with the status 403.
+	 *
+	 * The cookie of the session is `SameSite=Lax`. A service on an other
+	 * subdomain of the same domain is the same site, thus its forms send that
+	 * cookie, and `c.req.json()` reads a body of `text/plain`. The middleware
+	 * examines a request with the type of a form or with no type: a `DELETE`
+	 * with no body has no type. A request of JSON from an other origin needs
+	 * CORS, and the server gives no CORS.
+	 *
+	 * The middleware is after the session: a request with no session gets the
+	 * status 401 from each origin. Paragraph 4.4 of `docs/architecture.md` gives
+	 * the rule.
+	 */
+	app.use("/api/*", csrf({ origin: origins }));
 
 	/**
 	 * The limit of the size of a body, also on the routes of Better Auth.

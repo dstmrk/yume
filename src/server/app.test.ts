@@ -16,6 +16,8 @@ import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
 const BASE_URL = "http://localhost:3000";
+/** The client of Vite in development: an origin of `TRUSTED_ORIGINS`. */
+const VITE_URL = "http://localhost:5173";
 const OTHER_USER = "an-other-user";
 
 let db: Db;
@@ -24,6 +26,17 @@ let app: ReturnType<typeof createApp>;
 let userId: string;
 /** The cookie of the session. A request with no cookie gives the status 401. */
 let cookie: string;
+
+/**
+ * The headers of a browser on the page of Yume.
+ *
+ * A browser sends `origin` with each method that is not `GET` or `HEAD`. A
+ * `DELETE` or a `PUT` with no body has no `content-type`, thus the protection
+ * of the forms reads that header.
+ */
+function sameOrigin(): Record<string, string> {
+	return { cookie, origin: BASE_URL };
+}
 
 beforeEach(async () => {
 	db = openDatabase(":memory:");
@@ -36,7 +49,7 @@ beforeEach(async () => {
 		baseURL: BASE_URL,
 		google: { clientId: "client-id-test", clientSecret: "client-secret-test" },
 	});
-	app = createApp(db, auth);
+	app = createApp(db, auth, [BASE_URL, VITE_URL]);
 
 	userId = insertUser(db, "primo");
 	cookie = await sessionCookie(auth, userId);
@@ -70,7 +83,7 @@ function post(path: string, body: unknown) {
 }
 
 function remove(path: string) {
-	return app.request(path, { method: "DELETE", headers: { cookie } });
+	return app.request(path, { method: "DELETE", headers: sameOrigin() });
 }
 
 describe("the session", () => {
@@ -127,6 +140,153 @@ describe("the session", () => {
 	});
 });
 
+describe("the protection from a form of an other origin", () => {
+	/** The request of `<form enctype="text/plain">` on an other page. */
+	function formPost(path: string, headers: Record<string, string>) {
+		return app.request(path, {
+			method: "POST",
+			headers: { "content-type": "text/plain", cookie, ...headers },
+			body: JSON.stringify({ programId: "ba-club", x: "=1" }),
+		});
+	}
+
+	it("refuses a form of an other site with a valid cookie", async () => {
+		const response = await formPost("/api/accounts", {
+			origin: "https://evil.example.com",
+			"sec-fetch-site": "cross-site",
+		});
+
+		expect(response.status).toBe(403);
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	// An other service on the same domain is the same site, thus the browser
+	// sends the cookie of Yume with `SameSite=Lax`.
+	it("refuses a form of an other subdomain of the same site", async () => {
+		const response = await formPost("/api/accounts", {
+			origin: "https://jellyfin.example.com",
+			"sec-fetch-site": "same-site",
+		});
+
+		expect(response.status).toBe(403);
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("refuses a form with no origin", async () => {
+		const response = await formPost("/api/accounts", {});
+
+		expect(response.status).toBe(403);
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("refuses a form with the origin null", async () => {
+		const response = await formPost("/api/accounts", { origin: "null" });
+
+		expect(response.status).toBe(403);
+	});
+
+	it("refuses an urlencoded form on a snapshot", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+
+		const response = await app.request(`/api/accounts/${account}/snapshots`, {
+			method: "POST",
+			headers: {
+				"content-type": "application/x-www-form-urlencoded",
+				cookie,
+				origin: "https://evil.example.com",
+			},
+			body: "points=1000&observedAt=2026-08-11",
+		});
+
+		expect(response.status).toBe(403);
+		expect(currentBalances(db, userId)).toMatchObject([{ points: null }]);
+	});
+
+	it("refuses a DELETE with no body from an other origin", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+
+		const response = await app.request(`/api/accounts/${account}`, {
+			method: "DELETE",
+			headers: { cookie, origin: "https://evil.example.com" },
+		});
+
+		expect(response.status).toBe(403);
+		expect(countAccounts(db, userId)).toBe(1);
+	});
+
+	it("accepts a body of JSON from the same origin", async () => {
+		const response = await app.request("/api/accounts", {
+			method: "POST",
+			headers: { "content-type": "application/json", ...sameOrigin() },
+			body: JSON.stringify({ programId: "ba-club" }),
+		});
+
+		expect(response.status).toBe(201);
+	});
+
+	it("accepts the origin of TRUSTED_ORIGINS", async () => {
+		const response = await formPost("/api/accounts", { origin: VITE_URL });
+
+		expect(response.status).toBe(201);
+	});
+
+	it("accepts a request of the page itself, with sec-fetch-site", async () => {
+		const response = await formPost("/api/accounts", {
+			"sec-fetch-site": "same-origin",
+		});
+
+		expect(response.status).toBe(201);
+	});
+
+	// The middleware of the session is first: a request with no session gets
+	// the status 401 also from an other origin.
+	it("gives the status 401 to a form of an other origin with no cookie", async () => {
+		const response = await app.request("/api/accounts", {
+			method: "POST",
+			headers: {
+				"content-type": "text/plain",
+				origin: "https://evil.example.com",
+			},
+			body: "{}",
+		});
+
+		expect(response.status).toBe(401);
+	});
+});
+
+describe("the security headers", () => {
+	const paths = ["/api/health", "/api/accounts", "/api/nope"];
+
+	for (const path of paths) {
+		it(`gives the headers on ${path}`, async () => {
+			const response = await app.request(path, { headers: { cookie } });
+
+			expect(response.headers.get("x-content-type-options")).toBe("nosniff");
+			expect(response.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+			expect(response.headers.get("referrer-policy")).toBe(
+				"strict-origin-when-cross-origin",
+			);
+			expect(response.headers.get("strict-transport-security")).toBeNull();
+		});
+	}
+
+	it("gives the headers also to an answer with the status 401", async () => {
+		const response = await app.request("/api/accounts");
+
+		expect(response.status).toBe(401);
+		expect(response.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+	});
+
+	// The files of the client come after `createApp`, in `index.ts`.
+	it("gives the headers to a route after createApp", async () => {
+		app.get("/a-page", (c) => c.html("<p>page</p>"));
+
+		const response = await app.request("/a-page");
+
+		expect(response.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+	});
+});
+
 describe("GET /api/health", () => {
 	it("gives the status ok when the database answers", async () => {
 		const body = await getJson<{ status: string }>("/api/health");
@@ -156,7 +316,7 @@ describe("a path of the API that no route matches", () => {
 	it("gives the status 404 with a method that the route does not hold", async () => {
 		const response = await app.request("/api/catalogue", {
 			method: "DELETE",
-			headers: { cookie },
+			headers: sameOrigin(),
 		});
 		expect(response.status).toBe(404);
 	});
@@ -670,7 +830,7 @@ describe("the routes of the favourites", () => {
 	type Body = { currencyIds: string[] };
 
 	function put(path: string) {
-		return app.request(path, { method: "PUT", headers: { cookie } });
+		return app.request(path, { method: "PUT", headers: sameOrigin() });
 	}
 
 	it("gives no currency for a user with no favourite", async () => {
