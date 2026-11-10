@@ -226,7 +226,7 @@ export const it = {
 					"Yume tratta solo i dati che servono a mostrarti saldi e miglia potenziali.",
 				],
 				items: [
-					"Dall'account Google, al primo accesso: l'indirizzo email e l'identificativo dell'account. Yume non chiede a Google il nome né la foto del profilo. Conserva anche i token che Google restituisce all'accesso.",
+					"Dall'account Google, al primo accesso: l'indirizzo email e l'identificativo dell'account. Yume non chiede a Google il nome né la foto del profilo.",
 					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le valute preferite.",
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
 					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",
@@ -260,14 +260,13 @@ export const it = {
 					"Tutte le connessioni usano HTTPS.",
 					"Il cookie della sessione ha gli attributi Secure e HttpOnly: viaggia solo su HTTPS e gli script della pagina non lo leggono.",
 					"Il database non è raggiungibile da internet: lo legge solo il server di Yume, e solo il titolare accede al server.",
-					"I token di Google restano nel database e nessuna pagina li mostra.",
 				],
 				contact: false,
 			},
 			{
 				title: "6. Natura del conferimento",
 				paragraphs: [
-					"Nome ed email dell'account Google sono necessari: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla.",
+					"L'email dell'account Google è necessaria: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla.",
 				],
 				items: [],
 				contact: false,

@@ -64,6 +64,13 @@
       "when": 1794242056774,
       "tag": "0008_snapshot_created_at",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794300378779,
+      "tag": "0009_drop_google_tokens",
+      "breakpoints": true
     }
   ]
 }

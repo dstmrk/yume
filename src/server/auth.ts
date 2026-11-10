@@ -52,6 +52,24 @@ export function needsSecureCookies(baseURL: string): boolean {
 	}
 }
 
+/**
+ * The columns of the table `account` that hold a token of Google or its
+ * expiry.
+ *
+ * Yume reads no token: Better Auth owns the session, and Google only proves
+ * the email address at the sign-in. Better Auth writes the tokens at each
+ * sign-in in clear text, thus a hook of the database writes null in their
+ * place. The GDPR asks for the minimum of data (art. 5(1)(c)). The `sub` of
+ * Google stays in `accountId`: the next sign-in finds the user with it.
+ */
+const NO_TOKENS = {
+	accessToken: null,
+	refreshToken: null,
+	idToken: null,
+	accessTokenExpiresAt: null,
+	refreshTokenExpiresAt: null,
+};
+
 export type AuthOptions = {
 	/** The key of the signature of the cookies and of the tokens. */
 	secret: string;
@@ -82,11 +100,30 @@ export function createAuth(db: Db, options: AuthOptions) {
 				disableDefaultScope: true,
 				scope: ["openid", "email"],
 				/**
-				 * The token of Google can hold the name and the photo also with
-				 * no scope `profile`. The table `user` then keeps an empty name,
-				 * because the column is not null in the model of Better Auth.
+				 * Without this option, Better Auth sends
+				 * `include_granted_scopes=true`. Google then adds each scope that
+				 * the person gave to the same client in the past. A version of
+				 * Yume before 2026-11-09 asked for `profile`, thus the token of an
+				 * early user holds the name and the photo again.
+				 */
+				includeGrantedScopes: false,
+				/**
+				 * A guard for a future change of the scopes: the table `user`
+				 * keeps no name and no photo. The name is an empty text, because
+				 * the column is not null in the model of Better Auth.
 				 */
 				mapProfileToUser: () => ({ name: "", image: undefined }),
+			},
+		},
+
+		databaseHooks: {
+			account: {
+				create: {
+					before: async (data) => ({ data: { ...data, ...NO_TOKENS } }),
+				},
+				update: {
+					before: async (data) => ({ data: { ...data, ...NO_TOKENS } }),
+				},
 			},
 		},
 

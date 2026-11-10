@@ -1,6 +1,7 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
+import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { deleteExpired } from "./db/queries.ts";
 import { account, session, user, verification } from "./db/schema.ts";
@@ -43,6 +44,16 @@ function profile(sub: string, email: string) {
 		name: "Mario Rossi",
 		picture: "https://lh3.googleusercontent.com/a/photo",
 	};
+}
+
+/** The five columns of `account` that hold a token or its expiry. */
+function expectNoToken(row: typeof account.$inferSelect | undefined) {
+	expect(row).toBeDefined();
+	expect(row?.accessToken).toBeNull();
+	expect(row?.refreshToken).toBeNull();
+	expect(row?.idToken).toBeNull();
+	expect(row?.accessTokenExpiresAt).toBeNull();
+	expect(row?.refreshTokenExpiresAt).toBeNull();
 }
 
 /** The cookies of a response, without the attributes. */
@@ -124,6 +135,15 @@ describe("the start of the sign-in with Google", () => {
 		expect(scopes.sort()).toEqual(["email", "openid"]);
 	});
 
+	// With `include_granted_scopes`, Google adds each scope that the person gave
+	// to the same client in the past. A person who gave `profile` to an old
+	// version of Yume then gives the name and the photo again.
+	it("asks for no scope that the person gave in the past", async () => {
+		const response = await startSignIn();
+		const { url } = (await response.json()) as { url: string };
+		expect(new URL(url).searchParams.has("include_granted_scopes")).toBe(false);
+	});
+
 	it("refuses an other provider", async () => {
 		const response = await auth.handler(
 			new Request(`${BASE_URL}/api/auth/sign-in/social`, {
@@ -159,6 +179,56 @@ describe("the callback of Google", () => {
 		const [row] = db.select().from(user).all();
 		expect(row?.name).toBe("");
 		expect(row?.image).toBeNull();
+	});
+
+	// Yume reads no token of Google: Better Auth owns the session. The `sub` of
+	// Google stays, because the next sign-in finds the user with it. Refer to
+	// paragraph 4.1 of `docs/architecture.md`.
+	it("keeps no token of Google and keeps the identifier", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+
+		const [row] = db.select().from(account).all();
+		expect(row?.accountId).toBe("google-1");
+		expect(row?.providerId).toBe("google");
+		expect(row?.userId).toBe(db.select().from(user).all()[0]?.id);
+		expectNoToken(row);
+	});
+
+	// Better Auth writes the new tokens at each sign-in of a known account.
+	it("keeps no token of Google after a second sign-in", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+		const response = await signInWithGoogle("google-1", "primo@example.com");
+
+		const headers = new Headers({ cookie: cookiesOf(response) });
+		const current = await auth.api.getSession({ headers });
+		expect(current?.user.email).toBe("primo@example.com");
+		expectNoToken(db.select().from(account).all()[0]);
+	});
+
+	it("keeps no token of an account that the adapter writes", async () => {
+		const userId = insertUser(db, "user-1");
+		const context = await auth.$context;
+		const created = await context.internalAdapter.createAccount({
+			userId,
+			providerId: "google",
+			accountId: "google-9",
+			accessToken: "access-token-test",
+			refreshToken: "refresh-token-test",
+			idToken: "id-token-test",
+			accessTokenExpiresAt: new Date(),
+			refreshTokenExpiresAt: new Date(),
+		});
+		expect(created).not.toBeNull();
+		expectNoToken(db.select().from(account).all()[0]);
+
+		await context.internalAdapter.updateAccount(created?.id ?? "", {
+			accessToken: "access-token-new",
+			idToken: "id-token-new",
+			accessTokenExpiresAt: new Date(),
+		});
+		const [row] = db.select().from(account).all();
+		expect(row?.accountId).toBe("google-9");
+		expectNoToken(row);
 	});
 
 	// The registration is open: no invitation, also with a user in the database.

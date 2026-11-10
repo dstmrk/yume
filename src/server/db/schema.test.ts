@@ -308,3 +308,45 @@ describe("the migration that adds the moment of the write", () => {
 		]);
 	});
 });
+
+/**
+ * Yume keeps no token of Google. The version before kept the tokens of each
+ * sign-in, and the `id_token` of an early user can hold the name and the photo.
+ * The migration 0009 removes the tokens. Paragraph 4.1 of
+ * `docs/architecture.md` gives the rule.
+ */
+describe("the migration that removes the tokens of Google", () => {
+	it("removes the five columns of the tokens and keeps the account", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, {
+			migrationsFolder: migrationsUntil("0008_snapshot_created_at"),
+		});
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
+		old.run(sql`insert into account (id, account_id, provider_id, user_id, access_token,
+			refresh_token, id_token, access_token_expires_at, refresh_token_expires_at, scope,
+			created_at, updated_at)
+			values ('acc-1', 'google-1', 'google', 'author', 'access', 'refresh',
+			'header.eyJuYW1lIjoiTWFyaW8gUm9zc2kifQ.', ${now}, ${now}, 'openid,email,profile',
+			${now}, ${now})`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		const rows = old.select().from(schema.account).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0]).toMatchObject({
+			id: "acc-1",
+			accountId: "google-1",
+			providerId: "google",
+			userId: "author",
+			accessToken: null,
+			refreshToken: null,
+			idToken: null,
+			accessTokenExpiresAt: null,
+			refreshTokenExpiresAt: null,
+		});
+		expect(old.select().from(schema.user).all()).toHaveLength(1);
+	});
+});
