@@ -65,7 +65,7 @@ type PotentialRow = {
 	current: number;
 	fromTransfers: number;
 	total: number;
-	routes: { fromProgramId: string; toProgramId: string; points: number }[];
+	routes: { fromProgramId: string; points: number }[];
 };
 
 async function getJson<T>(path: string): Promise<T> {
@@ -850,10 +850,10 @@ describe("GET /api/potential", () => {
 			current: 1500,
 			fromTransfers: 400,
 			total: 1900,
-			routes: [
-				{ fromProgramId: "amex-mr", toProgramId: "iberia-club", points: 400 },
-			],
+			routes: [{ fromProgramId: "amex-mr", points: 400 }],
 		});
+		// The card names no target programme, thus the answer holds none.
+		expect(avios?.routes[0]).not.toHaveProperty("toProgramId");
 	});
 
 	// The user writes a balance and corrects it on the same day. The id of the

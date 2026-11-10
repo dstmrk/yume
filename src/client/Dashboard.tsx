@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import type { AccountRow, FavoritesResponse } from "../shared/api.ts";
-import type { PotentialMiles } from "../shared/potential.ts";
+import type { BestRoute, PotentialMiles } from "../shared/potential.ts";
 import { AccountActions } from "./components/AccountActions.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
 import { BoardPanel } from "./components/board/BoardPanel.tsx";
@@ -25,8 +25,6 @@ import {
 import { cardsToShow } from "./lib/cards.ts";
 import { toggleFavorite } from "./lib/favorites.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
-import type { GroupedRoute } from "./lib/routes.ts";
-import { groupRoutes } from "./lib/routes.ts";
 import { byValueDesc } from "./lib/sort.ts";
 
 export function Dashboard() {
@@ -349,7 +347,7 @@ function CurrencyCard({
 
 			{row.routes.length > 0 && (
 				<ul className="mt-3 flex flex-col gap-1 border-board-line border-t pt-3">
-					{groupRoutes(row.routes)
+					{[...row.routes]
 						.sort(byValueDesc((route) => route.points))
 						.map((route) => (
 							<RouteRow key={route.fromProgramId} route={route} name={name} />
@@ -408,7 +406,7 @@ function RouteRow({
 	route,
 	name,
 }: {
-	route: GroupedRoute;
+	route: BestRoute;
 	name: (programId: string) => string;
 }) {
 	const { t: text, intl } = useI18n();

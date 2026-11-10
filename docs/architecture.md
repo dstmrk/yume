@@ -545,7 +545,7 @@ Each card holds three parts:
    the label and with the names of the list below it.
 2. The balance of each account of the currency. Example: British Airways 1 000 and
    Iberia 500.
-3. The best route for each source. Example: Amex MR, through Iberia Club, gives 400.
+3. The best route for each source, with the result of each programme of the currency.
 
 The card shows the balance and the potential as two different values. Refer to paragraph
 3.5.
