@@ -8,8 +8,9 @@
  *
  * - Read the official page. Do not write a ratio from memory.
  * - Write the link of that page in a comment above the rule.
- * - Do not change a rule in its place. Write the date in `validTo` of the old
- *   rule. Then add a new rule with a new `validFrom`.
+ * - Do not change a rule in its place. Write the date of the change in
+ *   `validTo` of the old rule. Then add a new rule with `validFrom` on that
+ *   date. The test of the catalogue refuses a gap and an overlap.
  * - Read the official page of the country of the rule. Amex Italia and Amex
  *   France give different partners and different ratios.
  * - Ask the user before you change a value here.

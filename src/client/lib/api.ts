@@ -14,49 +14,34 @@ import { ApiError, errorCodeOf } from "./errors.ts";
  *
  * Hono supplies the client and the API from one origin, thus each path starts
  * with `/api`. In development the proxy of Vite gives the same result.
+ *
+ * A status that is not ok gives an `ApiError` with the field `error` of the
+ * body. An answer of 204 holds no body, thus the function gives `undefined`.
  */
-async function get<T>(path: string): Promise<T> {
-	const response = await fetch(path);
-	if (!response.ok) {
-		throw new Error(`${path} gives the status ${response.status}`);
-	}
-	return (await response.json()) as T;
-}
-
-async function post<T>(path: string, body: unknown): Promise<T> {
-	const response = await fetch(path, {
-		method: "POST",
-		headers: { "content-type": "application/json" },
-		body: JSON.stringify(body),
-	});
+async function request<T>(
+	method: "GET" | "POST" | "PUT" | "DELETE",
+	path: string,
+	body?: unknown,
+): Promise<T> {
+	const response = await fetch(
+		path,
+		body === undefined
+			? { method }
+			: {
+					method,
+					headers: { "content-type": "application/json" },
+					body: JSON.stringify(body),
+				},
+	);
 	if (!response.ok) {
 		// A proxy can answer with a body that is not JSON: then the code is null.
 		const code = errorCodeOf(await response.json().catch(() => null));
 		throw new ApiError(path, response.status, code);
 	}
+	if (response.status === 204) {
+		return undefined as T;
+	}
 	return (await response.json()) as T;
-}
-
-/**
- * Removes a row. The answer of a removal holds no body, thus this function
- * reads only the status.
- */
-async function del(path: string): Promise<void> {
-	const response = await fetch(path, { method: "DELETE" });
-	if (!response.ok) {
-		throw new Error(`${path} gives the status ${response.status}`);
-	}
-}
-
-/**
- * Writes a state. The answer holds no body, thus this function reads only the
- * status.
- */
-async function put(path: string): Promise<void> {
-	const response = await fetch(path, { method: "PUT" });
-	if (!response.ok) {
-		throw new Error(`${path} gives the status ${response.status}`);
-	}
 }
 
 /** The user of the session, or null with no session. */
@@ -116,19 +101,19 @@ export async function signOut(): Promise<void> {
 }
 
 export function fetchCatalogue(): Promise<CatalogueResponse> {
-	return get<CatalogueResponse>("/api/catalogue");
+	return request<CatalogueResponse>("GET", "/api/catalogue");
 }
 
 export function fetchAccounts(): Promise<AccountsResponse> {
-	return get<AccountsResponse>("/api/accounts");
+	return request<AccountsResponse>("GET", "/api/accounts");
 }
 
 export function fetchPotential(): Promise<PotentialResponse> {
-	return get<PotentialResponse>("/api/potential");
+	return request<PotentialResponse>("GET", "/api/potential");
 }
 
 export function fetchFavorites(): Promise<FavoritesResponse> {
-	return get<FavoritesResponse>("/api/favorites");
+	return request<FavoritesResponse>("GET", "/api/favorites");
 }
 
 /**
@@ -142,14 +127,14 @@ export function setFavorite(
 	favorite: boolean,
 ): Promise<void> {
 	const path = `/api/favorites/${encodeURIComponent(currencyId)}`;
-	return favorite ? put(path) : del(path);
+	return request(favorite ? "PUT" : "DELETE", path);
 }
 
 /** Adds an account of the user. It gives the id of the new account. */
 export function createAccount(
 	input: CreateAccountInput,
 ): Promise<{ id: string }> {
-	return post<{ id: string }>("/api/accounts", input);
+	return request<{ id: string }>("POST", "/api/accounts", input);
 }
 
 /**
@@ -162,7 +147,8 @@ export function addSnapshot(
 	accountId: string,
 	input: AddSnapshotInput,
 ): Promise<{ id: string }> {
-	return post<{ id: string }>(
+	return request<{ id: string }>(
+		"POST",
 		`/api/accounts/${encodeURIComponent(accountId)}/snapshots`,
 		input,
 	);
@@ -170,7 +156,7 @@ export function addSnapshot(
 
 /** Removes an account of the user, with each snapshot of that account. */
 export function deleteAccount(accountId: string): Promise<void> {
-	return del(`/api/accounts/${encodeURIComponent(accountId)}`);
+	return request("DELETE", `/api/accounts/${encodeURIComponent(accountId)}`);
 }
 
 /**
@@ -183,7 +169,8 @@ export function deleteSnapshot(
 	accountId: string,
 	snapshotId: string,
 ): Promise<void> {
-	return del(
+	return request(
+		"DELETE",
 		`/api/accounts/${encodeURIComponent(accountId)}/snapshots/${encodeURIComponent(snapshotId)}`,
 	);
 }

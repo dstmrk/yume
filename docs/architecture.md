@@ -61,8 +61,14 @@ difficult to examine. Vite with Hono gives two processes in development, but onl
 process in production**. Hono supplies the files from `dist/`. You can replace each part
 independently.
 
-Hono RPC keeps the types safe from end to end. The client receives the types of the
-routes by inference. You do not need code generation and you do not need tRPC.
+`src/shared/api.ts` holds the types of the requests and of the answers. The server gives
+each body its type, for example `const body: PotentialResponse`. The client reads the
+same type in `src/client/lib/api.ts`. Thus the two sides cannot become different. You do
+not need code generation and you do not need tRPC.
+
+The project does not use Hono RPC (`hono/client`). The inference of the client needs
+each route in one chained expression. That change of `createApp` saves approximately 40
+lines only.
 
 ### 2.2 Why one origin
 

@@ -1,4 +1,5 @@
 import { and, asc, eq, lt, sql } from "drizzle-orm";
+import type { AccountRow } from "../../shared/api.ts";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
@@ -11,21 +12,6 @@ import {
 	verification,
 } from "./schema.ts";
 
-/** An account of the user with its most recent snapshot. */
-export type AccountWithBalance = {
-	accountId: string;
-	programId: string;
-	/**
-	 * The id of the most recent snapshot. The client sends this id to remove
-	 * that snapshot. Thus it removes the value that it shows, and no value that
-	 * an other device wrote after it.
-	 */
-	snapshotId: string | null;
-	/** It is null when the account has no snapshot. */
-	points: number | null;
-	observedAt: string | null;
-};
-
 /**
  * Gives each account of the user with its current balance.
  *
@@ -35,7 +21,7 @@ export type AccountWithBalance = {
  * the writes. `rowid` is the last key, for two writes in one millisecond.
  * Paragraph 3.2 of `docs/architecture.md` gives the reason.
  */
-export function currentBalances(db: Db, userId: string): AccountWithBalance[] {
+export function currentBalances(db: Db, userId: string): AccountRow[] {
 	return db
 		.select({
 			accountId: userAccount.id,
