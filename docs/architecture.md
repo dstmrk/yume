@@ -531,7 +531,9 @@ because the end of a supporter account removes nothing.
 The expiry lots of paragraph 3.2.1 are open to each user until the code of the supporter
 account exists, as Klarna. After that date, the end of a supporter account removes no lot.
 The lots of the current balance stay on the dashboard, and the user cannot write a new
-lot.
+lot. The form of a new balance sends the current lots again. `keepsCurrentLots` of
+`src/shared/tier.ts` accepts those lots, or a part of them, with the same date and the
+same points. Thus a free account with lots can update the balance.
 
 **The limit counts the programmes, not the currencies.** The British Airways Club and
 Iberia Club are two programmes, thus they use the two places of the free account. The
@@ -586,7 +588,7 @@ badly. Each form knows its request, thus it shows its own message.
 | Route | The examination |
 |---|---|
 | `POST /api/accounts` | `canAddAccount`, then `canWriteExpiryLots` for the lots of the first balance |
-| `POST /api/accounts/:id/snapshots` | `canWriteExpiryLots`, in `recordSnapshot` of `src/server/operations.ts` |
+| `POST /api/accounts/:id/snapshots` | `canWriteExpiryLots`, then `keepsCurrentLots`, in `recordSnapshot` of `src/server/operations.ts` |
 
 Each route examines the request first and the level last. An account of an other user
 thus gives `unknown_account`, and a programme that does not exist gives

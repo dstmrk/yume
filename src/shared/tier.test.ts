@@ -10,6 +10,7 @@ import {
 	canWriteExpiryLots,
 	type Entitlement,
 	FREE_SOURCES,
+	keepsCurrentLots,
 	parseFreeAccountLimits,
 } from "./tier.ts";
 
@@ -242,4 +243,42 @@ describe("parseFreeAccountLimits", () => {
 			);
 		});
 	}
+});
+
+describe("keepsCurrentLots", () => {
+	const MARCH = { points: 500, expiresOn: "2027-03-31" };
+	const JUNE = { points: 300, expiresOn: "2027-06-30" };
+
+	it("accepts the same lots in an other order", () => {
+		expect(keepsCurrentLots([JUNE, MARCH], [MARCH, JUNE])).toBe(true);
+	});
+
+	it("accepts a part of the current lots", () => {
+		expect(keepsCurrentLots([MARCH], [MARCH, JUNE])).toBe(true);
+	});
+
+	it("accepts no lot", () => {
+		expect(keepsCurrentLots([], [MARCH])).toBe(true);
+		expect(keepsCurrentLots([], [])).toBe(true);
+	});
+
+	it("refuses a lot with a new date", () => {
+		expect(
+			keepsCurrentLots([{ points: 500, expiresOn: "2027-04-30" }], [MARCH]),
+		).toBe(false);
+	});
+
+	it("refuses a lot with other points at the same date", () => {
+		expect(
+			keepsCurrentLots([{ points: 501, expiresOn: "2027-03-31" }], [MARCH]),
+		).toBe(false);
+	});
+
+	it("refuses a lot when the current balance holds no lot", () => {
+		expect(keepsCurrentLots([MARCH], [])).toBe(false);
+	});
+
+	it("refuses one lot two times", () => {
+		expect(keepsCurrentLots([MARCH, MARCH], [MARCH])).toBe(false);
+	});
 });
