@@ -500,13 +500,6 @@ the domain. The proxy of the TLS gives that header. The server gives no
 Content-Security-Policy: the public page holds JSON-LD inline, and a policy needs its own
 design.
 
-### 4.5 The peer dependency of Better Auth
-
-Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12, and the
-project holds the version 13. That peer is optional: the library imports it only with its
-own adapter of SQLite. This project uses the Drizzle adapter, thus Drizzle imports the
-module. An `overrides` in `package.json` gives the version of the project to npm.
-
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
@@ -587,7 +580,8 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **proposed**. Date: 2026-11-10. No code implements this decision now.
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 and 2 of paragraph
+4.7.5 only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
 agent, for example Claude or Claude Code, to that server. The agent then reads the
@@ -633,7 +627,8 @@ These plugins of Better Auth do the work:
 | `cimd` | `@better-auth/cimd` | It reads the Client ID Metadata Document of the client. |
 
 The plugin `mcp` needs `better-auth` 1.7.19 or a later version. The project holds the
-version 1.7.12, thus the work starts with an update.
+version 1.7.20. Keep `better-auth` and each package `@better-auth/*` at the same version:
+the plugins declare the core with a peer range.
 
 **The registration of a client uses CIMD only.** The client gives a URL as its
 `client_id`, and the server reads the metadata at that URL. Claude and Claude Code both
@@ -1648,6 +1643,7 @@ yume/
       auth.ts          # the Better Auth instance, with the provider Google
       admin.ts         # the administrator of ADMIN_EMAIL
       mcp.ts           # the MCP server and its tools
+      operations.ts    # the examinations that the routes and the tools share
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
     shared/            # Zod schemas, the conversion and the languages, for both sides
