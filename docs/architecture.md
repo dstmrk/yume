@@ -154,6 +154,10 @@ of the write, with the milliseconds. The most recent snapshot has the latest
 `observed_at`, then the latest `created_at`. Thus a snapshot of an older date that the
 user writes later does not become the current balance.
 
+The server refuses a date that does not exist, for example `2026-02-30`. It also refuses
+a date after tomorrow in UTC. A future date stays the current balance, and each later
+update then stays hidden. The one day is for a user in front of UTC.
+
 Do not use the id for the order: the id is a random UUID. Do not use `rowid` as the first
 key. `VACUUM` can change the `rowid` of a table with no `INTEGER PRIMARY KEY`, and the
 backup of paragraph 2.3 uses `VACUUM INTO`. `rowid` is only the last key, for two writes

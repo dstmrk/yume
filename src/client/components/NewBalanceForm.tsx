@@ -98,6 +98,9 @@ function Fields({
 					// the balance, and it goes outside the form. `appearance-none`
 					// removes that theme, and the two fields hold the same size.
 					className="appearance-none"
+					// The current balance is the snapshot with the latest date, thus
+					// a future date hides each later update.
+					max={todayIso(new Date())}
 					value={observedAt}
 					onChange={(event) => setObservedAt(event.target.value)}
 				/>

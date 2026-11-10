@@ -401,6 +401,62 @@ describe("POST /api/accounts/:id/snapshots", () => {
 		expect(response.status).toBe(400);
 	});
 
+	it("refuses a day that the month does not hold", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10,
+			observedAt: "2026-02-30",
+		});
+		expect(response.status).toBe(400);
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	// At 00:30 in Rome the date in UTC is the day before. Thus the date of the
+	// user can be one day after the date of the server.
+	it("accepts the date of today and of tomorrow in UTC", async () => {
+		vi.setSystemTime("2026-11-09T23:30:00.000Z");
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		for (const observedAt of ["2026-11-09", "2026-11-10"]) {
+			const response = await post(`/api/accounts/${account}/snapshots`, {
+				points: 10,
+				observedAt,
+			});
+			expect(response.status).toBe(201);
+		}
+	});
+
+	// A snapshot of 2062 in place of 2026 stays the current balance for 36
+	// years: each later update holds an older date.
+	it("refuses a date after tomorrow in UTC, and writes no row", async () => {
+		vi.setSystemTime("2026-11-09T23:30:00.000Z");
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		for (const observedAt of ["2026-11-11", "2062-11-09"]) {
+			const response = await post(`/api/accounts/${account}/snapshots`, {
+				points: 10,
+				observedAt,
+			});
+			expect(response.status).toBe(400);
+		}
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	// The clock goes back, not forward: a later clock makes the session of the
+	// test expire.
+	it("moves the limit to the next year on 31 December", async () => {
+		vi.setSystemTime("2025-12-31T12:00:00.000Z");
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const accepted = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10,
+			observedAt: "2026-01-01",
+		});
+		expect(accepted.status).toBe(201);
+		const refused = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10,
+			observedAt: "2026-01-02",
+		});
+		expect(refused.status).toBe(400);
+	});
+
 	it("refuses the account of an other user", async () => {
 		const account = createAccount(db, {
 			userId: OTHER_USER,

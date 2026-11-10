@@ -68,6 +68,20 @@ function today(): string {
 	return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * The latest date of a snapshot: the date of tomorrow in UTC.
+ *
+ * The current balance is the snapshot with the latest date. A snapshot of 2062
+ * in place of 2026 then hides each later update for 36 years. The one day is
+ * for the user in front of UTC: at 00:30 in Rome, UTC holds the day before.
+ * An ISO 8601 date gives the order of the dates in a comparison of the text.
+ */
+function latestObservedAt(): string {
+	const date = new Date();
+	date.setUTCDate(date.getUTCDate() + 1);
+	return date.toISOString().slice(0, 10);
+}
+
 export function createApp(db: Db, auth: Auth) {
 	const app = new Hono<{ Variables: { userId: string } }>();
 
@@ -175,6 +189,9 @@ export function createApp(db: Db, auth: Auth) {
 		);
 		if (!body.success) {
 			return c.json({ error: "invalid_body", issues: body.error.issues }, 400);
+		}
+		if (body.data.observedAt > latestObservedAt()) {
+			return c.json({ error: "future_date" }, 400);
 		}
 		const id = addSnapshot(db, { accountId, ...body.data });
 		return c.json({ id }, 201);
