@@ -35,14 +35,21 @@ export const isoDateSchema = z
 		);
 	});
 
-export const createAccountSchema = z.object({
-	programId: z.string().min(1),
-});
-
 export const addSnapshotSchema = z.object({
 	/** Points are integers and no balance is below 0. */
 	points: z.number().int().min(0),
 	observedAt: isoDateSchema,
+});
+
+/**
+ * A new account. `snapshot` is the first balance, and it is not necessary.
+ *
+ * The server writes the account and the snapshot in one transaction. Thus one
+ * error gives no row, and a second request gives no second account.
+ */
+export const createAccountSchema = z.object({
+	programId: z.string().min(1),
+	snapshot: addSnapshotSchema.optional(),
 });
 
 /**

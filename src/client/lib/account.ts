@@ -1,6 +1,10 @@
-import { TOO_MANY_ACCOUNTS } from "../../shared/api.ts";
+import {
+	type CreateAccountInput,
+	TOO_MANY_ACCOUNTS,
+} from "../../shared/api.ts";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import { airlinesOf } from "./airlines.ts";
+import { todayIso } from "./balance.ts";
 import { ApiError } from "./errors.ts";
 
 /**
@@ -132,4 +136,25 @@ export function searchNamesOf(
  */
 export function isTooManyAccounts(error: unknown): boolean {
 	return error instanceof ApiError && error.code === TOO_MANY_ACCOUNTS;
+}
+
+/**
+ * Gives the body of `POST /api/accounts` from the fields of the form.
+ *
+ * A balance of null is an empty field: the body holds no snapshot. The date of
+ * the snapshot comes from the clock of the user, because Italy is in front of
+ * UTC. Refer to `todayIso`.
+ */
+export function newAccountBody(
+	programId: string,
+	balance: number | null,
+	now: Date,
+): CreateAccountInput {
+	if (balance === null) {
+		return { programId };
+	}
+	return {
+		programId,
+		snapshot: { points: balance, observedAt: todayIso(now) },
+	};
 }

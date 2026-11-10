@@ -3,6 +3,7 @@ import type { Currency, Program } from "../../shared/catalogue.ts";
 import {
 	isTooManyAccounts,
 	matchesProgram,
+	newAccountBody,
 	programAirlinesLine,
 	searchNamesOf,
 	sortPrograms,
@@ -243,5 +244,28 @@ describe("isTooManyAccounts", () => {
 
 	it("is false with no error", () => {
 		expect(isTooManyAccounts(null)).toBe(false);
+	});
+});
+
+describe("newAccountBody", () => {
+	// 23:30 of 9 November in the time zone of the test machine.
+	const now = new Date(2026, 10, 9, 23, 30);
+
+	it("gives the account with its first balance, at the date of the user", () => {
+		expect(newAccountBody("amex-mr", 10000, now)).toEqual({
+			programId: "amex-mr",
+			snapshot: { points: 10000, observedAt: "2026-11-09" },
+		});
+	});
+
+	it("gives no snapshot with an empty field", () => {
+		expect(newAccountBody("amex-mr", null, now)).toEqual({
+			programId: "amex-mr",
+		});
+	});
+
+	// A balance of 0 is a value of the user, not an empty field.
+	it("gives a snapshot of 0 points", () => {
+		expect(newAccountBody("amex-mr", 0, now).snapshot?.points).toBe(0);
 	});
 });

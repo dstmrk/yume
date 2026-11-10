@@ -107,18 +107,32 @@ export function countAccounts(db: Db, userId: string): number {
 	return row?.count ?? 0;
 }
 
-/** Adds an account of the user. It gives the id of the new account. */
+/**
+ * Adds an account of the user. It gives the id of the new account.
+ *
+ * With `snapshot`, the function also writes the first balance. The two rows are
+ * one transaction: an error of the snapshot leaves no account. An account with
+ * no balance after an error makes the user save again, and that second request
+ * makes a second account. Paragraph 5.0.1 of `docs/architecture.md` gives the
+ * rule.
+ */
 export function createAccount(
 	db: Db,
 	input: {
 		userId: string;
 		programId: string;
+		snapshot?: { points: number; observedAt: string };
 	},
 ): string {
 	const id = crypto.randomUUID();
-	db.insert(userAccount)
-		.values({ id, userId: input.userId, programId: input.programId })
-		.run();
+	db.transaction((tx) => {
+		tx.insert(userAccount)
+			.values({ id, userId: input.userId, programId: input.programId })
+			.run();
+		if (input.snapshot !== undefined) {
+			addSnapshot(tx, { accountId: id, ...input.snapshot });
+		}
+	});
 	return id;
 }
 
@@ -223,7 +237,7 @@ export function removeFavorite(
  * comes after each snapshot of the same date.
  */
 export function addSnapshot(
-	db: Db,
+	db: Pick<Db, "insert">,
 	input: {
 		accountId: string;
 		points: number;
