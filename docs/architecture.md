@@ -464,6 +464,11 @@ paths are the exceptions:
 - `/api/health`, for the `HEALTHCHECK` of the container. Refer to paragraph 7.
 - `/api/auth/`, because the sign-in has no session before it.
 
+The MCP server of paragraph 4.7 is not under `/api`. The path `/mcp` reads an access
+token, not the cookie of the session. The paths `/.well-known/oauth-protected-resource`
+and `/.well-known/oauth-authorization-server` are public, because a client reads them
+before the sign-in.
+
 Each route of the data reads the user with `c.get("userId")`. The application holds no
 user with a fixed value.
 
@@ -516,6 +521,7 @@ exists.
 | Each other source, for example Klarna or a hotel programme | Not available | No limit |
 | Airline programmes | 2 programmes | No limit |
 | Expiry lots of a balance | Not available | No limit |
+| The MCP server of paragraph 4.7 | Not available | Available |
 
 Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
 A limit on them stops the users that those links bring.
@@ -553,6 +559,267 @@ These items are open:
 
 - The payment service.
 - The name of the variable of the environment.
+
+### 4.7 The MCP server
+
+Status: **proposed**. Date: 2026-11-10. No code implements this decision now.
+
+Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
+agent, for example Claude or Claude Code, to that server. The agent then reads the
+balances and the potential miles of that person, and it can write a new snapshot.
+
+**The reason.** The data input is manual: refer to paragraph 1. The person gives a
+screenshot of the application of Amex to the agent, and the agent writes the snapshot.
+Yume still reads no web site of a programme: the person gives each value. The agent
+also answers a question about a transfer with the pure functions of `src/shared/`.
+
+#### 4.7.1 The transport and the path
+
+The server uses the transport Streamable HTTP of MCP, on the path `/mcp` of the origin
+of the application. Thus the rule of one origin of paragraph 2.2 stays true, and the
+container holds no second process. The class `WebStandardStreamableHTTPServerTransport`
+of `@modelcontextprotocol/sdk` reads the `Request` of `c.req.raw`. Thus the project needs
+no adapter between Hono and the SDK.
+
+The server keeps no session of MCP: each request holds the full context. One process
+then needs no memory between two requests, and a restart of the container breaks no
+connection. The middleware `bodyLimit` of paragraph 4.4 also applies to `/mcp`.
+
+The path `/mcp` is not under `/api`. The middleware of the session and the middleware
+`csrf` thus do not apply. A request to `/mcp` holds a bearer token, and a browser sends
+no such token with a form of an other site. Thus that request needs no protection
+against CSRF.
+
+The URL of the server is `${BETTER_AUTH_URL}/mcp`. The field `resource` of the metadata
+of paragraph 4.7.2 must be equal to the URL that the person writes in the client.
+
+#### 4.7.2 The authorisation
+
+A remote client of MCP needs OAuth 2.1. The cookie of the session of paragraph 4 does not
+go to a client on an other origin. Therefore Yume is also an authorisation server: it
+gives its own access tokens. The sign-in stays with Google only, as paragraph 4.1 gives.
+
+These plugins of Better Auth do the work:
+
+| Plugin | Package | Task |
+|---|---|---|
+| `jwt` | `better-auth` | It signs the access tokens. It keeps its keys in the table `jwks`. |
+| `mcp` | `@better-auth/mcp` | It is the authorisation server. It binds each token to the audience `/mcp`, and it gives the metadata of RFC 9728. |
+| `cimd` | `@better-auth/cimd` | It reads the Client ID Metadata Document of the client. |
+
+The plugin `mcp` needs `better-auth` 1.7.19 or a later version. The project holds the
+version 1.7.12, thus the work starts with an update.
+
+**The registration of a client uses CIMD only.** The client gives a URL as its
+`client_id`, and the server reads the metadata at that URL. Claude and Claude Code both
+give such a document. Dynamic Client Registration (RFC 7591) stays off: it makes one new
+row of client for each new connection, and that table then grows with no limit.
+Anthropic gives the same recommendation for a server with many users.
+
+The function that reads the document of a client is the code of the project, not of the
+plugin. That function reads HTTPS only, it refuses a private address and a loopback
+address, and it stops after a limit of time and of size. Without those limits a client
+can make the server read an address of the home network.
+
+**The flow.** These are the steps:
+
+1. The client sends a request to `/mcp` with no token.
+2. The server gives the status 401. The header `WWW-Authenticate` holds the URL of the
+   metadata of the protected resource.
+3. The client reads that metadata, then the metadata of the authorisation server.
+4. The client opens the page of authorisation in the browser of the person.
+5. A person with no session goes to `/login`, and then to Google.
+6. After the sign-in the person reads the page `/consent`. That page shows the name of
+   the client, the host of its redirect URI and the operations of the scope.
+7. The person accepts. The client receives a code, and then an access token and a
+   refresh token.
+
+The page `/login` must keep the parameters of the authorisation through the sign-in
+with Google. Without them, step 6 does not occur.
+
+The page `/consent` is a new route of the client, with its text in
+`src/client/i18n/it.ts`. Add its path to `CLIENT_PATHS` of `src/shared/routes.ts`.
+
+**The scopes.** The server gives two scopes:
+
+- `balances`: the four tools of paragraph 4.7.3.
+- `offline_access`: the refresh token.
+
+The server gives no scope `profile` and no scope `email`. Paragraph 4.1 keeps no name and
+no photo, and an agent needs no address to read the balances.
+
+**The tokens.** The access token is a JWT with a life of one hour. The handler of `/mcp`
+examines it with `requireMcpAuth` of `@better-auth/mcp`: the signature, the issuer, the
+audience and the expiry. The field `sub` gives the user. By default that function reads
+the keys at `BETTER_AUTH_URL`, thus the process sends a request to itself through the
+proxy of the TLS. Give it the address of the process on `localhost` in `jwksUrl`. The refresh token changes at
+each use, because the client is public. The tables of the plugin refer to `user` with a
+foreign key, thus the removal of a user also removes the tokens.
+
+Yume still keeps no token of Google. The tokens of the plugin are the tokens of Yume.
+
+**The supporter account.** On the official instance the MCP server is a function of the
+supporter account: refer to paragraph 4.6. The handler reads the pure function of
+paragraph 4.6 at each call of a tool. For a user who is not a supporter, each tool gives
+an error result with `isError: true`. The text of that error names the supporter account
+and gives the URL of the page of the subscription. The end of a supporter account thus
+stops the access at the next call. No data goes away: the access stops, and each balance
+stays on the dashboard.
+
+The handler gives no status 403 for that case. The sign-in, `initialize` and `tools/list`
+work for each user. Claude then shows the text of the error to the person. A status 403
+on the transport gives a general message of a failed connection, and the person does not
+know the cause.
+
+The code of the supporter account does not exist now. Until that code exists, the MCP
+server is open to each user, as Klarna is. Unlike Klarna, a user keeps no access after
+that date: the MCP server holds no data of the user to keep.
+
+**The network.** The requests of Claude come from the servers of Anthropic, not from the
+browser of the person. Their range of addresses is `160.79.104.0/21`. An installation
+behind Cloudflare Access, as paragraph 4.2 gives, must let these paths pass:
+
+- `/mcp`
+- `/.well-known/oauth-protected-resource`
+- `/.well-known/oauth-authorization-server`
+- `/api/auth/oauth2/token`
+
+The page of authorisation goes through the browser of the person, thus Cloudflare Access
+can stay on it.
+
+#### 4.7.3 The tools
+
+The server gives four tools:
+
+| Tool | Operation | Annotations |
+|---|---|---|
+| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true` |
+| `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true` |
+| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true` |
+| `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true` |
+
+Each tool has a `title` and a hint. The directory of Anthropic refuses a tool with no
+such annotations, and Claude reads them for its permissions. Claude runs a tool with
+`readOnlyHint: true` with no question. It asks the person before each call of a tool
+with `destructiveHint: true`.
+
+`add_snapshot` removes no data. It holds `destructiveHint: true` because the rules of the
+directory ask for that hint on each tool that changes data. The question of Claude also
+has a value: the person reads the number from the screenshot before the write.
+
+The server gives no tool that removes an account or a snapshot. An agent reads text from
+other sources, and a text can hold an instruction to the agent. A tool that removes data
+then becomes a risk. A snapshot of an error is not a risk: the person removes it on the
+dashboard, and a new snapshot replaces it.
+
+**The rules of the data and of the interface also apply to the agent.** An agent shows
+the result of a tool to the person. Thus each tool obeys these rules:
+
+- `get_potential` gives a value for each currency. It gives no sum of all the currencies:
+  refer to the rules of the data in `CLAUDE.md`.
+- The description of `get_potential` and its result say that the potential miles are a
+  calculation, not a balance.
+- The result of `get_potential` also says that a transfer of points is permanent. The
+  agent shows a real value of the user, thus the warning of paragraph 5.5.1 applies.
+- Each quantity of points is an integer. A ratio is two integers.
+- `add_snapshot` refuses a date in the future, as `POST /api/accounts/:id/snapshots`
+  does.
+- `add_snapshot` accepts the expiry lots of paragraph 3.2.1, with `addSnapshotSchema`.
+  The lots belong to the snapshot, thus a snapshot with no lots holds no lots. The form
+  of the dashboard gives the current lots again, and the tool cannot do that. Therefore
+  `list_accounts` gives the lots of the current snapshot, and the description of
+  `add_snapshot` states that a snapshot with no lots holds no lots.
+- An error gives its cause and the correct input, for example `future_date` with the
+  latest date that the server accepts. The directory refuses a general error, for
+  example "Bad Request" with no detail.
+
+**A description states the operation of the tool.** It gives no instruction to the
+agent. The directory refuses a description that tells Claude how to behave, and the
+rule also protects against prompt injection. Thus the two warnings above are data in the
+result, in the field `notice`. They are not a sentence such as "tell the user".
+
+**No tool moves points.** The directory refuses a connector that transfers money or
+other financial assets. Yume moves no point, as paragraph 1 gives. A tool that starts a
+transfer at a programme is thus not possible, also in a later version.
+
+The text of the tools is English. The agent translates the text for the person, and the
+server holds no Italian text: refer to paragraph 5.8.
+
+**One function for two surfaces.** The route of the API and the tool must give the same
+result. Therefore the examinations of the routes move into functions of the server: the
+account of the user, the date in the future and the schema of `src/shared/api.ts`. The
+route and the tool both call those functions. The project then holds one rule in one
+place.
+
+#### 4.7.4 The publication
+
+A person adds the URL of an installation to Claude as a custom connector. That operation
+needs no approval of Anthropic. Each installation has its own URL, thus each
+installation works with no change.
+
+The directory of the connectors of Anthropic holds a server after a review. Only the
+official instance goes in the directory, with the option "Universal URL": one URL for
+each user. A listing with a pattern of URLs needs the label Verified, and an installation
+of a person is not a service with a review.
+
+The design of this paragraph obeys the rules of the directory: OAuth 2.0 with CIMD, the
+annotations of paragraph 4.7.3, the errors with a cause and no tool that moves points.
+The submission also needs these items:
+
+| Item | Source |
+|---|---|
+| The URL of the server | `https://<domain of the official instance>/mcp` |
+| The privacy policy | `/privacy`, with the text of sub-task 6 |
+| The public documentation | The page of sub-task 7 |
+| The icon | `src/client/public/icon.svg` |
+| A support contact | The address of the instance on the page `/privacy` |
+| A test account | The account of sub-task 8 |
+
+The submission states that the connector reads data and writes data. It also states the
+requirement of the user: an account of Yume with a supporter account.
+
+The rules of the review are on these pages of Anthropic. Read them again before the
+submission, because they change:
+
+- `https://claude.com/docs/connectors/building/review-criteria`
+- `https://claude.com/docs/connectors/building/submission`
+- `https://claude.com/docs/connectors/building/authentication`
+
+#### 4.7.5 The sub-tasks
+
+Each sub-task has one artefact that accepts or refuses it:
+
+1. The update of `better-auth` to 1.7.19. The artefact: `npm test` with no other change.
+2. The functions of paragraph 4.7.3 that the routes and the tools share. The artefact:
+   the tests of `app.test.ts` with no change.
+3. The authorisation server: the plugins, the migration, the metadata, the page
+   `/consent` and the parameters of `/login`. The artefact: a test that receives a token
+   through the full flow, with `sessionCookie` of `src/server/db/fixtures.ts`.
+4. The path `/mcp` with the three tools that only read. The artefact: a test with the
+   client of `@modelcontextprotocol/sdk`, and one connection from claude.ai.
+5. The tool `add_snapshot`. The artefact: a test with the client of the SDK.
+6. The privacy policy. Section 9 and the list of recipients must give the tokens of
+   paragraph 4.7.2. The artefact: the text that the author accepts. The directory
+   refuses a submission with no such text.
+7. The public documentation: the URL of the server, the steps of the connection in
+   Claude and in Claude Code, and the four tools. The artefact: a public page that the
+   author accepts.
+8. The test account for the reviewers of Anthropic. It is a supporter account with
+   accounts and snapshots of an example. The artefact: one connection from claude.ai
+   with that account, with a call of each tool.
+
+These items are open:
+
+- The sign-in of the reviewer. The sign-in uses Google only, thus the reviewer needs a
+  Google account of the test. Google can ask for a second verification on a new device,
+  and the reviewer cannot answer it.
+
+- The text of the privacy policy. The agent sends the data of the person to the provider
+  of the agent, and the person selects that provider. A professional must read the
+  text.
+- A surface that shows the clients with access and that removes their tokens. Without
+  it, a person removes the access only with the removal of the account. Issue #97 gives
+  the work.
 
 ## 5. User interface
 
@@ -1292,6 +1559,7 @@ yume/
       fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the provider Google
+      mcp.ts           # the MCP server and its tools
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
     shared/            # Zod schemas, the conversion and the languages, for both sides
