@@ -818,7 +818,8 @@ These items are open:
   of the agent, and the person selects that provider. A professional must read the
   text.
 - A surface that shows the clients with access and that removes their tokens. Without
-  it, a person removes the access only with the removal of the account.
+  it, a person removes the access only with the removal of the account. Issue #97 gives
+  the work.
 
 ## 5. User interface
 
