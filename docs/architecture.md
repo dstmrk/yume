@@ -830,7 +830,9 @@ Each sub-task has one artefact that accepts or refuses it:
    the tests of `app.test.ts` with no change.
 3. The authorisation server: the plugins, the migration, the metadata, the page
    `/consent` and the parameters of `/login`. The artefact: a test that receives a token
-   through the full flow, with `sessionCookie` of `src/server/db/fixtures.ts`.
+   through the full flow, with `sessionCookie` of `src/server/db/fixtures.ts`. That test
+   is `src/server/authorisation.test.ts`. It gives its own transport of CIMD to
+   `createAuth`, because no test reaches the network.
 4. The path `/mcp` with the three tools that only read. The artefact: a test with the
    client of `@modelcontextprotocol/sdk`, and one connection from claude.ai.
 5. The tool `add_snapshot`. The artefact: a test with the client of the SDK.

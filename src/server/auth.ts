@@ -120,13 +120,21 @@ export type AuthOptions = {
 	trustedOrigins?: string[];
 	/** The OAuth client of Google. Each installation has its own client. */
 	google: { clientId: string; clientSecret: string };
+	/**
+	 * The transport that reads the Client ID Metadata Document of a client. The
+	 * default is the transport of `@better-auth/cimd/node`. A test gives its
+	 * own transport, because no test reaches the network.
+	 */
+	fetchClientMetadataResource?: MetadataFetch;
 };
+
+type MetadataFetch = Parameters<typeof cimd>[0]["fetchClientMetadataResource"];
 
 /**
  * The plugins of the MCP server. Paragraph 4.7.2 of `docs/architecture.md`
  * gives the flow.
  */
-function mcpPlugins(baseURL: string) {
+function mcpPlugins(baseURL: string, fetchMetadata: MetadataFetch) {
 	return [
 		/** It signs the access tokens. It keeps its keys in the table `jwks`. */
 		jwt(),
@@ -155,7 +163,7 @@ function mcpPlugins(baseURL: string) {
 		 * an address of the home network.
 		 */
 		cimd({
-			fetchClientMetadataResource,
+			fetchClientMetadataResource: fetchMetadata,
 			metadataProfile: "mcp-2026-07-28",
 		}),
 	];
@@ -207,7 +215,12 @@ export function createAuth(db: Db, options: AuthOptions) {
 			},
 		},
 
-		plugins: canServeMcp(options.baseURL) ? mcpPlugins(options.baseURL) : [],
+		plugins: canServeMcp(options.baseURL)
+			? mcpPlugins(
+					options.baseURL,
+					options.fetchClientMetadataResource ?? fetchClientMetadataResource,
+				)
+			: [],
 
 		/**
 		 * The cookie of the session holds the attribute `secure` on each origin
