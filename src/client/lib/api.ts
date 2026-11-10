@@ -7,6 +7,7 @@ import type {
 	PotentialResponse,
 } from "../../shared/api.ts";
 import type { GoogleSignInBody } from "./auth.ts";
+import { ApiError, errorCodeOf } from "./errors.ts";
 
 /**
  * The client of the API.
@@ -29,7 +30,9 @@ async function post<T>(path: string, body: unknown): Promise<T> {
 		body: JSON.stringify(body),
 	});
 	if (!response.ok) {
-		throw new Error(`${path} gives the status ${response.status}`);
+		// A proxy can answer with a body that is not JSON: then the code is null.
+		const code = errorCodeOf(await response.json().catch(() => null));
+		throw new ApiError(path, response.status, code);
 	}
 	return (await response.json()) as T;
 }

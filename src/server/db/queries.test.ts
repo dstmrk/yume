@@ -8,6 +8,7 @@ import {
 	addSnapshot,
 	allPrograms,
 	allTransferRules,
+	countAccounts,
 	createAccount,
 	currentBalances,
 	deleteAccount,
@@ -268,6 +269,27 @@ describe("createAccount", () => {
 		expect(() =>
 			createAccount(db, { userId: USER, programId: "does-not-exist" }),
 		).toThrow();
+	});
+});
+
+describe("countAccounts", () => {
+	it("gives 0 for a user with no account", () => {
+		expect(countAccounts(db, USER)).toBe(0);
+	});
+
+	// Two accounts of one programme are two accounts: the ceiling of the
+	// route counts the rows, not the programmes.
+	it("counts each account of the user, also two of one programme", () => {
+		createAccount(db, { userId: USER, programId: "ba-club" });
+		createAccount(db, { userId: USER, programId: "ba-club" });
+
+		expect(countAccounts(db, USER)).toBe(2);
+	});
+
+	it("does not count the accounts of an other user", () => {
+		createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+
+		expect(countAccounts(db, USER)).toBe(0);
 	});
 });
 

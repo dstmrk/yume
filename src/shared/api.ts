@@ -26,6 +26,12 @@ export const addSnapshotSchema = z.object({
 	observedAt: isoDateSchema,
 });
 
+/**
+ * The error of `POST /api/accounts` when the user holds the maximum quantity of
+ * accounts. The client reads it and shows its own message.
+ */
+export const TOO_MANY_ACCOUNTS = "too_many_accounts";
+
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
 

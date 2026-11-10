@@ -149,6 +149,7 @@ export const it = {
 	saving: "Salvataggio…",
 	cancel: "Annulla",
 	saveError: "Salvataggio non riuscito.",
+	tooManyAccountsError: "Hai raggiunto il limite di conti.",
 
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",

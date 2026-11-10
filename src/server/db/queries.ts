@@ -91,6 +91,22 @@ export function allTransferRules(db: Db) {
 		.all();
 }
 
+/**
+ * The quantity of accounts of the user.
+ *
+ * Two accounts of one programme count as two: the ceiling of
+ * `POST /api/accounts` limits the rows, because each row adds a balance to the
+ * calculation.
+ */
+export function countAccounts(db: Db, userId: string): number {
+	const row = db
+		.select({ count: sql<number>`count(*)` })
+		.from(userAccount)
+		.where(eq(userAccount.userId, userId))
+		.get();
+	return row?.count ?? 0;
+}
+
 /** Adds an account of the user. It gives the id of the new account. */
 export function createAccount(
 	db: Db,

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { Hono } from "hono";
+import { bodyLimit } from "hono/body-limit";
 import {
 	type AccountsResponse,
 	addSnapshotSchema,
@@ -7,6 +8,7 @@ import {
 	createAccountSchema,
 	type FavoritesResponse,
 	type PotentialResponse,
+	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
 import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { potentialMiles } from "../shared/potential.ts";
@@ -18,6 +20,7 @@ import {
 	allCurrencies,
 	allPrograms,
 	allTransferRules,
+	countAccounts,
 	createAccount,
 	currentBalances,
 	deleteAccount,
@@ -34,6 +37,25 @@ import {
  * Better Auth controls its own routes: the sign-in has no session before it.
  */
 const PUBLIC = ["/api/health", "/api/auth/"];
+
+/**
+ * The maximum quantity of accounts of one user.
+ *
+ * The sign-up is open, and `GET /api/potential` reads each account of the
+ * user in one synchronous loop. Without a ceiling, one user stops the process
+ * for each other user. The catalogue has 34 programmes, thus two accounts of
+ * each programme stay below this value. Paragraph 4.4 of
+ * `docs/architecture.md` gives the reason.
+ */
+export const MAX_ACCOUNTS_PER_USER = 100;
+
+/**
+ * The maximum size of the body of a request to `/api`, in bytes.
+ *
+ * `c.req.json()` reads the full body into memory. Each body of the API and of
+ * the sign-in has less than 1 KB.
+ */
+export const MAX_BODY_BYTES = 16 * 1024;
 
 /**
  * The date of today, in the ISO 8601 format.
@@ -69,6 +91,20 @@ export function createApp(db: Db, auth: Auth) {
 		c.set("userId", session.user.id);
 		return next();
 	});
+
+	/**
+	 * The limit of the size of a body, also on the routes of Better Auth.
+	 *
+	 * This middleware is after the session: a request with no session gets the
+	 * status 401, and the server reads no byte of its body.
+	 */
+	app.use(
+		"/api/*",
+		bodyLimit({
+			maxSize: MAX_BODY_BYTES,
+			onError: (c) => c.json({ error: "payload_too_large" }, 413),
+		}),
+	);
 
 	/**
 	 * The routes of Better Auth: the sign-in with Google, its callback, the
@@ -119,6 +155,11 @@ export function createApp(db: Db, auth: Auth) {
 		);
 		if (!known) {
 			return c.json({ error: "unknown_program" }, 404);
+		}
+		// better-sqlite3 is synchronous and no `await` is between the count and
+		// the insert. Thus two requests at the same time cannot both pass.
+		if (countAccounts(db, c.get("userId")) >= MAX_ACCOUNTS_PER_USER) {
+			return c.json({ error: TOO_MANY_ACCOUNTS }, 409);
 		}
 		const id = createAccount(db, { userId: c.get("userId"), ...body.data });
 		return c.json({ id }, 201);

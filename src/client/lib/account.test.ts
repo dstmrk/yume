@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import {
+	isTooManyAccounts,
 	matchesProgram,
 	programAirlinesLine,
 	searchNamesOf,
 	sortPrograms,
 } from "./account.ts";
+import { ApiError } from "./errors.ts";
 
 function program(id: string, name: string, currencyId = "avios"): Program {
 	return { id, currencyId, code: id.toUpperCase(), name, transferable: true };
@@ -215,5 +217,31 @@ describe("searchNamesOf", () => {
 	it("gives only the name when the currency is not in the list", () => {
 		const names = searchNamesOf([program("x", "X", "unknown")], currencies);
 		expect(names.get("x")).toEqual(["X"]);
+	});
+});
+
+describe("isTooManyAccounts", () => {
+	it("is true for the error of the ceiling of the accounts", () => {
+		expect(
+			isTooManyAccounts(
+				new ApiError("/api/accounts", 409, "too_many_accounts"),
+			),
+		).toBe(true);
+	});
+
+	// The status alone is not sufficient: an other conflict must show the
+	// general message.
+	it("is false for an other code with the same status", () => {
+		expect(
+			isTooManyAccounts(new ApiError("/api/accounts", 409, "other_conflict")),
+		).toBe(false);
+	});
+
+	it("is false for an error of the network", () => {
+		expect(isTooManyAccounts(new TypeError("Failed to fetch"))).toBe(false);
+	});
+
+	it("is false with no error", () => {
+		expect(isTooManyAccounts(null)).toBe(false);
 	});
 });
