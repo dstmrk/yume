@@ -430,6 +430,7 @@ the author makes a new account with Google. No code keeps the old path.
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
+| `FREE_ACCOUNT_LIMITS` | `true` activates the limits of the free account. No value or `false` gives no limit. Each other value gives an error. Refer to paragraph 4.6. |
 | `ADMIN_EMAIL` | The email address of the administrator. With no value, the installation has no administrator. Refer to paragraph 4.8. |
 
 A default value of the key in the code gives no security. Therefore the server writes a
@@ -503,8 +504,8 @@ design.
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
-2026-11-10, the unlimited account. The function of the level exists. No surface reads it
-now.
+2026-11-10, the unlimited account and the variable of the environment. The page of the
+administrator of paragraph 4.8 reads the level. No surface reads the limits now.
 
 The official instance gives three levels of account: the free account, the supporter
 account and the unlimited account. The supporter account has one price: 9,99 euros for
@@ -544,8 +545,11 @@ account above the limit. A hidden account gives a potential that is too low, and
 transfer of points is permanent.
 
 **The limits apply to the official instance only.** The code is under the licence MIT.
-A variable of the environment activates the limits, and the default value is no limit.
-Thus a self-hosted installation keeps each function.
+The variable `FREE_ACCOUNT_LIMITS` activates the limits, and the default value is no
+limit. Thus a self-hosted installation keeps each function. `compose.yaml` does not hold
+the variable. `parseFreeAccountLimits` accepts `true` and `false` only. Each other value
+gives an error, because a defect in the variable of the official instance otherwise
+opens each function to each user.
 
 **The unlimited account has no payment.** The administrator gives it by hand, for
 example to a member of the family. It gives each function of the supporter account, and
@@ -568,15 +572,20 @@ Better Auth does not know the two columns. Its route `update-user` writes only t
 fields that it knows, thus a user cannot write the level. A test of `auth.test.ts` makes
 this rule mechanical.
 
-A second pure function in `src/shared/` reads the level, the accounts of the user and the
-catalogue. It gives the operations that the user can do. Each surface reads that
-function, and the application holds no other rule of the payment.
+Two more pure functions of `src/shared/tier.ts` give the operations that the user can do.
+Each surface reads them, and the application holds no other rule of the payment:
+
+- `canAddAccount` reads the level, the variable, the programmes of the accounts of the
+  user and the catalogue. It examines a new account only.
+- `canWriteExpiryLots` reads the level and the variable.
+
+`FREE_SOURCES` of the same file holds Amex and Revolut. The catalogue does not hold that
+list: it is a rule of the payment, not a fact of a programme. A second account in a
+programme that the user holds uses no new place.
 
 These items are open:
 
 - The payment service.
-- The name of the variable of the environment.
-- The function of the operations that the user can do.
 
 ### 4.7 The MCP server
 
