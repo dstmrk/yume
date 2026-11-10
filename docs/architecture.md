@@ -666,7 +666,11 @@ function.
    refresh token.
 
 The page `/login` must keep the parameters of the authorisation through the sign-in
-with Google. Without them, step 6 does not occur.
+with Google. Without them, step 6 does not occur. The button of Google sends the signed query of
+the address in the field `oauth_query` of the sign-in: `withOAuthQuery` of
+`src/client/lib/auth.ts`. The signature covers each parameter except `sig`, thus that
+function keeps the signed parameters only. After the callback of Google, the plugin goes
+on with the authorisation.
 
 The page `/consent` is a new route of the client, with its text in
 `src/client/i18n/it.ts`. Add its path to `CLIENT_PATHS` of `src/shared/routes.ts`.

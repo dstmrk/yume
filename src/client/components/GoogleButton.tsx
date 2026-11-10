@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/I18n.tsx";
 import { startGoogleSignIn } from "../lib/api.ts";
-import { googleSignInBody } from "../lib/auth.ts";
+import { googleSignInBody, withOAuthQuery } from "../lib/auth.ts";
 import { cn } from "../lib/cn.ts";
 import { Button } from "./ui/button.tsx";
 
@@ -28,7 +28,13 @@ export function GoogleButton({ error }: { error?: string }) {
 
 	function start() {
 		setState("pending");
-		startGoogleSignIn(googleSignInBody(window.location.origin, locale)).then(
+		// On `/login`, the address can hold the signed query of an
+		// authorisation of the MCP server. The server then goes on with it.
+		const body = withOAuthQuery(
+			googleSignInBody(window.location.origin, locale),
+			window.location.search,
+		);
+		startGoogleSignIn(body).then(
 			// The state stays `pending`: the page opens Google, and a second
 			// press must not start a second request.
 			(url) => window.location.assign(url),

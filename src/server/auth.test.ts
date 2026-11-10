@@ -151,6 +151,25 @@ describe("the start of the sign-in with Google", () => {
 		expect(new URL(url).searchParams.has("include_granted_scopes")).toBe(false);
 	});
 
+	// The page `/login` sends the signed query of an authorisation of the MCP
+	// server. A query that a person changes breaks the signature, and the server
+	// then starts no sign-in for it. Paragraph 4.7.2.
+	it("refuses an authorisation with a signature that is not valid", async () => {
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/sign-in/social`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: BASE_URL },
+				body: JSON.stringify({
+					provider: "google",
+					callbackURL: `${BASE_URL}/dashboard`,
+					oauth_query:
+						"client_id=x&exp=4102444800&ba_param=ba_param&ba_param=client_id&ba_param=exp&sig=forged",
+				}),
+			}),
+		);
+		expect(response.status).toBe(400);
+	});
+
 	it("refuses an other provider", async () => {
 		const response = await auth.handler(
 			new Request(`${BASE_URL}/api/auth/sign-in/social`, {
