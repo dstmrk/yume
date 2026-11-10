@@ -5,13 +5,14 @@ import { useI18n } from "../i18n/I18n.tsx";
 import {
 	isTooManyAccounts,
 	matchesProgram,
+	newAccountBody,
 	programAirlinesLine,
 	searchNamesOf,
 	sortPrograms,
 } from "../lib/account.ts";
 import { airlinesOf } from "../lib/airlines.ts";
-import { addSnapshot, createAccount } from "../lib/api.ts";
-import { readOptionalPoints, todayIso } from "../lib/balance.ts";
+import { createAccount } from "../lib/api.ts";
+import { readOptionalPoints } from "../lib/balance.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
 import { Button } from "./ui/button.tsx";
 import {
@@ -83,25 +84,18 @@ function Fields({
 
 	const queryClient = useQueryClient();
 	const save = useMutation({
-		mutationFn: async (balance: number | null) => {
-			const account = await createAccount({ programId });
-			if (balance !== null) {
-				await addSnapshot(account.id, {
-					points: balance,
-					observedAt: todayIso(new Date()),
-				});
-			}
-		},
-		// The two requests are not one transaction. If the second one fails, the
-		// account exists with no balance. Therefore the lists refresh also after
-		// an error: then the user reads that account and adds the balance again.
-		onSettled: async () => {
+		// One request makes the account and its first balance in one
+		// transaction. Thus an error writes no row, and "Salva" again makes one
+		// account.
+		mutationFn: (balance: number | null) =>
+			createAccount(newAccountBody(programId, balance, new Date())),
+		onSuccess: async () => {
 			// The new account changes the list and also the potential: a new
 			// balance of a source gives new miles.
 			await queryClient.invalidateQueries({ queryKey: ["accounts"] });
 			await queryClient.invalidateQueries({ queryKey: ["potential"] });
+			onClose();
 		},
-		onSuccess: onClose,
 	});
 
 	const options = sortPrograms(programs, currencies, intl);

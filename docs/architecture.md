@@ -571,9 +571,9 @@ Two rules make the first entry of the data short:
   then opened a second form in the row of that account. The form of the account now
   holds a field of the balance. That field is not necessary: an empty field makes the
   account with no snapshot. The date of that snapshot is the date of today, thus the
-  form holds no field of the date. The two requests are not one transaction, therefore
-  the lists refresh also after an error of the second request. Then the user reads that
-  account and writes the balance again.
+  form holds no field of the date. `POST /api/accounts` writes the account and the
+  snapshot in one transaction. Thus an error writes no row, and a second "Salva" makes
+  no second account.
 
 ### 5.0.2 The sequence of the cards
 

@@ -216,6 +216,10 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 		if (!known) {
 			return c.json({ error: "unknown_program" }, 404);
 		}
+		const observedAt = body.data.snapshot?.observedAt;
+		if (observedAt !== undefined && observedAt > latestObservedAt()) {
+			return c.json({ error: "future_date" }, 400);
+		}
 		// better-sqlite3 is synchronous and no `await` is between the count and
 		// the insert. Thus two requests at the same time cannot both pass.
 		if (countAccounts(db, c.get("userId")) >= MAX_ACCOUNTS_PER_USER) {

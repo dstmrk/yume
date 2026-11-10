@@ -270,6 +270,47 @@ describe("createAccount", () => {
 			createAccount(db, { userId: USER, programId: "does-not-exist" }),
 		).toThrow();
 	});
+
+	it("writes the first snapshot with the account", () => {
+		const id = createAccount(db, {
+			userId: USER,
+			programId: "ba-club",
+			snapshot: { points: 10000, observedAt: "2026-08-11" },
+		});
+
+		expect(currentBalances(db, USER)).toEqual([
+			expect.objectContaining({
+				accountId: id,
+				points: 10000,
+				observedAt: "2026-08-11",
+			}),
+		]);
+	});
+
+	it("writes no snapshot with no balance", () => {
+		const id = createAccount(db, { userId: USER, programId: "ba-club" });
+
+		expect(snapshotCount(id)).toBe(0);
+	});
+
+	// The account and its first balance are one transaction. An account with no
+	// balance after an error makes the user save again, and the second request
+	// makes a second account. Refer to paragraph 5.0.1 of `docs/architecture.md`.
+	it("writes no account when the snapshot fails", () => {
+		expect(() =>
+			createAccount(db, {
+				userId: USER,
+				programId: "ba-club",
+				// The column is not null: the second insert fails.
+				snapshot: {
+					points: null as unknown as number,
+					observedAt: "2026-08-11",
+				},
+			}),
+		).toThrow();
+
+		expect(countAccounts(db, USER)).toBe(0);
+	});
 });
 
 describe("countAccounts", () => {

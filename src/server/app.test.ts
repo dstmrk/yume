@@ -373,6 +373,71 @@ describe("POST /api/accounts", () => {
 		});
 		expect(response.status).toBe(404);
 	});
+
+	// One request makes the account and its first balance. Two requests left an
+	// account with no balance after an error of the second one, and a second
+	// "Salva" then made a second account.
+	it("makes the account and its first balance in one request", async () => {
+		const response = await post("/api/accounts", {
+			programId: "ba-club",
+			snapshot: { points: 10000, observedAt: "2026-08-11" },
+		});
+
+		expect(response.status).toBe(201);
+		const { id } = (await response.json()) as { id: string };
+		expect(currentBalances(db, userId)).toEqual([
+			expect.objectContaining({
+				accountId: id,
+				points: 10000,
+				observedAt: "2026-08-11",
+			}),
+		]);
+	});
+
+	it("makes an account with no balance with no snapshot", async () => {
+		await post("/api/accounts", { programId: "ba-club" });
+
+		expect(currentBalances(db, userId)).toEqual([
+			expect.objectContaining({ points: null, snapshotId: null }),
+		]);
+	});
+
+	it("refuses a first balance that is not correct and writes no account", async () => {
+		for (const snapshot of [
+			{ points: -1, observedAt: "2026-08-11" },
+			{ points: 10, observedAt: "2026-02-30" },
+		]) {
+			const response = await post("/api/accounts", {
+				programId: "ba-club",
+				snapshot,
+			});
+			expect(response.status).toBe(400);
+		}
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("refuses a first balance in the future and writes no account", async () => {
+		vi.setSystemTime("2026-11-09T23:30:00.000Z");
+
+		const response = await post("/api/accounts", {
+			programId: "ba-club",
+			snapshot: { points: 10, observedAt: "2026-11-11" },
+		});
+
+		expect(response.status).toBe(400);
+		expect(await response.json()).toEqual({ error: "future_date" });
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("refuses an unknown programme with a balance and writes no row", async () => {
+		const response = await post("/api/accounts", {
+			programId: "does-not-exist",
+			snapshot: { points: 10, observedAt: "2026-08-11" },
+		});
+
+		expect(response.status).toBe(404);
+		expect(countAccounts(db, userId)).toBe(0);
+	});
 });
 
 // Sign-up is open, and two accounts of one programme are allowed on purpose.

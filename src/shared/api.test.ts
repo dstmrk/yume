@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isoDateSchema } from "./api.ts";
+import { createAccountSchema, isoDateSchema } from "./api.ts";
 
 describe("isoDateSchema", () => {
 	it("accepts a date that exists", () => {
@@ -44,5 +44,36 @@ describe("isoDateSchema", () => {
 		expect(isoDateSchema.safeParse("11/08/2026").success).toBe(false);
 		expect(isoDateSchema.safeParse("2026-08-11T00:00:00Z").success).toBe(false);
 		expect(isoDateSchema.safeParse("").success).toBe(false);
+	});
+});
+
+describe("createAccountSchema", () => {
+	it("accepts an account with no first balance", () => {
+		expect(
+			createAccountSchema.safeParse({ programId: "ba-club" }).success,
+		).toBe(true);
+	});
+
+	it("accepts an account with a first balance", () => {
+		const body = {
+			programId: "ba-club",
+			snapshot: { points: 10000, observedAt: "2026-08-11" },
+		};
+		expect(createAccountSchema.parse(body)).toEqual(body);
+	});
+
+	it("refuses a first balance that is not correct", () => {
+		for (const snapshot of [
+			{ points: -1, observedAt: "2026-08-11" },
+			{ points: 10.5, observedAt: "2026-08-11" },
+			{ points: 10, observedAt: "2026-02-30" },
+			{ points: 10 },
+			null,
+		]) {
+			expect(
+				createAccountSchema.safeParse({ programId: "ba-club", snapshot })
+					.success,
+			).toBe(false);
+		}
 	});
 });
