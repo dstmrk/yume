@@ -430,6 +430,7 @@ the author makes a new account with Google. No code keeps the old path.
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
+| `ADMIN_EMAIL` | The email address of the administrator. With no value, the installation has no administrator. Refer to paragraph 4.8. |
 
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
@@ -450,7 +451,7 @@ The machine itself is the exception: a browser accepts a `secure` cookie from
 `npm run dev:server` needs no certificate. A value that the function cannot read gives
 the attribute: a defect in the variable must not remove the protection.
 
-The file `.env.example` holds the four variables of Docker Compose, with no value. Copy
+The file `.env.example` holds the five variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
 the origin of the client of Vite for development. The two variables of Google need a
@@ -471,7 +472,8 @@ and `/.well-known/oauth-authorization-server` are public, because a client reads
 before the sign-in.
 
 Each route of the data reads the user with `c.get("userId")`. The application holds no
-user with a fixed value.
+user with a fixed value. The routes under `/api/admin/` also need the administrator of
+paragraph 4.8.
 
 The sign-up is open, thus two constants of `src/server/app.ts` limit each user. They are
 technical ceilings, not the commercial limits of paragraph 4.6:
@@ -554,7 +556,7 @@ Thus a self-hosted installation keeps each function.
 
 **The unlimited account has no payment.** The administrator gives it by hand, for
 example to a member of the family. It gives each function of the supporter account, and
-it has no end.
+it has no end. The page of the administrator of paragraph 4.8 writes the flag.
 
 **The database keeps two sources, not the level.** The table `user` receives two columns:
 
@@ -582,7 +584,6 @@ These items are open:
 - The payment service.
 - The name of the variable of the environment.
 - The function of the operations that the user can do.
-- A command that writes the flag `unlimited`. Now the administrator writes it with SQL.
 
 ### 4.7 The MCP server
 
@@ -844,6 +845,54 @@ These items are open:
 - A surface that shows the clients with access and that removes their tokens. Without
   it, a person removes the access only with the removal of the account. Issue #97 gives
   the work.
+
+### 4.8 The administrator
+
+Status: **accepted**. Date: 2026-11-10.
+
+The official instance has one administrator. The administrator reads the list of the
+users and gives or removes the unlimited account of paragraph 4.6.
+
+**The variable `ADMIN_EMAIL` gives the administrator.** It holds one email address. The
+database holds no role. A defect that writes the table `user` then cannot make an
+administrator. To change the administrator, a person needs the access to the server.
+
+`isAdmin` of `src/server/admin.ts` compares the address of the session with that value.
+The comparison ignores the case and the spaces at the two ends. The address must be
+verified: Google verifies it, and a future provider can give an address that no one
+verified. With no value, the installation has no administrator. Thus a self-hosted
+installation shows no page of the administrator.
+
+Better Auth has the plugin `admin`. Yume does not use it. The plugin adds the roles, the
+ban and the impersonation, with four columns in `user` and one in `session`. The
+impersonation gives the administrator the balances of an other person, and Yume needs
+none of those functions.
+
+**The routes.** The middleware of the session writes `admin` in the context of Hono.
+
+| Route | Effect |
+|---|---|
+| `GET /api/me` | It gives `admin`, true or false. Each user with a session reads it. |
+| `GET /api/admin/users` | It gives each user, the newest first. |
+| `PUT /api/admin/users/:id/unlimited` | It writes the flag `unlimited` of a user. |
+
+A middleware on `/api/admin/*` gives the status 404 with `not_found` to each user that is
+not the administrator. A path that does not exist gives the same answer. Thus no answer
+says that these routes exist. The middleware of the session comes first, thus a request
+with no session gets the status 401.
+
+**The administrator writes the flag only.** The schema of the body of the `PUT` is
+strict and holds `unlimited` only. `supporter_until` keeps one writer, the payment.
+Paragraph 4.6 gives the two writers.
+
+**The list holds no balance.** Each row holds the address, the date of the first
+sign-in, the level, the end of the supporter account, the flag and the quantity of
+accounts. The row holds no balance and no programme. The GDPR asks for the minimum of
+data (art. 5(1)(c)).
+
+**The page.** The client shows the page `/admin`. The dashboard shows a link to it only
+when `GET /api/me` gives true. The route sends each other user to the dashboard. That
+link and that redirect are not the protection: the server gives the protection.
 
 ## 5. User interface
 
@@ -1583,6 +1632,7 @@ yume/
       fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the provider Google
+      admin.ts         # the administrator of ADMIN_EMAIL
       mcp.ts           # the MCP server and its tools
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules

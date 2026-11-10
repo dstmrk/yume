@@ -1,6 +1,6 @@
 # Yume. Refer to paragraph 5.5.3 of docs/architecture.md.
 #
-# The public page is the only page with content for a search engine. The two
+# The public page is the only page with content for a search engine. The
 # other routes need a session, and a crawler that opens one of them receives
 # the same HTML of the application with no data.
 #
@@ -13,7 +13,9 @@
 
 User-agent: *
 Disallow: /api/
+Disallow: /admin
 Disallow: /dashboard
 Disallow: /login
+Disallow: /*/admin
 Disallow: /*/dashboard
 Disallow: /*/login

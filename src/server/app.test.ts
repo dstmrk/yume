@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, MAX_ACCOUNTS_PER_USER, MAX_BODY_BYTES } from "./app.ts";
@@ -12,6 +13,7 @@ import {
 	currentBalances,
 	favoriteCurrencies,
 } from "./db/queries.ts";
+import { user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
@@ -100,6 +102,9 @@ describe("the session", () => {
 		["GET", "/api/favorites"],
 		["PUT", "/api/favorites/avios"],
 		["DELETE", "/api/favorites/avios"],
+		["GET", "/api/me"],
+		["GET", "/api/admin/users"],
+		["PUT", "/api/admin/users/an-user/unlimited"],
 	] as const;
 
 	for (const [method, path] of routes) {
@@ -1004,5 +1009,240 @@ describe("the routes of the favourites", () => {
 		addFavorite(db, { userId: OTHER_USER, currencyId: "avios" });
 		expect((await remove("/api/favorites/avios")).status).toBe(204);
 		expect(favoriteCurrencies(db, OTHER_USER)).toEqual(["avios"]);
+	});
+});
+
+describe("the routes of the administrator", () => {
+	/** The address of the user of the session. `insertUser` writes it. */
+	const ADMIN_EMAIL = "primo@example.com";
+	let admin: ReturnType<typeof createApp>;
+
+	beforeEach(async () => {
+		// Google verifies the address at the sign-in. The fixture does not.
+		db.update(user)
+			.set({ emailVerified: true })
+			.where(eq(user.id, userId))
+			.run();
+		const auth = createAuth(db, {
+			secret: "a-secret-for-the-test",
+			baseURL: BASE_URL,
+			google: {
+				clientId: "client-id-test",
+				clientSecret: "client-secret-test",
+			},
+		});
+		admin = createApp(db, auth, [BASE_URL], ADMIN_EMAIL);
+	});
+
+	function adminGet(target: ReturnType<typeof createApp>, path: string) {
+		return target.request(path, { headers: { cookie } });
+	}
+
+	function adminPut(
+		target: ReturnType<typeof createApp>,
+		path: string,
+		body: unknown,
+		headers: Record<string, string> = {},
+	) {
+		return target.request(path, {
+			method: "PUT",
+			headers: { "content-type": "application/json", cookie, ...headers },
+			body: JSON.stringify(body),
+		});
+	}
+
+	describe("GET /api/me", () => {
+		it("gives true to the administrator", async () => {
+			const response = await adminGet(admin, "/api/me");
+			expect(await response.json()).toEqual({ admin: true });
+		});
+
+		it("gives false to an other user", async () => {
+			const response = await adminGet(app, "/api/me");
+			expect(response.status).toBe(200);
+			expect(await response.json()).toEqual({ admin: false });
+		});
+	});
+
+	describe("the protection", () => {
+		// The answer of a path that does not exist. A user reads nothing about
+		// the routes of the administrator.
+		it("gives the status 404 to a user that is not the administrator", async () => {
+			const list = await adminGet(app, "/api/admin/users");
+			expect(list.status).toBe(404);
+			expect(await list.json()).toEqual({ error: "not_found" });
+			const write = await adminPut(
+				app,
+				`/api/admin/users/${OTHER_USER}/unlimited`,
+				{ unlimited: true },
+			);
+			expect(write.status).toBe(404);
+		});
+
+		it("writes no flag for a user that is not the administrator", async () => {
+			await adminPut(app, `/api/admin/users/${OTHER_USER}/unlimited`, {
+				unlimited: true,
+			});
+			const row = db.select().from(user).where(eq(user.id, OTHER_USER)).get();
+			expect(row?.unlimited).toBe(false);
+		});
+
+		it("refuses an address that is not verified", async () => {
+			db.update(user)
+				.set({ emailVerified: false })
+				.where(eq(user.id, userId))
+				.run();
+			expect((await adminGet(admin, "/api/admin/users")).status).toBe(404);
+		});
+
+		it("gives the status 404 to a path of the administrator that does not exist", async () => {
+			expect((await adminGet(admin, "/api/admin/other")).status).toBe(404);
+		});
+
+		it("refuses a form of an other origin", async () => {
+			const response = await admin.request(
+				`/api/admin/users/${OTHER_USER}/unlimited`,
+				{
+					method: "PUT",
+					headers: {
+						cookie,
+						origin: "https://other.example.com",
+						"content-type": "text/plain",
+					},
+					body: JSON.stringify({ unlimited: true }),
+				},
+			);
+			expect(response.status).toBe(403);
+		});
+	});
+
+	describe("GET /api/admin/users", () => {
+		type Body = {
+			users: {
+				id: string;
+				email: string;
+				createdAt: string;
+				tier: string;
+				supporterUntil: string | null;
+				unlimited: boolean;
+				accounts: number;
+			}[];
+		};
+
+		async function users(): Promise<Body["users"]> {
+			const response = await adminGet(admin, "/api/admin/users");
+			expect(response.status).toBe(200);
+			return ((await response.json()) as Body).users;
+		}
+
+		it("gives each user with the level and the quantity of accounts", async () => {
+			createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+			const rows = await users();
+			expect(rows.map((row) => row.id).toSorted()).toEqual(
+				[OTHER_USER, userId].toSorted(),
+			);
+			expect(rows.find((row) => row.id === OTHER_USER)).toMatchObject({
+				email: `${OTHER_USER}@example.com`,
+				tier: "free",
+				supporterUntil: null,
+				unlimited: false,
+				accounts: 1,
+			});
+		});
+
+		it("gives the dates in the ISO 8601 format", async () => {
+			db.update(user)
+				.set({
+					createdAt: new Date("2026-01-02T03:04:05Z"),
+					supporterUntil: new Date("2099-01-01T00:00:00Z"),
+				})
+				.where(eq(user.id, OTHER_USER))
+				.run();
+			const row = (await users()).find((item) => item.id === OTHER_USER);
+			expect(row?.createdAt).toBe("2026-01-02T03:04:05.000Z");
+			expect(row?.supporterUntil).toBe("2099-01-01T00:00:00.000Z");
+			expect(row?.tier).toBe("supporter");
+		});
+
+		it("gives the level of the clock of the server", async () => {
+			db.update(user)
+				.set({ supporterUntil: new Date("2026-01-01T00:00:00Z") })
+				.where(eq(user.id, OTHER_USER))
+				.run();
+			vi.useFakeTimers({ toFake: ["Date"] });
+			vi.setSystemTime("2026-06-01T00:00:00Z");
+			const row = (await users()).find((item) => item.id === OTHER_USER);
+			expect(row?.tier).toBe("free");
+		});
+
+		it("gives the level unlimited before the date of the payment", async () => {
+			db.update(user)
+				.set({
+					unlimited: true,
+					supporterUntil: new Date("2099-01-01T00:00:00Z"),
+				})
+				.where(eq(user.id, OTHER_USER))
+				.run();
+			const row = (await users()).find((item) => item.id === OTHER_USER);
+			expect(row?.tier).toBe("unlimited");
+		});
+	});
+
+	describe("PUT /api/admin/users/:id/unlimited", () => {
+		const path = `/api/admin/users/${OTHER_USER}/unlimited`;
+
+		function unlimitedOf(id: string): boolean | undefined {
+			return db.select().from(user).where(eq(user.id, id)).get()?.unlimited;
+		}
+
+		it("writes the flag", async () => {
+			const response = await adminPut(admin, path, { unlimited: true });
+			expect(response.status).toBe(204);
+			expect(unlimitedOf(OTHER_USER)).toBe(true);
+		});
+
+		it("removes the flag", async () => {
+			await adminPut(admin, path, { unlimited: true });
+			const response = await adminPut(admin, path, { unlimited: false });
+			expect(response.status).toBe(204);
+			expect(unlimitedOf(OTHER_USER)).toBe(false);
+		});
+
+		// The administrator can give the level to the own account.
+		it("writes the flag of the administrator", async () => {
+			await adminPut(admin, `/api/admin/users/${userId}/unlimited`, {
+				unlimited: true,
+			});
+			expect(unlimitedOf(userId)).toBe(true);
+		});
+
+		it("gives the status 404 for a user that does not exist", async () => {
+			const response = await adminPut(
+				admin,
+				"/api/admin/users/nobody/unlimited",
+				{ unlimited: true },
+			);
+			expect(response.status).toBe(404);
+			expect(await response.json()).toEqual({ error: "unknown_user" });
+		});
+
+		it("gives the status 400 for a body that is not correct", async () => {
+			for (const body of [{}, { unlimited: "true" }, { unlimited: 1 }, null]) {
+				const response = await adminPut(admin, path, body);
+				expect(response.status).toBe(400);
+			}
+			expect(unlimitedOf(OTHER_USER)).toBe(false);
+		});
+
+		// The payment writes the date, and the administrator writes the flag only.
+		it("refuses a field of the payment", async () => {
+			const response = await adminPut(admin, path, {
+				unlimited: true,
+				supporterUntil: "2099-01-01T00:00:00Z",
+			});
+			expect(response.status).toBe(400);
+			const row = db.select().from(user).where(eq(user.id, OTHER_USER)).get();
+			expect(row?.supporterUntil).toBeNull();
+		});
 	});
 });

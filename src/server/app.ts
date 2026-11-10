@@ -5,15 +5,20 @@ import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
 import {
 	type AccountsResponse,
+	type AdminUsersResponse,
 	addSnapshotSchema,
 	type CatalogueResponse,
 	createAccountSchema,
 	type FavoritesResponse,
+	type MeResponse,
 	type PotentialResponse,
+	setUnlimitedSchema,
 	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
 import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { potentialMiles } from "../shared/potential.ts";
+import { accountTier } from "../shared/tier.ts";
+import { isAdmin } from "./admin.ts";
 import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
@@ -29,7 +34,9 @@ import {
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
+	listUsers,
 	removeFavorite,
+	setUnlimited,
 } from "./db/queries.ts";
 
 /**
@@ -88,10 +95,16 @@ function latestObservedAt(): string {
  * Makes the application.
  *
  * `origins` holds the origin of the application and each origin of
- * `TRUSTED_ORIGINS`: Better Auth receives the same list.
+ * `TRUSTED_ORIGINS`: Better Auth receives the same list. `adminEmail` is the
+ * value of `ADMIN_EMAIL`. With no value, the instance has no administrator.
  */
-export function createApp(db: Db, auth: Auth, origins: string[]) {
-	const app = new Hono<{ Variables: { userId: string } }>();
+export function createApp(
+	db: Db,
+	auth: Auth,
+	origins: string[],
+	adminEmail?: string,
+) {
+	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
 
 	/**
 	 * The security headers, on each answer: the API, the files of the client
@@ -133,6 +146,7 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 		}
 
 		c.set("userId", session.user.id);
+		c.set("admin", isAdmin(session.user, adminEmail));
 		return next();
 	});
 
@@ -354,6 +368,63 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 
 		const body: PotentialResponse = { at, potential };
 		return c.json(body);
+	});
+
+	/** The user of the session. The client reads if it is the administrator. */
+	app.get("/api/me", (c) => {
+		const body: MeResponse = { admin: c.get("admin") };
+		return c.json(body);
+	});
+
+	/**
+	 * The routes of the administrator.
+	 *
+	 * A user that is not the administrator receives the answer of a path that
+	 * does not exist. Thus no answer says that these routes exist. The
+	 * middleware of the session is before this one: with no session, the
+	 * status is 401. Paragraph 4.8 of `docs/architecture.md` gives the rules.
+	 */
+	app.use("/api/admin/*", async (c, next) => {
+		if (!c.get("admin")) {
+			return c.json({ error: "not_found" }, 404);
+		}
+		return next();
+	});
+
+	/** Each user, with the level at the clock of the server. */
+	app.get("/api/admin/users", (c) => {
+		const now = new Date();
+		const body: AdminUsersResponse = {
+			users: listUsers(db).map((row) => ({
+				id: row.id,
+				email: row.email,
+				createdAt: row.createdAt.toISOString(),
+				tier: accountTier(row, now),
+				supporterUntil: row.supporterUntil?.toISOString() ?? null,
+				unlimited: row.unlimited,
+				accounts: row.accounts,
+			})),
+		};
+		return c.json(body);
+	});
+
+	/**
+	 * Writes the flag `unlimited` of a user.
+	 *
+	 * The method is `PUT`, because the request gives a state: the same request
+	 * two times gives the same result.
+	 */
+	app.put("/api/admin/users/:id/unlimited", async (c) => {
+		const body = setUnlimitedSchema.safeParse(
+			await c.req.json().catch(() => null),
+		);
+		if (!body.success) {
+			return c.json({ error: "invalid_body", issues: body.error.issues }, 400);
+		}
+		if (!setUnlimited(db, c.req.param("id"), body.data.unlimited)) {
+			return c.json({ error: "unknown_user" }, 404);
+		}
+		return c.body(null, 204);
 	});
 
 	/**

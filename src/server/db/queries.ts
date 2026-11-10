@@ -1,4 +1,4 @@
-import { and, asc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { AccountRow, ExpiryLot } from "../../shared/api.ts";
 import type { Db } from "./index.ts";
 import {
@@ -9,6 +9,7 @@ import {
 	program,
 	session,
 	transferRule,
+	user,
 	userAccount,
 	verification,
 } from "./schema.ts";
@@ -316,4 +317,59 @@ export function deleteExpired(
 			.where(lt(verification.expiresAt, now))
 			.run().changes,
 	}));
+}
+
+/** A row of the list of the users, for the administrator. */
+export type UserRow = {
+	id: string;
+	email: string;
+	createdAt: Date;
+	supporterUntil: Date | null;
+	unlimited: boolean;
+	accounts: number;
+};
+
+/**
+ * Gives each user with the quantity of accounts, the newest user first.
+ *
+ * The list holds no balance and no programme: the administrator does not need
+ * them, and the GDPR asks for the minimum of data (art. 5(1)(c)). The id is the
+ * second key, thus two users of the same instant keep one order. Paragraph 4.8
+ * of `docs/architecture.md` gives the rule.
+ */
+export function listUsers(db: Db): UserRow[] {
+	return db
+		.select({
+			id: user.id,
+			email: user.email,
+			createdAt: user.createdAt,
+			supporterUntil: user.supporterUntil,
+			unlimited: user.unlimited,
+			accounts: count(userAccount.id),
+		})
+		.from(user)
+		.leftJoin(userAccount, eq(userAccount.userId, user.id))
+		.groupBy(user.id)
+		.orderBy(desc(user.createdAt), asc(user.id))
+		.all();
+}
+
+/**
+ * Writes the flag `unlimited` of a user. It gives false if the user does not
+ * exist.
+ *
+ * The function does not write `supporter_until`: only the payment writes that
+ * column. Paragraph 4.6 of `docs/architecture.md` gives the two writers.
+ */
+export function setUnlimited(
+	db: Db,
+	userId: string,
+	unlimited: boolean,
+): boolean {
+	const result = db
+		.update(user)
+		.set({ unlimited, updatedAt: new Date() })
+		.where(eq(user.id, userId))
+		.run();
+	return result.changes > 0;
 }

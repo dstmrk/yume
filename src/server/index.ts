@@ -57,6 +57,13 @@ const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? "")
 	.map((origin) => origin.trim())
 	.filter((origin) => origin !== "");
 
+/**
+ * The email address of the administrator of the instance. With no value, the
+ * instance has no administrator: a self-hosted installation needs none.
+ * Paragraph 4.8 of `docs/architecture.md` gives the decision.
+ */
+const adminEmail = process.env.ADMIN_EMAIL;
+
 const db = openDatabase(url);
 
 /**
@@ -78,7 +85,7 @@ cleanExpired();
 setInterval(cleanExpired, CLEANUP_INTERVAL_MS).unref();
 
 const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
-const app = createApp(db, auth, [baseURL, ...trustedOrigins]);
+const app = createApp(db, auth, [baseURL, ...trustedOrigins], adminEmail);
 
 /**
  * The files of the client, from the same origin as the API. The API routes are
