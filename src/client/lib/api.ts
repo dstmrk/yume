@@ -7,6 +7,7 @@ import type {
 	PotentialResponse,
 } from "../../shared/api.ts";
 import type { GoogleSignInBody } from "./auth.ts";
+import type { ConsentBody } from "./consent.ts";
 import { ApiError, errorCodeOf } from "./errors.ts";
 
 /**
@@ -92,6 +93,39 @@ export async function startGoogleSignIn(
 	const answer = await postToAuth<{ url?: unknown }>("sign-in/social", body);
 	if (typeof answer?.url !== "string") {
 		throw new Error("Better Auth gave no address of Google.");
+	}
+	return answer.url;
+}
+
+/**
+ * Reads the name of a client of the MCP server, for the page `/consent`.
+ *
+ * The plugin `cimd` writes the client from its Client ID Metadata Document
+ * before it opens that page. It gives undefined for a client with no name.
+ */
+export async function fetchOAuthClientName(
+	clientId: string,
+): Promise<string | undefined> {
+	const response = await fetch(
+		`/api/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`,
+	);
+	if (!response.ok) {
+		throw new Error(`The client gave the status ${response.status}.`);
+	}
+	const body = (await response.json().catch(() => null)) as {
+		client_name?: unknown;
+	} | null;
+	return typeof body?.client_name === "string" ? body.client_name : undefined;
+}
+
+/**
+ * Sends the answer of the person on `/consent`. It gives the address of the
+ * client: the page opens it with the code, or with the error of a refusal.
+ */
+export async function sendConsent(body: ConsentBody): Promise<string> {
+	const answer = await postToAuth<{ url?: unknown }>("oauth2/consent", body);
+	if (typeof answer?.url !== "string") {
+		throw new Error("Better Auth gave no address of the client.");
 	}
 	return answer.url;
 }

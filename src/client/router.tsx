@@ -2,8 +2,7 @@
  * The routes of the client.
  *
  * The tree is in the code, not in the file names. The project needs no plugin
- * of the router and no step of generation. Three routes are sufficient now: the
- * public page, the dashboard and the access.
+ * of the router and no step of generation.
  *
  * Each route reads the session before the load. Therefore the dashboard makes
  * no request that gives the status 401, and a user with a session reads the
@@ -28,6 +27,7 @@ import {
 	redirect,
 } from "@tanstack/react-router";
 import { AppShell } from "./AppShell.tsx";
+import { ConsentPage } from "./ConsentPage.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { LegalPage } from "./LegalPage.tsx";
@@ -88,6 +88,20 @@ const loginRoute = createRoute({
 	component: () => <LoginPage error={loginRoute.useSearch().error} />,
 });
 
+// The authorisation of an assistant on the MCP server. The authorisation
+// server opens this page after the sign-in, thus a person with no session
+// goes to the page of the access. Paragraph 4.7.2 of `docs/architecture.md`.
+const consentRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/consent",
+	beforeLoad: async () => {
+		if ((await fetchSession()) === null) {
+			throw redirect({ to: "/login" });
+		}
+	},
+	component: ConsentPage,
+});
+
 // The legal pages. Each person reads them, with a session or with no session:
 // Google and the law ask for a public address.
 const privacyRoute = createRoute({
@@ -106,6 +120,7 @@ const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
 	loginRoute,
+	consentRoute,
 	privacyRoute,
 	tosRoute,
 ]);

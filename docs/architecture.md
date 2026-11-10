@@ -1163,9 +1163,10 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds five routes: `/` for the public page, `/dashboard` for the dashboard,
-`/login` for the access, `/privacy` for the policy of the personal data and `/tos` for
-the terms of the service. The two legal pages are public: Google asks for their
+The client holds six routes: `/` for the public page, `/dashboard` for the dashboard,
+`/login` for the access, `/consent` for the authorisation of an assistant (paragraph
+4.7.2), `/privacy` for the policy of the personal data and `/tos` for the terms of the
+service. The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
 from the dictionary, and `robots.txt` does not block them. The build writes a static
 page for each one, with its own title and canonical address. The check of Google reads

@@ -174,6 +174,26 @@ export const it = {
 	signInError: "Accesso con Google non riuscito.",
 	signOut: "Esci",
 
+	// The page `/consent`: the authorisation of an assistant, for example
+	// Claude, on the MCP server. Paragraph 4.7.2 of `docs/architecture.md`.
+	consent: {
+		title: "Autorizza l'accesso",
+		lead: "chiede di accedere al tuo account Yume.",
+		permissions: "Potrà:",
+		scopes: {
+			balances:
+				"leggere conti, saldi e miglia potenziali, e aggiungere un saldo",
+			offline_access: "restare collegato senza chiederti di nuovo l'accesso",
+		} as Record<string, string>,
+		redirect: "Il codice di accesso va a:",
+		loopback:
+			"Il codice va a un programma sul tuo computer. Autorizza solo se hai avviato tu il collegamento.",
+		accept: "Autorizza",
+		deny: "Rifiuta",
+		invalid: "Richiesta di autorizzazione non valida.",
+		error: "Autorizzazione non riuscita.",
+	},
+
 	// The structured data of the public page. Refer to `lib/jsonLd.ts`.
 	jsonLd: {
 		// The subjects of the application. Each item is a subject that the page
