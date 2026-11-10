@@ -172,6 +172,41 @@ in one millisecond. No `VACUUM` comes between those two writes.
 The true moment of a row before the migration `0008` is lost. That migration gives those
 rows a moment before its own moment, in the order of `rowid`.
 
+### 3.2.1 The expiry lots of a snapshot
+
+A programme can give an expiry date to a part of the balance. A snapshot can hold
+**expiry lots**. A lot is a quantity of points with one expiry date:
+
+```
+expiry_lot(snapshot_id, expires_on, points)
+```
+
+The point is the smallest unit, but the database keeps one row for one date. The key is
+the pair of the snapshot and the date, thus one snapshot holds one lot for one date. The
+lots are not necessary. They can hold a part of the balance only.
+
+**The lots belong to the snapshot, not to the account.** A new balance can be lower than
+the sum of the lots of the account. Yume does not know which lots the programme used, thus
+it cannot reduce a lot. A lot of the snapshot has no such problem: the schema of the API
+compares the lots with the balance of the same request.
+
+`addSnapshotSchema` of `src/shared/api.ts` refuses these lots:
+
+- lots with a sum above the balance;
+- two lots with the same date;
+- a lot that expires before `observedAt`. That lot is not in the balance;
+- more than 50 lots.
+
+The form of a new balance gives again the lots of the current balance, and the user
+corrects them. The form omits a lot that expires before today.
+
+**Yume does not change a balance at the date of a lot.** The user reads the balance on the
+site of the programme. A lot with a date in the past then shows a message, and the user
+writes a new balance. The calculation of the potential miles does not read the lots.
+
+Some programmes remove the full balance after a period with no activity. The user writes
+that date as one lot of the full balance.
+
 ### 3.3 Integers only. No floating-point numbers
 
 Points are integers. Transfer ratios are fractions. Keep each ratio as two integers.
@@ -259,6 +294,7 @@ transfer_rule(...)                    -- refer to paragraph 3.3
 
 user_account(id, userId, programId)
 balance_snapshot(id, accountId, points, observedAt, createdAt)
+expiry_lot(snapshotId, expiresOn, points)  -- the key is the pair. Refer to paragraph 3.2.1
 favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragraph 5.0.2
 ```
 
@@ -484,6 +520,7 @@ exists.
 | Amex and Revolut | No limit | No limit |
 | Each other source, for example Klarna or a hotel programme | Not available | No limit |
 | Airline programmes | 2 programmes | No limit |
+| Expiry lots of a balance | Not available | No limit |
 | The MCP server of paragraph 4.7 | Not available | Available |
 
 Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
@@ -492,6 +529,11 @@ A limit on them stops the users that those links bring.
 Klarna is the first source of that kind. It is open to each user until the code of the
 supporter account exists. A user who adds Klarna before that date keeps the account,
 because the end of a supporter account removes nothing.
+
+The expiry lots of paragraph 3.2.1 are open to each user until the code of the supporter
+account exists, as Klarna. After that date, the end of a supporter account removes no lot.
+The lots of the current balance stay on the dashboard, and the user cannot write a new
+lot.
 
 **The limit counts the programmes, not the currencies.** The British Airways Club and
 Iberia Club are two programmes, thus they use the two places of the free account. The

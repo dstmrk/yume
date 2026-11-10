@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { createAccountSchema, isoDateSchema } from "./api.ts";
+import {
+	addSnapshotSchema,
+	createAccountSchema,
+	isoDateSchema,
+	MAX_EXPIRY_LOTS,
+} from "./api.ts";
 
 describe("isoDateSchema", () => {
 	it("accepts a date that exists", () => {
@@ -75,5 +80,123 @@ describe("createAccountSchema", () => {
 					.success,
 			).toBe(false);
 		}
+	});
+});
+
+describe("addSnapshotSchema", () => {
+	const snapshot = { points: 10000, observedAt: "2026-11-10" };
+
+	it("accepts a snapshot with no lots", () => {
+		expect(addSnapshotSchema.parse(snapshot)).toEqual(snapshot);
+	});
+
+	it("accepts lots below the balance", () => {
+		const body = {
+			...snapshot,
+			lots: [
+				{ points: 4000, expiresOn: "2027-03-31" },
+				{ points: 1000, expiresOn: "2027-12-31" },
+			],
+		};
+		expect(addSnapshotSchema.parse(body)).toEqual(body);
+	});
+
+	// Each point of the balance can have an expiry date.
+	it("accepts lots equal to the balance", () => {
+		const body = {
+			...snapshot,
+			lots: [
+				{ points: 9000, expiresOn: "2027-03-31" },
+				{ points: 1000, expiresOn: "2027-12-31" },
+			],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(true);
+	});
+
+	it("refuses lots above the balance", () => {
+		const body = {
+			...snapshot,
+			lots: [
+				{ points: 9000, expiresOn: "2027-03-31" },
+				{ points: 1001, expiresOn: "2027-12-31" },
+			],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+	});
+
+	it("refuses a lot on a balance of 0", () => {
+		const body = {
+			points: 0,
+			observedAt: "2026-11-10",
+			lots: [{ points: 1, expiresOn: "2027-03-31" }],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+	});
+
+	it("refuses a lot that is not a positive integer", () => {
+		for (const points of [0, -1, 10.5]) {
+			const body = {
+				...snapshot,
+				lots: [{ points, expiresOn: "2027-03-31" }],
+			};
+			expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+		}
+	});
+
+	it("refuses a date of a lot that does not exist", () => {
+		const body = {
+			...snapshot,
+			lots: [{ points: 10, expiresOn: "2027-02-30" }],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+	});
+
+	// A lot that expires before the date of the balance is not in that balance.
+	it("refuses a lot that expires before the date of the balance", () => {
+		const body = {
+			...snapshot,
+			lots: [{ points: 10, expiresOn: "2026-11-09" }],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+	});
+
+	it("accepts a lot that expires on the date of the balance", () => {
+		const body = {
+			...snapshot,
+			lots: [{ points: 10, expiresOn: "2026-11-10" }],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(true);
+	});
+
+	// One date holds one lot. Two lots of one date are one quantity.
+	it("refuses two lots with the same date", () => {
+		const body = {
+			...snapshot,
+			lots: [
+				{ points: 10, expiresOn: "2027-03-31" },
+				{ points: 20, expiresOn: "2027-03-31" },
+			],
+		};
+		expect(addSnapshotSchema.safeParse(body).success).toBe(false);
+	});
+
+	it("refuses more lots than the maximum", () => {
+		const lots = Array.from({ length: MAX_EXPIRY_LOTS + 1 }, (_, index) => ({
+			points: 1,
+			expiresOn: `2027-01-${String((index % 28) + 1).padStart(2, "0")}`,
+		}));
+		const unique = lots.map((lot, index) => ({
+			...lot,
+			expiresOn: `${2027 + Math.floor(index / 28)}${lot.expiresOn.slice(4)}`,
+		}));
+		expect(
+			addSnapshotSchema.safeParse({ ...snapshot, lots: unique }).success,
+		).toBe(false);
+		expect(
+			addSnapshotSchema.safeParse({
+				...snapshot,
+				lots: unique.slice(0, MAX_EXPIRY_LOTS),
+			}).success,
+		).toBe(true);
 	});
 });

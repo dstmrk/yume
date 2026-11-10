@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { useState } from "react";
-import type { AccountRow, FavoritesResponse } from "../shared/api.ts";
+import type {
+	AccountRow,
+	ExpiryLot,
+	FavoritesResponse,
+} from "../shared/api.ts";
 import type { BestRoute, PotentialMiles } from "../shared/potential.ts";
 import { AccountActions } from "./components/AccountActions.tsx";
 import { AppTitle } from "./components/board/AppTitle.tsx";
@@ -22,7 +26,9 @@ import {
 	setFavorite,
 	signOut,
 } from "./lib/api.ts";
+import { todayIso } from "./lib/balance.ts";
 import { cardsToShow } from "./lib/cards.ts";
+import { isExpired } from "./lib/expiry.ts";
 import { toggleFavorite } from "./lib/favorites.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { byValueDesc } from "./lib/sort.ts";
@@ -234,7 +240,11 @@ export function Dashboard() {
 									</span>
 								)}
 							</div>
-							<NewBalanceForm accountId={account.accountId} />
+							{account.lots.length > 0 && <ExpiryLots lots={account.lots} />}
+							<NewBalanceForm
+								accountId={account.accountId}
+								lots={account.lots}
+							/>
 							<AccountActions
 								accountId={account.accountId}
 								snapshotId={account.snapshotId}
@@ -464,5 +474,31 @@ function RouteRow({
 				</ul>
 			)}
 		</li>
+	);
+}
+
+/**
+ * The expiry lots of the current balance of an account, in the order of the
+ * date.
+ *
+ * Yume does not change the balance at the date of a lot: the user reads the
+ * balance on the site of the programme. A lot of the past then asks for a new
+ * balance. Paragraph 3.2.1 of `docs/architecture.md` gives the rule.
+ */
+function ExpiryLots({ lots }: { lots: ExpiryLot[] }) {
+	const { t: text, intl } = useI18n();
+	const today = todayIso(new Date());
+	return (
+		<ul className="flex flex-col gap-1 text-xs">
+			{lots.map((lot) => (
+				<li key={lot.expiresOn} className="text-board-muted">
+					{formatPoints(lot.points, intl)} {text.expiresOn}{" "}
+					{formatDate(lot.expiresOn, intl)}
+					{isExpired(lot.expiresOn, today) && (
+						<span className="text-board-amber"> {text.lotExpired}</span>
+					)}
+				</li>
+			))}
+		</ul>
 	);
 }
