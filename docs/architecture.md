@@ -470,6 +470,11 @@ token, not the cookie of the session. The paths `/.well-known/oauth-protected-re
 and `/.well-known/oauth-authorization-server` are public, because a client reads them
 before the sign-in.
 
+The middleware `csrf` does not apply to `/api/auth/oauth2/token` and
+`/api/auth/oauth2/revoke`. The server of the client sends a form to those paths with no
+header `Origin`, and the middleware refuses such a form. Those two endpoints read no
+cookie: the code with PKCE or the refresh token proves the client.
+
 Each route of the data reads the user with `c.get("userId")`. The application holds no
 user with a fixed value.
 
@@ -579,8 +584,8 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 and 2 of paragraph
-4.7.5 only.
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1, 2 and 3 of
+paragraph 4.7.5 only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
 agent, for example Claude or Claude Code, to that server. The agent then reads the
@@ -611,6 +616,11 @@ against CSRF.
 The URL of the server is `${BETTER_AUTH_URL}/mcp`. The field `resource` of the metadata
 of paragraph 4.7.2 must be equal to the URL that the person writes in the client.
 
+The plugin `mcp` refuses a resource on plain HTTP, except on the machine itself. Thus an
+installation on `http://nas.local:3000` starts with no MCP server: `canServeMcp` of
+`src/server/auth.ts` gives that decision. The sign-in with Google is also not possible
+on that origin: refer to paragraph 4.2.
+
 #### 4.7.2 The authorisation
 
 A remote client of MCP needs OAuth 2.1. The cookie of the session of paragraph 4 does not
@@ -635,10 +645,12 @@ give such a document. Dynamic Client Registration (RFC 7591) stays off: it makes
 row of client for each new connection, and that table then grows with no limit.
 Anthropic gives the same recommendation for a server with many users.
 
-The function that reads the document of a client is the code of the project, not of the
-plugin. That function reads HTTPS only, it refuses a private address and a loopback
-address, and it stops after a limit of time and of size. Without those limits a client
-can make the server read an address of the home network.
+The function that reads the document of a client is `fetchClientMetadataResource` of
+`@better-auth/cimd/node`. It resolves the name one time and refuses an address that is
+not public. It keeps that address for the connection, and it follows no redirect.
+Without those limits a client can make the server read an address of the home network.
+A wrapper of `fetch` cannot give those guarantees, thus the project writes no such
+function.
 
 **The flow.** These are the steps:
 
@@ -700,8 +712,9 @@ behind Cloudflare Access, as paragraph 4.2 gives, must let these paths pass:
 
 - `/mcp`
 - `/.well-known/oauth-protected-resource`
-- `/.well-known/oauth-authorization-server`
+- `/.well-known/oauth-authorization-server/api/auth`
 - `/api/auth/oauth2/token`
+- `/api/auth/oauth2/revoke`
 
 The page of authorisation goes through the browser of the person, thus Cloudflare Access
 can stay on it.

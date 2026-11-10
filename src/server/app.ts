@@ -42,6 +42,21 @@ import {
 const PUBLIC = ["/api/health", "/api/auth/"];
 
 /**
+ * The endpoints of OAuth that a client calls from its server, not from a
+ * browser.
+ *
+ * Claude sends the code and the refresh token as a form, with no header
+ * `Origin`. The middleware `csrf` refuses such a form. These endpoints read no
+ * cookie: the code with PKCE or the refresh token proves the client. Thus a
+ * form of an other site gains nothing here. Paragraph 4.7.2 of
+ * `docs/architecture.md` gives the flow.
+ */
+const OAUTH_CLIENT_ENDPOINTS = [
+	"/api/auth/oauth2/token",
+	"/api/auth/oauth2/revoke",
+];
+
+/**
  * The maximum quantity of accounts of one user.
  *
  * The sign-up is open, and `GET /api/potential` reads each account of the
@@ -126,7 +141,12 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 	 * status 401 from each origin. Paragraph 4.4 of `docs/architecture.md` gives
 	 * the rule.
 	 */
-	app.use("/api/*", csrf({ origin: origins }));
+	const refuseForeignForm = csrf({ origin: origins });
+	app.use("/api/*", (c, next) =>
+		OAUTH_CLIENT_ENDPOINTS.includes(c.req.path)
+			? next()
+			: refuseForeignForm(c, next),
+	);
 
 	/**
 	 * The limit of the size of a body, also on the routes of Better Auth.
@@ -147,6 +167,17 @@ export function createApp(db: Db, auth: Auth, origins: string[]) {
 	 * sign-out and the session. The library reads the request and writes the cookies.
 	 */
 	app.on(["GET", "POST"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
+	/**
+	 * The metadata of OAuth for the MCP server, at the root of the origin.
+	 *
+	 * RFC 8414 and RFC 9728 give these paths, thus they are not under `/api`,
+	 * and they need no session: a client reads them before the sign-in. The
+	 * plugin `mcp` of Better Auth writes the answer. An other path gives the
+	 * status 404 from the same handler. Paragraph 4.7.2 of
+	 * `docs/architecture.md` gives the flow.
+	 */
+	app.get("/.well-known/*", (c) => auth.handler(c.req.raw));
 
 	/**
 	 * The state of the application, for the `HEALTHCHECK` of the container.

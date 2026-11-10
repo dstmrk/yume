@@ -18,6 +18,7 @@ import { getAuthTables } from "better-auth/db";
 import { eq, getTableColumns, getTableName, is, sql, Table } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
+import { createAuth } from "../auth.ts";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
@@ -41,10 +42,20 @@ const tables = Object.entries(schema).filter(([, value]) =>
 	is(value, Table),
 ) as [string, Table][];
 
+/**
+ * The options of the instance of the application, with its plugins. The tables
+ * of the plugins of the MCP server are also models of Better Auth.
+ */
+const authOptions = createAuth(openDatabase(":memory:"), {
+	secret: "a-secret-for-the-test",
+	baseURL: "http://localhost:3000",
+	google: { clientId: "client-id-test", clientSecret: "client-secret-test" },
+}).options;
+
 describe("the tables of Better Auth", () => {
 	// The adapter reads `schema[model]`. Thus the name of the export must be the
 	// name of the model.
-	for (const [model, table] of Object.entries(getAuthTables({}))) {
+	for (const [model, table] of Object.entries(getAuthTables(authOptions))) {
 		it(`holds each field of the model ${model}`, () => {
 			const found = tables.find(([name]) => name === model);
 			expect(found, `schema.ts holds no export ${model}`).toBeDefined();
@@ -105,6 +116,64 @@ describe("the removal of a user", () => {
 
 		expect(db.select().from(schema.userAccount).all()).toEqual([]);
 		expect(db.select().from(schema.balanceSnapshot).all()).toEqual([]);
+	});
+
+	// Paragraph 4.7.2: the removal of an account also removes each token of the
+	// MCP server. Without the cascade, the foreign key refuses the removal of a
+	// user who connected an assistant.
+	it("removes the consents and the tokens of the MCP server", () => {
+		insertUser(db, "user-1");
+		const now = new Date();
+		db.insert(schema.oauthClient)
+			.values({
+				id: "client-row",
+				clientId: "https://claude.ai/oauth/claude-code-client-metadata",
+				redirectUris: JSON.stringify(["http://localhost/callback"]),
+			})
+			.run();
+		const clientId = "https://claude.ai/oauth/claude-code-client-metadata";
+		db.insert(schema.oauthConsent)
+			.values({
+				id: "consent",
+				clientId,
+				userId: "user-1",
+				scopes: JSON.stringify(["balances"]),
+				createdAt: now,
+				updatedAt: now,
+			})
+			.run();
+		db.insert(schema.oauthRefreshToken)
+			.values({
+				id: "refresh",
+				token: "hash-of-the-refresh-token",
+				clientId,
+				userId: "user-1",
+				scopes: JSON.stringify(["balances", "offline_access"]),
+				expiresAt: now,
+				createdAt: now,
+			})
+			.run();
+		db.insert(schema.oauthAccessToken)
+			.values({
+				id: "access",
+				token: "hash-of-the-access-token",
+				clientId,
+				userId: "user-1",
+				refreshId: "refresh",
+				scopes: JSON.stringify(["balances"]),
+				expiresAt: now,
+				createdAt: now,
+			})
+			.run();
+
+		db.delete(schema.user).where(eq(schema.user.id, "user-1")).run();
+
+		expect(db.select().from(schema.oauthConsent).all()).toEqual([]);
+		expect(db.select().from(schema.oauthRefreshToken).all()).toEqual([]);
+		expect(db.select().from(schema.oauthAccessToken).all()).toEqual([]);
+		// The client is not a datum of the user: Claude is one client for each
+		// user, because CIMD gives one URL to each of them.
+		expect(db.select().from(schema.oauthClient).all()).toHaveLength(1);
 	});
 });
 
@@ -377,5 +446,33 @@ describe("the migration of the level of the account", () => {
 			supporterUntil: null,
 			unlimited: false,
 		});
+	});
+});
+
+describe("the migration of the authorisation server", () => {
+	it("keeps the users and the balances of the version before", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: migrationsUntil("0011_account_tier") });
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
+		old.run(sql`insert into currency (id, code, name, kind)
+			values ('avios', 'AVIOS', 'Avios', 'airline')`);
+		old.run(sql`insert into program (id, currency_id, code, name, transferable)
+			values ('ba-club', 'avios', 'BA', 'British Airways Club', 0)`);
+		old.run(sql`insert into user_account (id, user_id, program_id)
+			values ('account-1', 'author', 'ba-club')`);
+		old.run(sql`insert into balance_snapshot (id, account_id, points, observed_at, created_at)
+			values ('snapshot-1', 'account-1', 1900, '2026-11-09', '2026-11-09T10:00:00.000Z')`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		expect(old.select().from(schema.user).all()).toHaveLength(1);
+		expect(currentBalances(old, "author")[0]).toMatchObject({
+			points: 1900,
+			observedAt: "2026-11-09",
+		});
+		expect(old.select().from(schema.oauthConsent).all()).toEqual([]);
 	});
 });
