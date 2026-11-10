@@ -498,13 +498,6 @@ the domain. The proxy of the TLS gives that header. The server gives no
 Content-Security-Policy: the public page holds JSON-LD inline, and a policy needs its own
 design.
 
-### 4.5 The peer dependency of Better Auth
-
-Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12, and the
-project holds the version 13. That peer is optional: the library imports it only with its
-own adapter of SQLite. This project uses the Drizzle adapter, thus Drizzle imports the
-module. An `overrides` in `package.json` gives the version of the project to npm.
-
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
