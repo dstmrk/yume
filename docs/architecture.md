@@ -287,6 +287,7 @@ field with that requirement, and not before it.
 
 ```
 -- Better Auth controls these tables: user, session, account, verification
+-- user also holds supporter_until? and unlimited. Refer to paragraph 4.6
 
 currency(id, code, name, kind)        -- 'airline' | 'flexible' | 'hotel' | 'rail'
 program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
@@ -501,16 +502,17 @@ module. An `overrides` in `package.json` gives the version of the project to npm
 
 ### 4.6 The supporter account
 
-Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. No code implements
-this decision now.
+Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
+2026-11-10, the unlimited account. The function of the level exists. No surface reads it
+now.
 
-The official instance gives two levels of account: the free account and the supporter
-account. The supporter account has one price: 9,99 euros for one year. No other plan
-exists.
+The official instance gives three levels of account: the free account, the supporter
+account and the unlimited account. The supporter account has one price: 9,99 euros for
+one year. No other plan exists.
 
 **The free account holds these limits:**
 
-| Item | Free account | Supporter account |
+| Item | Free account | Supporter account and unlimited account |
 |---|---|---|
 | Amex and Revolut | No limit | No limit |
 | Each other source, for example Klarna or a hotel programme | Not available | No limit |
@@ -544,15 +546,37 @@ transfer of points is permanent.
 A variable of the environment activates the limits, and the default value is no limit.
 Thus a self-hosted installation keeps each function.
 
-The table `user` receives the date of the end of the supporter account. A pure function
-in `src/shared/` reads that date, the accounts of the user and the catalogue. It gives
-the operations that the user can do. Each surface reads that function, and the
-application holds no other rule of the payment.
+**The unlimited account has no payment.** The administrator gives it by hand, for
+example to a member of the family. It gives each function of the supporter account, and
+it has no end.
+
+**The database keeps two sources, not the level.** The table `user` receives two columns:
+
+| Column | Writer | Value |
+|---|---|---|
+| `supporter_until` | The payment only | The end of the supporter account, or null |
+| `unlimited` | The administrator only | A flag. The default value is false. |
+
+`accountTier` of `src/shared/tier.ts` gives the level from the two columns and the clock.
+The flag comes first, then the date, then the free account. The supporter account stops
+at the exact instant of `supporter_until`. One column with the level is not possible: a
+level `supporter` with a date in the past gives two values that do not agree. With two
+columns, the payment cannot remove an unlimited account.
+
+Better Auth does not know the two columns. Its route `update-user` writes only the
+fields that it knows, thus a user cannot write the level. A test of `auth.test.ts` makes
+this rule mechanical.
+
+A second pure function in `src/shared/` reads the level, the accounts of the user and the
+catalogue. It gives the operations that the user can do. Each surface reads that
+function, and the application holds no other rule of the payment.
 
 These items are open:
 
 - The payment service.
 - The name of the variable of the environment.
+- The function of the operations that the user can do.
+- A command that writes the flag `unlimited`. Now the administrator writes it with SQL.
 
 ## 5. User interface
 

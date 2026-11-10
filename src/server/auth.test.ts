@@ -1,7 +1,7 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
-import { insertUser } from "./db/fixtures.ts";
+import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { deleteExpired } from "./db/queries.ts";
 import { account, session, user, verification } from "./db/schema.ts";
@@ -168,6 +168,14 @@ describe("the callback of Google", () => {
 		expect(users.map((row) => row.email)).toEqual(["primo@example.com"]);
 		const accounts = db.select().from(account).all();
 		expect(accounts.map((row) => row.providerId)).toEqual(["google"]);
+	});
+
+	it("makes a free account at the first sign-in", async () => {
+		await signInWithGoogle("google-1", "primo@example.com");
+
+		const [row] = db.select().from(user).all();
+		expect(row?.supporterUntil).toBeNull();
+		expect(row?.unlimited).toBe(false);
 	});
 
 	// Google can add the name and the photo to the token, for example for an
@@ -342,6 +350,42 @@ describe("the email address and the password", () => {
 		);
 
 		expect(response.status).not.toBe(200);
+	});
+});
+
+// Better Auth does not know the two columns of the level of the account,
+// thus its route `update-user` must not write them. A user who writes
+// `unlimited` gets each function of the supporter account with no payment.
+// Paragraph 4.6 of `docs/architecture.md` gives the decision.
+describe("the level of the account", () => {
+	it("cannot change through the route update-user", async () => {
+		const userId = insertUser(db, "user-1");
+		const cookie = await sessionCookie(auth, userId);
+
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/update-user`, {
+				method: "POST",
+				headers: {
+					"content-type": "application/json",
+					origin: BASE_URL,
+					cookie,
+				},
+				body: JSON.stringify({
+					unlimited: true,
+					supporterUntil: "2099-01-01T00:00:00Z",
+				}),
+			}),
+		);
+
+		// The session is valid and Better Auth removes the two fields. Thus it
+		// finds no field to write.
+		expect(response.status).toBe(400);
+		expect(await response.json()).toMatchObject({
+			message: "No fields to update",
+		});
+		const [row] = db.select().from(user).all();
+		expect(row?.unlimited).toBe(false);
+		expect(row?.supporterUntil).toBeNull();
 	});
 });
 

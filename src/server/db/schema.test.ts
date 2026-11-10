@@ -243,7 +243,9 @@ describe("the migration that adds the moment of the write", () => {
 			migrationsFolder: migrationsUntil("0007_drop_google_profile"),
 		});
 		seedCatalogue(old);
-		insertUser(old, "author");
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
 		const accountId = createAccount(old, {
 			userId: "author",
 			programId: "amex-mr",
@@ -348,5 +350,32 @@ describe("the migration that removes the tokens of Google", () => {
 			refreshTokenExpiresAt: null,
 		});
 		expect(old.select().from(schema.user).all()).toHaveLength(1);
+	});
+});
+
+/**
+ * The migration 0011 adds the two columns of the level of the account to a
+ * table `user` with rows. A test on an empty database does not find a
+ * defect of `ADD ... NOT NULL`. Paragraph 4.6 of `docs/architecture.md`
+ * gives the decision.
+ */
+describe("the migration of the level of the account", () => {
+	it("gives a free account to each user of the version before", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: migrationsUntil("0010_expiry_lot") });
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		const rows = old.select().from(schema.user).all();
+		expect(rows).toHaveLength(1);
+		expect(rows[0]).toMatchObject({
+			id: "author",
+			supporterUntil: null,
+			unlimited: false,
+		});
 	});
 });
