@@ -586,7 +586,8 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **proposed**. Date: 2026-11-10. No code implements this decision now.
+Status: **accepted**. Date: 2026-11-10. The code implements sub-task 1 of paragraph 4.7.5
+only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
 agent, for example Claude or Claude Code, to that server. The agent then reads the
@@ -632,7 +633,8 @@ These plugins of Better Auth do the work:
 | `cimd` | `@better-auth/cimd` | It reads the Client ID Metadata Document of the client. |
 
 The plugin `mcp` needs `better-auth` 1.7.19 or a later version. The project holds the
-version 1.7.12, thus the work starts with an update.
+version 1.7.20. Keep `better-auth` and each package `@better-auth/*` at the same version:
+the plugins declare the core with a peer range.
 
 **The registration of a client uses CIMD only.** The client gives a URL as its
 `client_id`, and the server reads the metadata at that URL. Claude and Claude Code both
