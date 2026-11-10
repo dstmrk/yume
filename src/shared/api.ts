@@ -10,11 +10,30 @@ import { z } from "zod";
 import type { Currency, Program } from "./catalogue.ts";
 import type { PotentialMiles } from "./potential.ts";
 
-/** A date in the ISO 8601 format, for example `2026-08-11`. */
+/**
+ * A date in the ISO 8601 format, for example `2026-08-11`.
+ *
+ * `Date.parse` is not sufficient: V8 accepts a day up to 31 in each month, and
+ * `2026-02-30` gives 2 March. Thus the schema makes the date in UTC from its
+ * three parts and compares the result with those parts.
+ */
 export const isoDateSchema = z
 	.string()
 	.regex(/^\d{4}-\d{2}-\d{2}$/)
-	.refine((value) => !Number.isNaN(Date.parse(value)));
+	.refine((value) => {
+		// The regular expression gives three parts.
+		const [year, month, day] = value.split("-").map(Number) as [
+			number,
+			number,
+			number,
+		];
+		const date = new Date(Date.UTC(year, month - 1, day));
+		return (
+			date.getUTCFullYear() === year &&
+			date.getUTCMonth() === month - 1 &&
+			date.getUTCDate() === day
+		);
+	});
 
 export const createAccountSchema = z.object({
 	programId: z.string().min(1),
