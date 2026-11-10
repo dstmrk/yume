@@ -26,13 +26,14 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { AdminPage } from "./AdminPage.tsx";
 import { AppShell } from "./AppShell.tsx";
 import { ConsentPage } from "./ConsentPage.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
-import { fetchSession } from "./lib/api.ts";
+import { fetchMe, fetchSession } from "./lib/api.ts";
 import { loginErrorOf } from "./lib/auth.ts";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 
@@ -69,6 +70,24 @@ const dashboardRoute = createRoute({
 		}
 	},
 	component: Dashboard,
+});
+
+// The page of the administrator. Each other user reads the dashboard. The
+// server gives the status 404 to the routes of the data, thus this redirect
+// only hides a page with no data. Paragraph 4.8 of `docs/architecture.md`.
+const adminRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/admin",
+	beforeLoad: async () => {
+		if ((await fetchSession()) === null) {
+			throw redirect({ to: "/login" });
+		}
+		const me = await fetchMe().catch(() => null);
+		if (me?.admin !== true) {
+			throw redirect({ to: "/dashboard" });
+		}
+	},
+	component: AdminPage,
 });
 
 const loginRoute = createRoute({
@@ -119,6 +138,7 @@ const tosRoute = createRoute({
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
+	adminRoute,
 	loginRoute,
 	consentRoute,
 	privacyRoute,

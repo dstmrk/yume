@@ -1,9 +1,11 @@
 import type {
 	AccountsResponse,
 	AddSnapshotInput,
+	AdminUsersResponse,
 	CatalogueResponse,
 	CreateAccountInput,
 	FavoritesResponse,
+	MeResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
 import type { GoogleSignInBody } from "./auth.ts";
@@ -206,5 +208,27 @@ export function deleteSnapshot(
 	return request(
 		"DELETE",
 		`/api/accounts/${encodeURIComponent(accountId)}/snapshots/${encodeURIComponent(snapshotId)}`,
+	);
+}
+
+/** Gives if the user of the session is the administrator. */
+export function fetchMe(): Promise<MeResponse> {
+	return request<MeResponse>("GET", "/api/me");
+}
+
+/** Each user of the instance. Only the administrator receives the list. */
+export function fetchAdminUsers(): Promise<AdminUsersResponse> {
+	return request<AdminUsersResponse>("GET", "/api/admin/users");
+}
+
+/** Writes the flag `unlimited` of a user. Only the administrator can. */
+export function setUnlimited(
+	userId: string,
+	unlimited: boolean,
+): Promise<void> {
+	return request(
+		"PUT",
+		`/api/admin/users/${encodeURIComponent(userId)}/unlimited`,
+		{ unlimited },
 	);
 }

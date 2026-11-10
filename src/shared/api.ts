@@ -9,6 +9,7 @@
 import { z } from "zod";
 import type { Currency, Program } from "./catalogue.ts";
 import type { PotentialMiles } from "./potential.ts";
+import type { AccountTier } from "./tier.ts";
 
 /**
  * A date in the ISO 8601 format, for example `2026-08-11`.
@@ -116,6 +117,15 @@ export const createAccountSchema = z.object({
  */
 export const TOO_MANY_ACCOUNTS = "too_many_accounts";
 
+/**
+ * The body of `PUT /api/admin/users/:id/unlimited`.
+ *
+ * The schema is strict: the administrator writes the flag only. The payment
+ * writes `supporterUntil`. Paragraph 4.6 of `docs/architecture.md` gives the
+ * two writers.
+ */
+export const setUnlimitedSchema = z.strictObject({ unlimited: z.boolean() });
+
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
 export type ExpiryLot = z.infer<typeof expiryLotSchema>;
@@ -169,4 +179,33 @@ export type PotentialResponse = {
 	/** The date of the calculation. A rule has versions. */
 	at: string;
 	potential: PotentialMiles[];
+};
+
+/**
+ * The user of the session. `admin` is true for the address of `ADMIN_EMAIL`
+ * only. The client shows the link of the page of the administrator with it.
+ */
+export type MeResponse = {
+	admin: boolean;
+};
+
+/**
+ * One user of the instance, for the administrator. The row holds no account,
+ * no balance and no programme. Paragraph 4.8 of `docs/architecture.md` gives the rule.
+ */
+export type AdminUser = {
+	id: string;
+	email: string;
+	/** The instant of the first sign-in, in the ISO 8601 format. */
+	createdAt: string;
+	/** The level at the clock of the server. */
+	tier: AccountTier;
+	/** The end of the supporter account, in the ISO 8601 format, or null. */
+	supporterUntil: string | null;
+	unlimited: boolean;
+};
+
+export type AdminUsersResponse = {
+	/** The newest user first. */
+	users: AdminUser[];
 };

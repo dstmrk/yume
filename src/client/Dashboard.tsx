@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { useState } from "react";
 import type {
 	AccountRow,
@@ -15,13 +15,14 @@ import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
-import { Button } from "./components/ui/button.tsx";
+import { Button, buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
 import {
 	fetchAccounts,
 	fetchCatalogue,
 	fetchFavorites,
+	fetchMe,
 	fetchPotential,
 	setFavorite,
 	signOut,
@@ -153,6 +154,7 @@ export function Dashboard() {
 					currencies={catalogue.data.currencies}
 					defaultOpen
 				/>
+				<AdminLink />
 				<SignOutButton />
 			</div>
 		);
@@ -258,8 +260,28 @@ export function Dashboard() {
 				programs={catalogue.data.programs}
 				currencies={catalogue.data.currencies}
 			/>
+			<AdminLink />
 			<SignOutButton />
 		</div>
+	);
+}
+
+/**
+ * The link to the page of the administrator. Only the administrator sees it.
+ *
+ * The link is not the protection: the server gives the status 404 to each
+ * other user. An error of the request shows no link and stops no page.
+ */
+function AdminLink() {
+	const { t: text } = useI18n();
+	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+	if (me.data?.admin !== true) {
+		return null;
+	}
+	return (
+		<Link to="/admin" className={buttonVariants({ variant: "outline" })}>
+			{text.adminLink}
+		</Link>
 	);
 }
 

@@ -6,6 +6,7 @@ import {
 	fetchOAuthClientName,
 	sendConsent,
 	setFavorite,
+	setUnlimited,
 } from "./api.ts";
 import { ApiError } from "./errors.ts";
 
@@ -80,6 +81,16 @@ describe("the client of the API", () => {
 		await setFavorite("avios", false);
 		expect(fetch).toHaveBeenLastCalledWith("/api/favorites/avios", {
 			method: "DELETE",
+		});
+	});
+
+	it("sends the flag unlimited of a user as JSON", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		await setUnlimited("a/b", true);
+		expect(fetch).toHaveBeenLastCalledWith("/api/admin/users/a%2Fb/unlimited", {
+			method: "PUT",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ unlimited: true }),
 		});
 	});
 

@@ -174,6 +174,27 @@ export const it = {
 	signInError: "Accesso con Google non riuscito.",
 	signOut: "Esci",
 
+	// The page of the administrator. Paragraph 4.8 of `docs/architecture.md`.
+	// The names of the levels are the names of the plans.
+	adminLink: "Amministrazione",
+	adminTitle: "Utenti",
+	adminTotal: "Totale",
+	adminRecent: "Ultimi 30 giorni",
+	adminSearch: "Cerca per email",
+	adminAll: "Tutti",
+	adminEmail: "Email",
+	adminJoined: "Iscrizione",
+	adminTier: "Piano",
+	adminSupporterUntil: "fino al",
+	adminNoMatch: "Nessun utente.",
+	adminPrevious: "Pagina precedente",
+	adminNext: "Pagina successiva",
+	adminUpdateError: "Modifica non riuscita.",
+	adminBack: "Torna al tabellone",
+	tierFree: "Free",
+	tierSupporter: "Supporter",
+	tierUnlimited: "Unlimited",
+
 	// The page `/consent`: the authorisation of an assistant, for example
 	// Claude, on the MCP server. Paragraph 4.7.2 of `docs/architecture.md`.
 	consent: {

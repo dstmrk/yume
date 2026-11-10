@@ -430,6 +430,8 @@ the author makes a new account with Google. No code keeps the old path.
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
+| `FREE_ACCOUNT_LIMITS` | `true` activates the limits of the free account. No value or `false` gives no limit. Each other value gives an error. Refer to paragraph 4.6. |
+| `ADMIN_EMAIL` | The email address of the administrator. With no value, the installation has no administrator. Refer to paragraph 4.8. |
 
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
@@ -450,7 +452,7 @@ The machine itself is the exception: a browser accepts a `secure` cookie from
 `npm run dev:server` needs no certificate. A value that the function cannot read gives
 the attribute: a defect in the variable must not remove the protection.
 
-The file `.env.example` holds the four variables of Docker Compose, with no value. Copy
+The file `.env.example` holds the five variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
 the origin of the client of Vite for development. The two variables of Google need a
@@ -476,7 +478,8 @@ header `Origin`, and the middleware refuses such a form. Those two endpoints rea
 cookie: the code with PKCE or the refresh token proves the client.
 
 Each route of the data reads the user with `c.get("userId")`. The application holds no
-user with a fixed value.
+user with a fixed value. The routes under `/api/admin/` also need the administrator of
+paragraph 4.8.
 
 The sign-up is open, thus two constants of `src/server/app.ts` limit each user. They are
 technical ceilings, not the commercial limits of paragraph 4.6:
@@ -506,8 +509,8 @@ design.
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
-2026-11-10, the unlimited account. The function of the level exists. No surface reads it
-now.
+2026-11-10, the unlimited account and the variable of the environment. The page of the
+administrator of paragraph 4.8 reads the level. No surface reads the limits now.
 
 The official instance gives three levels of account: the free account, the supporter
 account and the unlimited account. The supporter account has one price: 9,99 euros for
@@ -547,12 +550,15 @@ account above the limit. A hidden account gives a potential that is too low, and
 transfer of points is permanent.
 
 **The limits apply to the official instance only.** The code is under the licence MIT.
-A variable of the environment activates the limits, and the default value is no limit.
-Thus a self-hosted installation keeps each function.
+The variable `FREE_ACCOUNT_LIMITS` activates the limits, and the default value is no
+limit. Thus a self-hosted installation keeps each function. `compose.yaml` does not hold
+the variable. `parseFreeAccountLimits` accepts `true` and `false` only. Each other value
+gives an error, because a defect in the variable of the official instance otherwise
+opens each function to each user.
 
 **The unlimited account has no payment.** The administrator gives it by hand, for
 example to a member of the family. It gives each function of the supporter account, and
-it has no end.
+it has no end. The page of the administrator of paragraph 4.8 writes the flag.
 
 **The database keeps two sources, not the level.** The table `user` receives two columns:
 
@@ -571,16 +577,20 @@ Better Auth does not know the two columns. Its route `update-user` writes only t
 fields that it knows, thus a user cannot write the level. A test of `auth.test.ts` makes
 this rule mechanical.
 
-A second pure function in `src/shared/` reads the level, the accounts of the user and the
-catalogue. It gives the operations that the user can do. Each surface reads that
-function, and the application holds no other rule of the payment.
+Two more pure functions of `src/shared/tier.ts` give the operations that the user can do.
+Each surface reads them, and the application holds no other rule of the payment:
+
+- `canAddAccount` reads the level, the variable, the programmes of the accounts of the
+  user and the catalogue. It examines a new account only.
+- `canWriteExpiryLots` reads the level and the variable.
+
+`FREE_SOURCES` of the same file holds Amex and Revolut. The catalogue does not hold that
+list: it is a rule of the payment, not a fact of a programme. A second account in a
+programme that the user holds uses no new place.
 
 These items are open:
 
 - The payment service.
-- The name of the variable of the environment.
-- The function of the operations that the user can do.
-- A command that writes the flag `unlimited`. Now the administrator writes it with SQL.
 
 ### 4.7 The MCP server
 
@@ -858,6 +868,68 @@ These items are open:
 - A surface that shows the clients with access and that removes their tokens. Without
   it, a person removes the access only with the removal of the account. Issue #97 gives
   the work.
+
+### 4.8 The administrator
+
+Status: **accepted**. Date: 2026-11-10.
+
+The official instance has one administrator. The administrator reads the list of the
+users and gives or removes the unlimited account of paragraph 4.6.
+
+**The variable `ADMIN_EMAIL` gives the administrator.** It holds one email address. The
+database holds no role. A defect that writes the table `user` then cannot make an
+administrator. To change the administrator, a person needs the access to the server.
+
+`isAdmin` of `src/server/admin.ts` compares the address of the session with that value.
+The comparison ignores the case and the spaces at the two ends. The address must be
+verified: Google verifies it, and a future provider can give an address that no one
+verified. With no value, the installation has no administrator. Thus a self-hosted
+installation shows no page of the administrator.
+
+Better Auth has the plugin `admin`. Yume does not use it. The plugin adds the roles, the
+ban and the impersonation, with four columns in `user` and one in `session`. The
+impersonation gives the administrator the balances of an other person, and Yume needs
+none of those functions.
+
+**The routes.** The middleware of the session writes `admin` in the context of Hono.
+
+| Route | Effect |
+|---|---|
+| `GET /api/me` | It gives `admin`, true or false. Each user with a session reads it. |
+| `GET /api/admin/users` | It gives each user, the newest first. |
+| `PUT /api/admin/users/:id/unlimited` | It writes the flag `unlimited` of a user. |
+
+A middleware on `/api/admin/*` gives the status 404 with `not_found` to each user that is
+not the administrator. A path that does not exist gives the same answer. Thus no answer
+says that these routes exist. The middleware of the session comes first, thus a request
+with no session gets the status 401.
+
+**The administrator writes the flag only.** The schema of the body of the `PUT` is
+strict and holds `unlimited` only. `supporter_until` keeps one writer, the payment.
+Paragraph 4.6 gives the two writers.
+
+**The list holds no balance.** Each row holds the address, the date of the first
+sign-in, the level, the end of the supporter account and the flag. The row holds no
+account, no balance and no programme. The GDPR asks for the minimum of data
+(art. 5(1)(c)).
+
+**The page.** The client shows the page `/admin`. The dashboard shows a link to it only
+when `GET /api/me` gives true. The route sends each other user to the dashboard. That
+link and that redirect are not the protection: the server gives the protection.
+
+The page shows the users in the `Table` of shadcn/ui. The columns are the email, the
+date of the first sign-in, the level and a `Switch` for the flag. The date column is not
+visible below 768 pixels, and the table scrolls horizontally in its container.
+
+The header of the table holds two filters: a text for a part of the email, and four
+buttons for the level. A change of a filter goes back to the first page. The table shows
+20 rows on each page.
+
+The client filters and divides the list. `filterUsers` and `pageOf` of
+`src/client/lib/admin.ts` are pure functions with tests. The project uses no
+`@tanstack/react-table`: that library keeps the logic in a hook of the component, and
+the project has no test of a component. The server gives each user in one answer. Add
+a pagination on the server when the quantity of users makes that answer slow.
 
 ## 5. User interface
 
@@ -1165,10 +1237,10 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds six routes: `/` for the public page, `/dashboard` for the dashboard,
+The client holds seven routes: `/` for the public page, `/dashboard` for the dashboard,
 `/login` for the access, `/consent` for the authorisation of an assistant (paragraph
-4.7.2), `/privacy` for the policy of the personal data and `/tos` for the terms of the
-service. The two legal pages are public: Google asks for their
+4.7.2), `/admin` for the administrator (paragraph 4.8), `/privacy` for the policy of the
+personal data and `/tos` for the terms of the service. The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
 from the dictionary, and `robots.txt` does not block them. The build writes a static
 page for each one, with its own title and canonical address. The check of Google reads
@@ -1598,6 +1670,7 @@ yume/
       fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the provider Google
+      admin.ts         # the administrator of ADMIN_EMAIL
       mcp.ts           # the MCP server and its tools
       operations.ts    # the examinations that the routes and the tools share
       db/schema.ts     # the Drizzle tables, with the Better Auth tables

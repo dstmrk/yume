@@ -19,6 +19,7 @@ import { type Locale, routing } from "./locale.ts";
 
 export const CLIENT_PATHS = [
 	"/",
+	"/admin",
 	"/dashboard",
 	"/login",
 	"/consent",
