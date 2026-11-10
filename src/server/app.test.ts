@@ -695,6 +695,64 @@ describe("POST /api/accounts/:id/snapshots", () => {
 	});
 });
 
+describe("the expiry lots of a snapshot", () => {
+	it("writes the lots and gives them with the balance", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 10000,
+			observedAt: "2026-08-11",
+			lots: [{ points: 4000, expiresOn: "2027-03-31" }],
+		});
+		expect(response.status).toBe(201);
+
+		const body = await getJson<{ accounts: unknown[] }>("/api/accounts");
+		expect(body.accounts).toMatchObject([
+			{ points: 10000, lots: [{ points: 4000, expiresOn: "2027-03-31" }] },
+		]);
+	});
+
+	it("refuses lots above the balance, and writes no row", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 100,
+			observedAt: "2026-08-11",
+			lots: [{ points: 101, expiresOn: "2027-03-31" }],
+		});
+		expect(response.status).toBe(400);
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	// The schema refuses two lots of one date before the database. Thus the
+	// answer is 400, not 500.
+	it("refuses two lots with the same date with the status 400", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const response = await post(`/api/accounts/${account}/snapshots`, {
+			points: 100,
+			observedAt: "2026-08-11",
+			lots: [
+				{ points: 10, expiresOn: "2027-03-31" },
+				{ points: 10, expiresOn: "2027-03-31" },
+			],
+		});
+		expect(response.status).toBe(400);
+	});
+
+	it("writes the lots of the first balance of a new account", async () => {
+		const response = await post("/api/accounts", {
+			programId: "ba-club",
+			snapshot: {
+				points: 100,
+				observedAt: "2026-08-11",
+				lots: [{ points: 100, expiresOn: "2026-12-31" }],
+			},
+		});
+		expect(response.status).toBe(201);
+		expect(currentBalances(db, userId)[0]?.lots).toEqual([
+			{ points: 100, expiresOn: "2026-12-31" },
+		]);
+	});
+});
+
 describe("GET /api/accounts", () => {
 	it("gives the account with its current balance", async () => {
 		const account = createAccount(db, {

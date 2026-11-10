@@ -35,11 +35,69 @@ export const isoDateSchema = z
 		);
 	});
 
-export const addSnapshotSchema = z.object({
-	/** Points are integers and no balance is below 0. */
-	points: z.number().int().min(0),
-	observedAt: isoDateSchema,
+/**
+ * The maximum quantity of expiry lots of one snapshot.
+ *
+ * A programme shows some dates of expiry, not one date for each month of ten
+ * years. The limit keeps the body below `MAX_BODY_BYTES` of the server.
+ */
+export const MAX_EXPIRY_LOTS = 50;
+
+/**
+ * A quantity of points of a balance that expires at a date.
+ *
+ * The point is the smallest unit, but the database keeps one row for one date,
+ * not one row for one point. Paragraph 3.2.1 of `docs/architecture.md` gives
+ * the model.
+ */
+export const expiryLotSchema = z.object({
+	points: z.number().int().min(1),
+	expiresOn: isoDateSchema,
 });
+
+/**
+ * A snapshot of the balance, with its expiry lots.
+ *
+ * The lots are not necessary, and they can hold a part of the balance only.
+ * The schema refuses these lots:
+ *
+ * - lots with a sum above the balance;
+ * - two lots with the same date;
+ * - a lot that expires before the date of the balance. That lot is not in the
+ *   balance.
+ */
+export const addSnapshotSchema = z
+	.object({
+		/** Points are integers and no balance is below 0. */
+		points: z.number().int().min(0),
+		observedAt: isoDateSchema,
+		lots: z.array(expiryLotSchema).max(MAX_EXPIRY_LOTS).optional(),
+	})
+	.superRefine((snapshot, context) => {
+		const lots = snapshot.lots ?? [];
+		const sum = lots.reduce((total, lot) => total + lot.points, 0);
+		if (sum > snapshot.points) {
+			context.addIssue({
+				code: "custom",
+				path: ["lots"],
+				message: "The lots are above the balance.",
+			});
+		}
+		if (new Set(lots.map((lot) => lot.expiresOn)).size !== lots.length) {
+			context.addIssue({
+				code: "custom",
+				path: ["lots"],
+				message: "Two lots hold the same date.",
+			});
+		}
+		if (lots.some((lot) => lot.expiresOn < snapshot.observedAt)) {
+			context.addIssue({
+				code: "custom",
+				path: ["lots"],
+				message: "A lot expires before the date of the balance.",
+			});
+		}
+	});
 
 /**
  * A new account. `snapshot` is the first balance, and it is not necessary.
@@ -60,6 +118,7 @@ export const TOO_MANY_ACCOUNTS = "too_many_accounts";
 
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
+export type ExpiryLot = z.infer<typeof expiryLotSchema>;
 
 /**
  * The shapes of the answers of the API. The server gives these types to its
@@ -80,6 +139,11 @@ export type AccountRow = {
 	/** It is null when the account has no snapshot. */
 	points: number | null;
 	observedAt: string | null;
+	/**
+	 * The expiry lots of the most recent snapshot, in the order of the date. The
+	 * list is empty when the account has no snapshot.
+	 */
+	lots: ExpiryLot[];
 };
 
 export type CatalogueResponse = {

@@ -1,9 +1,10 @@
-import { and, asc, eq, lt, sql } from "drizzle-orm";
-import type { AccountRow } from "../../shared/api.ts";
+import { and, asc, eq, inArray, lt, sql } from "drizzle-orm";
+import type { AccountRow, ExpiryLot } from "../../shared/api.ts";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
 	currency,
+	expiryLot,
 	favoriteCurrency,
 	program,
 	session,
@@ -22,7 +23,7 @@ import {
  * Paragraph 3.2 of `docs/architecture.md` gives the reason.
  */
 export function currentBalances(db: Db, userId: string): AccountRow[] {
-	return db
+	const rows = db
 		.select({
 			accountId: userAccount.id,
 			programId: userAccount.programId,
@@ -44,6 +45,41 @@ export function currentBalances(db: Db, userId: string): AccountRow[] {
 		.where(eq(userAccount.userId, userId))
 		.orderBy(asc(userAccount.id))
 		.all();
+
+	const lots = lotsOf(
+		db,
+		rows.flatMap((row) => (row.snapshotId === null ? [] : [row.snapshotId])),
+	);
+	return rows.map((row) => ({
+		...row,
+		lots:
+			(row.snapshotId === null ? undefined : lots.get(row.snapshotId)) ?? [],
+	}));
+}
+
+/**
+ * Gives the expiry lots of each snapshot, in the order of the date.
+ *
+ * The user holds a maximum of `MAX_ACCOUNTS_PER_USER` accounts, thus the list
+ * of the ids stays below the limit of the parameters of SQLite.
+ */
+function lotsOf(db: Db, snapshotIds: string[]): Map<string, ExpiryLot[]> {
+	const result = new Map<string, ExpiryLot[]>();
+	if (snapshotIds.length === 0) {
+		return result;
+	}
+	const rows = db
+		.select()
+		.from(expiryLot)
+		.where(inArray(expiryLot.snapshotId, snapshotIds))
+		.orderBy(asc(expiryLot.expiresOn))
+		.all();
+	for (const row of rows) {
+		const list = result.get(row.snapshotId) ?? [];
+		list.push({ points: row.points, expiresOn: row.expiresOn });
+		result.set(row.snapshotId, list);
+	}
+	return result;
 }
 
 /**
@@ -107,7 +143,7 @@ export function createAccount(
 	input: {
 		userId: string;
 		programId: string;
-		snapshot?: { points: number; observedAt: string };
+		snapshot?: { points: number; observedAt: string; lots?: ExpiryLot[] };
 	},
 ): string {
 	const id = crypto.randomUUID();
@@ -218,28 +254,41 @@ export function removeFavorite(
 /**
  * Adds a snapshot of the balance. It gives the id of the new snapshot.
  *
+ * The snapshot and its expiry lots are one transaction: a lot that the
+ * database refuses leaves no snapshot. The function does not examine the sum
+ * of the lots: `addSnapshotSchema` of `src/shared/api.ts` does that.
+ *
  * The database keeps each snapshot. It keeps no record of the changes. The
  * column `created_at` receives the moment of the write, thus this snapshot
  * comes after each snapshot of the same date.
  */
 export function addSnapshot(
-	db: Pick<Db, "insert">,
+	db: Pick<Db, "transaction">,
 	input: {
 		accountId: string;
 		points: number;
 		observedAt: string;
+		lots?: ExpiryLot[];
 	},
 ): string {
 	const id = crypto.randomUUID();
-	db.insert(balanceSnapshot)
-		.values({
-			id,
-			accountId: input.accountId,
-			points: input.points,
-			observedAt: input.observedAt,
-			createdAt: new Date().toISOString(),
-		})
-		.run();
+	const lots = input.lots ?? [];
+	db.transaction((tx) => {
+		tx.insert(balanceSnapshot)
+			.values({
+				id,
+				accountId: input.accountId,
+				points: input.points,
+				observedAt: input.observedAt,
+				createdAt: new Date().toISOString(),
+			})
+			.run();
+		if (lots.length > 0) {
+			tx.insert(expiryLot)
+				.values(lots.map((lot) => ({ snapshotId: id, ...lot })))
+				.run();
+		}
+	});
 	return id;
 }
 

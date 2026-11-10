@@ -230,3 +230,26 @@ export const balanceSnapshot = sqliteTable(
 		),
 	],
 );
+
+/**
+ * A quantity of points of a snapshot that expires at a date.
+ *
+ * The lots belong to the snapshot, not to the account. A new balance then
+ * holds its own lots, and the sum of the lots stays below the balance of the
+ * same snapshot. The schema of the API examines that sum. Paragraph 3.2.1 of
+ * `docs/architecture.md` gives the reason.
+ *
+ * The key is the pair of the snapshot and the date: one snapshot holds one lot
+ * for one date. The column `expires_on` holds a date with no time.
+ */
+export const expiryLot = sqliteTable(
+	"expiry_lot",
+	{
+		snapshotId: text("snapshot_id")
+			.notNull()
+			.references(() => balanceSnapshot.id, { onDelete: "cascade" }),
+		expiresOn: text("expires_on").notNull(),
+		points: integer("points").notNull(),
+	},
+	(table) => [primaryKey({ columns: [table.snapshotId, table.expiresOn] })],
+);
