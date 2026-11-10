@@ -39,6 +39,14 @@ export const user = sqliteTable("user", {
 	image: text("image"),
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+	/**
+	 * The end of the supporter account. Only the payment writes it. Better Auth
+	 * does not know these two columns, and the default values fill them at the
+	 * sign-in. `accountTier` of `src/shared/tier.ts` reads them.
+	 */
+	supporterUntil: integer("supporter_until", { mode: "timestamp" }),
+	/** The administrator writes this flag by hand. Paragraph 4.6. */
+	unlimited: integer("unlimited", { mode: "boolean" }).notNull().default(false),
 });
 
 /** A session of a user. Better Auth controls this table. */

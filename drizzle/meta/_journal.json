@@ -78,6 +78,13 @@
       "when": 1794331247010,
       "tag": "0010_expiry_lot",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1794331975615,
+      "tag": "0011_account_tier",
+      "breakpoints": true
     }
   ]
 }
