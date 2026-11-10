@@ -141,15 +141,12 @@ describe("potentialMiles", () => {
 		);
 	});
 
-	it("selects the smallest minimum when two routes give the same result", () => {
-		// 2 000 points give 1 600 Avios through The British Airways Club and 1 600
-		// Avios through Iberia Club. The two results are equal, thus the choice
-		// falls on the route with the smallest minimum. That route also operates
-		// with a balance that is smaller.
+	// 2 000 points give 1 600 Avios through each of the two programmes. The
+	// calculation selects no programme: the card shows the two results.
+	it("keeps both programmes when they give the same result", () => {
 		expect(avios([{ programId: "amex-mr", points: 2000 }]).routes).toEqual([
 			{
 				fromProgramId: "amex-mr",
-				toProgramId: "iberia-club",
 				points: 1600,
 				options: [
 					{ toProgramId: "ba-club", points: 1600 },
@@ -230,7 +227,7 @@ describe("potentialMiles", () => {
 		});
 	});
 
-	it("names the programme of the best route of each source", () => {
+	it("gives the route of each source", () => {
 		const result = avios([
 			{ programId: "ba-club", points: 1000 },
 			{ programId: "amex-mr", points: 700 },
@@ -239,7 +236,6 @@ describe("potentialMiles", () => {
 		expect(result.routes).toEqual([
 			{
 				fromProgramId: "amex-mr",
-				toProgramId: "iberia-club",
 				points: 400,
 				options: [
 					{ toProgramId: "ba-club", points: 0 },
@@ -248,11 +244,68 @@ describe("potentialMiles", () => {
 			},
 			{
 				fromProgramId: "revolut",
-				toProgramId: "ba-club",
 				points: 250,
 				options: [{ toProgramId: "ba-club", points: 250 }],
 			},
 		]);
+	});
+
+	// Each account converts alone. Two accounts of 700 points give 400 Avios each
+	// through Iberia Club, and 0 through The British Airways Club: the minimum of
+	// 800 does not apply to the sum.
+	it("gives one route for the accounts of one source programme", () => {
+		const result = avios([
+			{ programId: "amex-mr", points: 700 },
+			{ programId: "amex-mr", points: 700 },
+		]);
+		expect(result.fromTransfers).toBe(800);
+		expect(result.routes).toEqual([
+			{
+				fromProgramId: "amex-mr",
+				points: 800,
+				options: [
+					{ toProgramId: "ba-club", points: 0 },
+					{ toProgramId: "iberia-club", points: 800 },
+				],
+			},
+		]);
+	});
+
+	// 700 points give 400 through Iberia Club. 900 points give 640 through The
+	// British Airways Club. Each account sends its points to its best programme.
+	it("adds the best result of each account of one programme", () => {
+		const [route] = avios([
+			{ programId: "amex-mr", points: 700 },
+			{ programId: "amex-mr", points: 900 },
+		]).routes;
+		expect(route?.points).toBe(1040);
+		expect(route?.options).toEqual([
+			{ toProgramId: "ba-club", points: 640 },
+			{ toProgramId: "iberia-club", points: 800 },
+		]);
+	});
+
+	it("gives no route for two accounts that give 0 each", () => {
+		expect(
+			avios([
+				{ programId: "amex-mr", points: 400 },
+				{ programId: "amex-mr", points: 400 },
+			]).routes,
+		).toEqual([]);
+	});
+
+	it("keeps the sequence of the first account of each programme", () => {
+		const result = avios([
+			{ programId: "revolut", points: 250 },
+			{ programId: "amex-mr", points: 700 },
+			{ programId: "revolut", points: 250 },
+		]);
+		expect(result.routes.map((route) => route.fromProgramId)).toEqual([
+			"revolut",
+			"amex-mr",
+		]);
+		expect(result.routes[0]?.points).toBe(500);
+		expect(result.fromTransfers).toBe(900);
 	});
 
 	// The card does not name one programme of a currency that many programmes
