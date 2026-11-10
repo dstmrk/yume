@@ -19,11 +19,6 @@
 		"db:migrate": "node --experimental-strip-types src/server/db/migrate.ts",
 		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
 	},
-	"overrides": {
-		"better-auth": {
-			"better-sqlite3": "$better-sqlite3"
-		}
-	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.2",
 		"@tailwindcss/vite": "^4.3.3",
