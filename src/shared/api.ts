@@ -73,7 +73,8 @@ export type AccountRow = {
 	programId: string;
 	/**
 	 * The id of the most recent snapshot. The client sends this id to remove the
-	 * balance that it shows. It is null when the account has no snapshot.
+	 * balance that it shows, and no balance that an other device wrote after it.
+	 * It is null when the account has no snapshot.
 	 */
 	snapshotId: string | null;
 	/** It is null when the account has no snapshot. */

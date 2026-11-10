@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
 import { convert, findRule } from "../../../shared/conversion.ts";
 import { currencies, programs, transferRules } from "./catalogue.ts";
+import { continuityErrors } from "./continuity.ts";
 
 /**
  * These tests examine the catalogue, not the logic. A defect in this data gives
@@ -103,14 +104,10 @@ describe("the transfer rules", () => {
 	});
 
 	// The key holds the country. Two countries can give a different ratio to one
-	// pair of programmes, but one country gives one active rule.
-	it("does not hold two active rules for one pair in one country", () => {
-		const active = transferRules
-			.filter((rule) => rule.validTo === null)
-			.map(
-				(rule) => `${rule.fromProgramId}->${rule.toProgramId}@${rule.country}`,
-			);
-		expect(new Set(active).size).toBe(active.length);
+	// pair of programmes, but one country gives one valid rule on each day: the
+	// next version starts on the `validTo` of the version before it.
+	it("holds contiguous versions for each pair in each country", () => {
+		expect(continuityErrors(transferRules)).toEqual([]);
 	});
 
 	// A country in the ISO 3166-1 alpha-2 format holds two capital letters. A

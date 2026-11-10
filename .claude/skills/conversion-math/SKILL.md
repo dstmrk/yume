@@ -127,9 +127,14 @@ rule for a second country.
 
 Do not change a rule in its place. Do these two operations in one transaction:
 
-1. Write the date of the change in the `validTo` field of the old rule.
-2. Add a new rule with a new `validFrom` and with the link of the new source in a
-   comment.
+1. Write the date of the change in the `validTo` field of the old rule. That
+   date is the first day with no old rule, not the last valid day.
+2. Add a new rule with `validFrom` on the same date and with the link of the new
+   source in a comment.
+
+`continuityErrors` of `src/server/db/seed/continuity.ts` examines the catalogue.
+A `validTo` before the next `validFrom` gives a day with no rule, and the route
+then gives 0. A `validTo` after it gives two rules on one day.
 
 **A closed rule is not dead code. Do not remove it.** An old snapshot needs the
 rule of its date. This is not compatibility with an old version of the code. It

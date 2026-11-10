@@ -75,8 +75,8 @@ export type Program = {
  *
  * The rule also refers to one country. Paragraph 3.3.2 gives the reason.
  *
- * A rule is historical data. To change a ratio, write the date in `validTo` of
- * the old rule. Then add a new rule.
+ * A rule is historical data. To change a ratio, write the date of the change in
+ * `validTo` of the old rule. Then add a new rule with `validFrom` on that date.
  */
 export type TransferRule = {
 	readonly fromProgramId: string;
@@ -95,7 +95,10 @@ export type TransferRule = {
 	/** The step of the transfer. It is 1 or more. */
 	readonly increment: number;
 	readonly validFrom: IsoDate;
-	/** The last date of the rule. It is null for an active rule. */
+	/**
+	 * The first date on which the rule is no longer valid. The next rule starts
+	 * on this date. It is null for an active rule.
+	 */
 	readonly validTo: IsoDate | null;
 };
 
