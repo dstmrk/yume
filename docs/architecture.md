@@ -618,9 +618,16 @@ Yume still keeps no token of Google. The tokens of the plugin are the tokens of 
 
 **The supporter account.** On the official instance the MCP server is a function of the
 supporter account: refer to paragraph 4.6. The handler reads the pure function of
-paragraph 4.6 at each request. A user who is not a supporter receives the status 403.
-The end of a supporter account thus stops the access at the next request. No data goes
-away: the access stops, and each balance stays on the dashboard.
+paragraph 4.6 at each call of a tool. For a user who is not a supporter, each tool gives
+an error result with `isError: true`. The text of that error names the supporter account
+and gives the URL of the page of the subscription. The end of a supporter account thus
+stops the access at the next call. No data goes away: the access stops, and each balance
+stays on the dashboard.
+
+The handler gives no status 403 for that case. The sign-in, `initialize` and `tools/list`
+work for each user. Claude then shows the text of the error to the person. A status 403
+on the transport gives a general message of a failed connection, and the person does not
+know the cause.
 
 The code of the supporter account does not exist now. Until that code exists, the MCP
 server is open to each user, as Klarna is. Unlike Klarna, a user keeps no access after
@@ -642,12 +649,21 @@ can stay on it.
 
 The server gives four tools:
 
-| Tool | Operation | Annotation |
+| Tool | Operation | Annotations |
 |---|---|---|
-| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one. | `readOnlyHint` |
-| `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `readOnlyHint` |
-| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `readOnlyHint` |
-| `add_snapshot` | It adds a snapshot to an account of the user. | `destructiveHint: false` |
+| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one. | `title`, `readOnlyHint: true` |
+| `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true` |
+| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true` |
+| `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true` |
+
+Each tool has a `title` and a hint. The directory of Anthropic refuses a tool with no
+such annotations, and Claude reads them for its permissions. Claude runs a tool with
+`readOnlyHint: true` with no question. It asks the person before each call of a tool
+with `destructiveHint: true`.
+
+`add_snapshot` removes no data. It holds `destructiveHint: true` because the rules of the
+directory ask for that hint on each tool that changes data. The question of Claude also
+has a value: the person reads the number from the screenshot before the write.
 
 The server gives no tool that removes an account or a snapshot. An agent reads text from
 other sources, and a text can hold an instruction to the agent. A tool that removes data
@@ -666,6 +682,18 @@ the result of a tool to the person. Thus each tool obeys these rules:
 - Each quantity of points is an integer. A ratio is two integers.
 - `add_snapshot` refuses a date in the future, as `POST /api/accounts/:id/snapshots`
   does.
+- An error gives its cause and the correct input, for example `future_date` with the
+  latest date that the server accepts. The directory refuses a general error, for
+  example "Bad Request" with no detail.
+
+**A description states the operation of the tool.** It gives no instruction to the
+agent. The directory refuses a description that tells Claude how to behave, and the
+rule also protects against prompt injection. Thus the two warnings above are data in the
+result, in the field `notice`. They are not a sentence such as "tell the user".
+
+**No tool moves points.** The directory refuses a connector that transfers money or
+other financial assets. Yume moves no point, as paragraph 1 gives. A tool that starts a
+transfer at a programme is thus not possible, also in a later version.
 
 The text of the tools is English. The agent translates the text for the person, and the
 server holds no Italian text: refer to paragraph 5.8.
@@ -683,8 +711,32 @@ needs no approval of Anthropic. Each installation has its own URL, thus each
 installation works with no change.
 
 The directory of the connectors of Anthropic holds a server after a review. Only the
-official instance can go in the directory, because it has one fixed URL. Read the
-requirements of the review on the pages of Anthropic before the submission.
+official instance goes in the directory, with the option "Universal URL": one URL for
+each user. A listing with a pattern of URLs needs the label Verified, and an installation
+of a person is not a service with a review.
+
+The design of this paragraph obeys the rules of the directory: OAuth 2.0 with CIMD, the
+annotations of paragraph 4.7.3, the errors with a cause and no tool that moves points.
+The submission also needs these items:
+
+| Item | Source |
+|---|---|
+| The URL of the server | `https://<domain of the official instance>/mcp` |
+| The privacy policy | `/privacy`, with the text of sub-task 6 |
+| The public documentation | The page of sub-task 7 |
+| The icon | `src/client/public/icon.svg` |
+| A support contact | The address of the instance on the page `/privacy` |
+| A test account | The account of sub-task 8 |
+
+The submission states that the connector reads data and writes data. It also states the
+requirement of the user: an account of Yume with a supporter account.
+
+The rules of the review are on these pages of Anthropic. Read them again before the
+submission, because they change:
+
+- `https://claude.com/docs/connectors/building/review-criteria`
+- `https://claude.com/docs/connectors/building/submission`
+- `https://claude.com/docs/connectors/building/authentication`
 
 #### 4.7.5 The sub-tasks
 
@@ -700,9 +752,20 @@ Each sub-task has one artefact that accepts or refuses it:
    client of `@modelcontextprotocol/sdk`, and one connection from claude.ai.
 5. The tool `add_snapshot`. The artefact: a test with the client of the SDK.
 6. The privacy policy. Section 9 and the list of recipients must give the tokens of
-   paragraph 4.7.2. The artefact: the text that the author accepts.
+   paragraph 4.7.2. The artefact: the text that the author accepts. The directory
+   refuses a submission with no such text.
+7. The public documentation: the URL of the server, the steps of the connection in
+   Claude and in Claude Code, and the four tools. The artefact: a public page that the
+   author accepts.
+8. The test account for the reviewers of Anthropic. It is a supporter account with
+   accounts and snapshots of an example. The artefact: one connection from claude.ai
+   with that account, with a call of each tool.
 
 These items are open:
+
+- The sign-in of the reviewer. The sign-in uses Google only, thus the reviewer needs a
+  Google account of the test. Google can ask for a second verification on a new device,
+  and the reviewer cannot answer it.
 
 - The text of the privacy policy. The agent sends the data of the person to the provider
   of the agent, and the person selects that provider. A professional must read the
