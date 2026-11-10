@@ -184,6 +184,30 @@ describe("the protection from a form of an other origin", () => {
 		expect(countAccounts(db, userId)).toBe(0);
 	});
 
+	// The servers of Anthropic send the code and the refresh token as a form,
+	// with no origin. Those two endpoints read no cookie: the code with PKCE or
+	// the refresh token proves the client. Paragraph 4.7.2.
+	for (const path of ["/api/auth/oauth2/token", "/api/auth/oauth2/revoke"]) {
+		it(`gives ${path} to Better Auth with no origin`, async () => {
+			const response = await app.request(path, {
+				method: "POST",
+				headers: { "content-type": "application/x-www-form-urlencoded" },
+				body: "grant_type=authorization_code&code=no-such-code&client_id=x",
+			});
+
+			expect(response.status).not.toBe(403);
+			expect(response.headers.get("content-type")).toContain(
+				"application/json",
+			);
+		});
+	}
+
+	it("refuses a form with no origin on an other path of Better Auth", async () => {
+		const response = await formPost("/api/auth/sign-out", {});
+
+		expect(response.status).toBe(403);
+	});
+
 	it("refuses a form with the origin null", async () => {
 		const response = await formPost("/api/accounts", { origin: "null" });
 
@@ -289,6 +313,28 @@ describe("the security headers", () => {
 		const response = await app.request("/a-page");
 
 		expect(response.headers.get("x-frame-options")).toBe("SAMEORIGIN");
+	});
+});
+
+describe("the metadata of OAuth at the root", () => {
+	// A client reads these paths before the sign-in, thus they need no session.
+	for (const path of [
+		"/.well-known/oauth-authorization-server/api/auth",
+		"/.well-known/oauth-protected-resource",
+		"/.well-known/oauth-protected-resource/mcp",
+	]) {
+		it(`gives ${path} with no session`, async () => {
+			const response = await app.request(path);
+			expect(response.status).toBe(200);
+			expect(response.headers.get("content-type")).toContain(
+				"application/json",
+			);
+		});
+	}
+
+	it("gives the status 404 to an other path of /.well-known", async () => {
+		const response = await app.request("/.well-known/no-such-document");
+		expect(response.status).toBe(404);
 	});
 });
 

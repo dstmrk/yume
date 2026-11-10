@@ -15,6 +15,12 @@ export type GoogleSignInBody = {
 	callbackURL: string;
 	/** The page after an error. Better Auth adds the parameter `error`. */
 	errorCallbackURL: string;
+	/**
+	 * The signed query of an authorisation of the MCP server. With it, the
+	 * server goes on with that authorisation after the sign-in, not to the
+	 * dashboard. Paragraph 4.7.2 of `docs/architecture.md` gives the flow.
+	 */
+	oauth_query?: string;
 };
 
 /**
@@ -67,4 +73,46 @@ export function loginErrorOf(
 ): string | undefined {
 	const value = search.error;
 	return typeof value === "string" && value.trim() !== "" ? value : undefined;
+}
+
+/**
+ * Gives the signed query of an authorisation from the address of `/login`.
+ *
+ * The authorisation server of the MCP server sends a person with no session to
+ * `/login`, with a signed query. The signature covers each parameter except
+ * `sig`, and the values of `ba_param` name the signed parameters. A parameter
+ * that the server did not sign breaks the signature, thus the function keeps
+ * only `sig`, `ba_param` and the signed parameters. The plugin of the client of
+ * Better Auth does the same operation, and Yume does not use that client.
+ *
+ * It gives undefined with no signature: the page then starts a sign-in only.
+ */
+export function signedOAuthQuery(search: string): string | undefined {
+	const params = new URLSearchParams(search);
+	if (!params.has("sig")) {
+		return undefined;
+	}
+	const signed = new Set(params.getAll("ba_param"));
+	if (signed.size === 0) {
+		return undefined;
+	}
+	const kept = new URLSearchParams();
+	for (const [key, value] of params) {
+		if (key === "sig" || key === "ba_param" || signed.has(key)) {
+			kept.append(key, value);
+		}
+	}
+	return kept.toString();
+}
+
+/**
+ * Adds the signed query of the address to the body of the sign-in, if the
+ * address holds one. Refer to `signedOAuthQuery`.
+ */
+export function withOAuthQuery(
+	body: GoogleSignInBody,
+	search: string,
+): GoogleSignInBody {
+	const query = signedOAuthQuery(search);
+	return query === undefined ? body : { ...body, oauth_query: query };
 }

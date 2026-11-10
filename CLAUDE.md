@@ -283,6 +283,12 @@ development only. It gives no client of Google: export the two values of your ow
 A test makes a session with `sessionCookie` of `src/server/db/fixtures.ts`, because no
 test reaches Google.
 
+Each route under `/api` passes the middleware `csrf`. That middleware refuses a form with
+no header `Origin`, with the status 403. The server of a client of OAuth sends such a
+form to the token endpoint. Add a path to `OAUTH_CLIENT_ENDPOINTS` of `src/server/app.ts`
+only when that path reads no cookie. A test in `src/server/authorisation.test.ts` sends
+the form of Claude.
+
 `ADMIN_EMAIL` is not necessary. It gives the administrator of the page `/admin`.
 Paragraph 4.8 of `docs/architecture.md` gives the rules.
 

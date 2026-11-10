@@ -22,6 +22,7 @@ export const CLIENT_PATHS = [
 	"/admin",
 	"/dashboard",
 	"/login",
+	"/consent",
 	"/privacy",
 	"/tos",
 ] as const;

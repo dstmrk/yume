@@ -1,6 +1,13 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { type Auth, createAuth, needsSecureCookies } from "./auth.ts";
+import {
+	type Auth,
+	canServeMcp,
+	createAuth,
+	MCP_SCOPES,
+	mcpResource,
+	needsSecureCookies,
+} from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { deleteExpired } from "./db/queries.ts";
@@ -142,6 +149,25 @@ describe("the start of the sign-in with Google", () => {
 		const response = await startSignIn();
 		const { url } = (await response.json()) as { url: string };
 		expect(new URL(url).searchParams.has("include_granted_scopes")).toBe(false);
+	});
+
+	// The page `/login` sends the signed query of an authorisation of the MCP
+	// server. A query that a person changes breaks the signature, and the server
+	// then starts no sign-in for it. Paragraph 4.7.2.
+	it("refuses an authorisation with a signature that is not valid", async () => {
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/sign-in/social`, {
+				method: "POST",
+				headers: { "content-type": "application/json", origin: BASE_URL },
+				body: JSON.stringify({
+					provider: "google",
+					callbackURL: `${BASE_URL}/dashboard`,
+					oauth_query:
+						"client_id=x&exp=4102444800&ba_param=ba_param&ba_param=client_id&ba_param=exp&sig=forged",
+				}),
+			}),
+		);
+		expect(response.status).toBe(400);
 	});
 
 	it("refuses an other provider", async () => {
@@ -443,5 +469,136 @@ describe("the cookies of the sign-in", () => {
 	// The client of Vite operates on the machine itself with no certificate.
 	it("hold no attribute Secure on the machine itself", async () => {
 		expect(await cookieOf("http://localhost:3000")).not.toContain("Secure");
+	});
+});
+
+describe("mcpResource", () => {
+	it("gives the path /mcp of the origin", () => {
+		expect(mcpResource("https://yume.example.com")).toBe(
+			"https://yume.example.com/mcp",
+		);
+	});
+
+	it("gives one slash with a slash at the end of the origin", () => {
+		expect(mcpResource("https://yume.example.com/")).toBe(
+			"https://yume.example.com/mcp",
+		);
+	});
+
+	it("keeps the port of the origin", () => {
+		expect(mcpResource("http://localhost:3000")).toBe(
+			"http://localhost:3000/mcp",
+		);
+	});
+});
+
+/**
+ * The metadata of the authorisation server. Claude reads them before the
+ * sign-in, and it refuses a server that does not give these values. Paragraph
+ * 4.7.2 of `docs/architecture.md` gives the decisions.
+ */
+describe("the metadata of the authorisation server", () => {
+	const ISSUER = `${BASE_URL}/api/auth`;
+
+	async function metadata(): Promise<Record<string, unknown>> {
+		const response = await auth.handler(
+			new Request(
+				`${BASE_URL}/.well-known/oauth-authorization-server/api/auth`,
+			),
+		);
+		expect(response.status).toBe(200);
+		return (await response.json()) as Record<string, unknown>;
+	}
+
+	it("gives the issuer of the path of Better Auth", async () => {
+		expect((await metadata()).issuer).toBe(ISSUER);
+	});
+
+	// Claude uses CIMD only with these two values. Otherwise it tries DCR, and
+	// the server gives no registration.
+	it("accepts a Client ID Metadata Document of a public client", async () => {
+		const body = await metadata();
+		expect(body.client_id_metadata_document_supported).toBe(true);
+		expect(body.token_endpoint_auth_methods_supported).toContain("none");
+	});
+
+	it("gives no Dynamic Client Registration", async () => {
+		expect(await metadata()).not.toHaveProperty("registration_endpoint");
+	});
+
+	it("asks for PKCE with S256", async () => {
+		expect((await metadata()).code_challenge_methods_supported).toEqual([
+			"S256",
+		]);
+	});
+
+	// Claude does not use `client_credentials`: a token with no user reads the
+	// data of no person.
+	it("gives the code and the refresh token only", async () => {
+		expect((await metadata()).grant_types_supported).toEqual([
+			"authorization_code",
+			"refresh_token",
+		]);
+	});
+
+	it("gives the scopes of Yume and no scope of the profile", async () => {
+		expect((await metadata()).scopes_supported).toEqual([...MCP_SCOPES]);
+	});
+});
+
+describe("the metadata of the protected resource", () => {
+	for (const path of [
+		"/.well-known/oauth-protected-resource",
+		"/.well-known/oauth-protected-resource/mcp",
+	]) {
+		it(`gives the MCP server at ${path}`, async () => {
+			const response = await auth.handler(new Request(`${BASE_URL}${path}`));
+			expect(response.status).toBe(200);
+			expect(await response.json()).toMatchObject({
+				resource: `${BASE_URL}/mcp`,
+				authorization_servers: [`${BASE_URL}/api/auth`],
+				scopes_supported: ["balances"],
+			});
+		});
+	}
+});
+
+/**
+ * The plugin `mcp` refuses a resource on plain HTTP, except on the machine
+ * itself. An installation on `http://nas.local:3000` then starts with no MCP
+ * server: the sign-in with Google is also not possible there (paragraph 4.2).
+ */
+describe("canServeMcp", () => {
+	for (const origin of [
+		"https://yume.example.com",
+		"http://localhost:3000",
+		"http://127.0.0.1:3000",
+		"http://[::1]:3000",
+	]) {
+		it(`gives true for ${origin}`, () => {
+			expect(canServeMcp(origin)).toBe(true);
+		});
+	}
+
+	for (const origin of ["http://nas.local:3000", "http://192.168.1.10:3000"]) {
+		it(`gives false for ${origin}`, () => {
+			expect(canServeMcp(origin)).toBe(false);
+		});
+	}
+
+	it("gives false for a value that is not a URL", () => {
+		expect(canServeMcp("nas.local")).toBe(false);
+	});
+
+	it("starts an instance with no metadata of OAuth on plain HTTP", async () => {
+		const plain = createAuth(db, {
+			secret: SECRET,
+			baseURL: "http://nas.local:3000",
+			google: GOOGLE,
+		});
+		const response = await plain.handler(
+			new Request("http://nas.local:3000/.well-known/oauth-protected-resource"),
+		);
+		expect(response.status).toBe(404);
 	});
 });

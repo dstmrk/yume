@@ -3,6 +3,8 @@ import {
 	createAccount,
 	deleteAccount,
 	fetchCatalogue,
+	fetchOAuthClientName,
+	sendConsent,
 	setFavorite,
 	setUnlimited,
 } from "./api.ts";
@@ -120,5 +122,56 @@ describe("the client of the API", () => {
 		const error = await rejection(fetchCatalogue());
 		expect(error.status).toBe(503);
 		expect(error.code).toBeNull();
+	});
+});
+
+describe("the authorisation of a client of the MCP server", () => {
+	const CLIENT = "https://claude.ai/oauth/mcp-client-metadata";
+
+	it("reads the name of the client, with the encoded client_id", async () => {
+		const fetch = answer(
+			json({ client_id: CLIENT, client_name: "Claude" }, 200),
+		);
+		await expect(fetchOAuthClientName(CLIENT)).resolves.toBe("Claude");
+		expect(fetch).toHaveBeenCalledWith(
+			`/api/auth/oauth2/public-client?client_id=${encodeURIComponent(CLIENT)}`,
+		);
+	});
+
+	it("gives undefined for a client with no name", async () => {
+		answer(json({ client_id: CLIENT }, 200));
+		await expect(fetchOAuthClientName(CLIENT)).resolves.toBeUndefined();
+	});
+
+	it("gives an error for a client that does not exist", async () => {
+		answer(json({ error: "not_found" }, 404));
+		await expect(fetchOAuthClientName(CLIENT)).rejects.toThrow();
+	});
+
+	it("sends the answer and gives the address of the client", async () => {
+		const fetch = answer(
+			json(
+				{
+					redirect: true,
+					url: "https://claude.ai/api/mcp/auth_callback?code=c",
+				},
+				200,
+			),
+		);
+		await expect(
+			sendConsent({ accept: true, oauth_query: "client_id=x&sig=s" }),
+		).resolves.toBe("https://claude.ai/api/mcp/auth_callback?code=c");
+		expect(fetch).toHaveBeenCalledWith("/api/auth/oauth2/consent", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ accept: true, oauth_query: "client_id=x&sig=s" }),
+		});
+	});
+
+	it("gives an error with no address", async () => {
+		answer(json({ redirect: true }, 200));
+		await expect(
+			sendConsent({ accept: false, oauth_query: "client_id=x&sig=s" }),
+		).rejects.toThrow();
 	});
 });
