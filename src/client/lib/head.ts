@@ -95,8 +95,73 @@ function replaceOne(
 	);
 }
 
+/**
+ * Gives the shell of the application in one language.
+ *
+ * The server gives this page to `/dashboard`, `/login` and each 404. The root
+ * stays empty, thus the browser paints no element of the public page before
+ * the bundle loads: the example board then reads as a balance of the person.
+ *
+ * One shell answers each path, thus it holds no canonical address and no link
+ * `hreflang`. The tag `noindex` keeps the shell out of the search engines, and
+ * the shell holds no structured data. Paragraph 5.5.3 of
+ * `docs/architecture.md` gives the rule.
+ */
+export function appShellOf(template: string, head: Head): string {
+	if (!template.includes(EMPTY_ROOT)) {
+		throw new Error(
+			`The template holds no ${EMPTY_ROOT}. The pre-render stops.`,
+		);
+	}
+	const html = localizeCommon(template, head);
+	const canonical = /\t\t<link rel="canonical" href="[^"]*" \/>\n/g;
+	const found = html.match(canonical) ?? [];
+	if (found.length !== 1) {
+		throw new Error(
+			`The template holds ${found.length} elements canonical, not 1. The pre-render stops.`,
+		);
+	}
+	return insertBeforeHeadEnd(html.replace(canonical, ""), ROBOTS_NOINDEX);
+}
+
+/** The empty element of the root in the template of Vite. */
+export const EMPTY_ROOT = '<div id="root"></div>';
+
+/** The tag that keeps a page out of the index of a search engine. */
+const ROBOTS_NOINDEX = '\t\t<meta name="robots" content="noindex" />\n';
+
+/** Writes a text in the template, before the end of the head. */
+function insertBeforeHeadEnd(html: string, text: string): string {
+	const end = html.lastIndexOf("\t</head>");
+	if (end === -1) {
+		throw new Error("The template holds no </head>. The pre-render stops.");
+	}
+	return `${html.slice(0, end)}${text}${html.slice(end)}`;
+}
+
 /** Gives the template with the head of one language. */
 export function localizeHead(template: string, head: Head): string {
+	const html = replaceOne(
+		localizeCommon(template, head),
+		"canonical",
+		/(<link rel="canonical" href=")([^"]*)(")/,
+		attribute(head.url),
+	);
+
+	const links = head.alternates
+		.map(
+			(item) =>
+				`\t\t<link rel="alternate" hreflang="${attribute(item.hreflang)}" href="${attribute(item.href)}" />\n`,
+		)
+		.join("");
+	return insertBeforeHeadEnd(html, links);
+}
+
+/**
+ * Gives the template with the language, the title, the description and Open
+ * Graph of one head. The public page and the shell hold these elements.
+ */
+function localizeCommon(template: string, head: Head): string {
 	const meta = (attr: string, key: string) =>
 		new RegExp(`(<meta\\s+${attr}="${key}"\\s+content=")([^"]*)(")`);
 
@@ -138,22 +203,5 @@ export function localizeHead(template: string, head: Head): string {
 		meta("property", "og:url"),
 		attribute(head.url),
 	);
-	html = replaceOne(
-		html,
-		"canonical",
-		/(<link rel="canonical" href=")([^"]*)(")/,
-		attribute(head.url),
-	);
-
-	const links = head.alternates
-		.map(
-			(item) =>
-				`\t\t<link rel="alternate" hreflang="${attribute(item.hreflang)}" href="${attribute(item.href)}" />\n`,
-		)
-		.join("");
-	const end = html.lastIndexOf("\t</head>");
-	if (end === -1) {
-		throw new Error("The template holds no </head>. The pre-render stops.");
-	}
-	return `${html.slice(0, end)}${links}${html.slice(end)}`;
+	return html;
 }

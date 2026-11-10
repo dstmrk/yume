@@ -22,6 +22,12 @@
  * 4. The head of the language: `lang`, the title, the description, Open Graph,
  *    the canonical address and the links `hreflang`. Refer to `lib/head.ts`.
  *
+ * The file also writes the shell of the application for each language:
+ * `dist/app.html` for the base language and `dist/en/app.html` for English.
+ * The shell holds an empty root, no structured data and `noindex`. The server
+ * gives it to `/dashboard`, `/login` and each 404: the public page there
+ * paints the example board before the bundle loads. Refer to `appShellOf`.
+ *
  * `npm run build` runs this file. Vite makes the bundle of this module for
  * Node, because Node executes no JSX. The build of the client comes first: this
  * file reads the file that Vite wrote, and it writes that same file again.
@@ -52,7 +58,7 @@ import { HomePage } from "./HomePage.tsx";
 import { I18nProvider } from "./i18n/I18n.tsx";
 import { type I18n, i18nOf, type Messages } from "./i18n/messages.ts";
 import { LegalPage } from "./LegalPage.tsx";
-import { headOf, localizeHead } from "./lib/head.ts";
+import { appShellOf, EMPTY_ROOT, headOf, localizeHead } from "./lib/head.ts";
 import { homeGraph, toJsonLdScript } from "./lib/jsonLd.ts";
 import { llmsTxt } from "./lib/llms.ts";
 import { SITE_URL } from "./lib/site.ts";
@@ -65,14 +71,11 @@ function distPath(locale: (typeof LOCALES)[number], file: string): string {
 	return `dist${routing.pathFor(locale, `/${file}`)}`;
 }
 
-/**
- * The empty element of `index.html`.
- *
- * The build must stop when this text is not in the file: a change of the name
- * of the element gives a page with no text, and that defect is not visible in
- * the browser.
+/*
+ * The build must stop when the empty element of the root is not in the file:
+ * a change of the name of the element gives a page with no text, and that
+ * defect is not visible in the browser. `EMPTY_ROOT` is in `lib/head.ts`.
  */
-const EMPTY_ROOT = '<div id="root"></div>';
 
 /**
  * The end of the head of `index.html`.
@@ -133,6 +136,31 @@ const PAGES: readonly StaticPage[] = [
 
 for (const locale of LOCALES) {
 	const i18n = i18nOf(locale);
+
+	// The shell has the title and the description of the public page: the
+	// browser shows that title until the bundle loads.
+	const shellPath = distPath(locale, "app.html");
+	mkdirSync(dirname(shellPath), { recursive: true });
+	writeFileSync(
+		shellPath,
+		appShellOf(
+			html,
+			headOf({
+				site: SITE_URL,
+				locale,
+				path: "/",
+				routing,
+				locales: LOCALES,
+				base: BASE_LOCALE,
+				tags: LOCALE_TAGS,
+				title: `Yume — ${i18n.t.homeTitle}`,
+				description: i18n.t.siteDescription,
+			}),
+		),
+	);
+	console.log(
+		`The pre-render wrote the shell of the application in ${shellPath}.`,
+	);
 
 	for (const page of PAGES) {
 		const markup = renderToStaticMarkup(

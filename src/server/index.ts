@@ -87,17 +87,20 @@ const app = createApp(db, auth);
 app.use("/*", serveStatic({ root: "./dist" }));
 
 /**
- * The page of the client in each language, one time at the start.
+ * The shell of the application in each language, one time at the start.
  *
- * The build writes one page for each language: `dist/index.html` for the base
- * language, `dist/en/index.html` for English. Paragraph 5.8 of
- * `docs/architecture.md` gives the rule. Each request gives the same bytes. A
- * value is undefined with no build: `npm run dev:server` runs alone, and Vite
- * then supplies the client on the port 5173.
+ * The build writes one shell for each language: `dist/app.html` for the base
+ * language, `dist/en/app.html` for English. The shell holds an empty root. The
+ * public page stays in `dist/index.html`, and `serveStatic` gives it to `/`:
+ * on `/dashboard` its example board reads as a balance of the person.
+ * Paragraphs 5.5.3 and 5.8 of `docs/architecture.md` give the rules. Each
+ * request gives the same bytes. A value is undefined with no build:
+ * `npm run dev:server` runs alone, and Vite then supplies the client on the
+ * port 5173.
  */
 const pages = new Map(
 	LOCALES.map((locale) => {
-		const path = `./dist${routing.pathFor(locale, "/index.html")}`;
+		const path = `./dist${routing.pathFor(locale, "/app.html")}`;
 		return [locale, existsSync(path) ? readFileSync(path, "utf8") : undefined];
 	}),
 );
