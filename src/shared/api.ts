@@ -118,6 +118,14 @@ export const createAccountSchema = z.object({
 export const TOO_MANY_ACCOUNTS = "too_many_accounts";
 
 /**
+ * The error of a request that the free account cannot do, with the status 403:
+ * an account above the limits, or the expiry lots of a snapshot. The client
+ * knows the form of the request and shows its own message. Paragraph 4.6 of
+ * `docs/architecture.md` gives the limits.
+ */
+export const SUPPORTER_REQUIRED = "supporter_required";
+
+/**
  * The body of `PUT /api/admin/users/:id/unlimited`.
  *
  * The schema is strict: the administrator writes the flag only. The payment

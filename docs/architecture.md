@@ -509,8 +509,8 @@ design.
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
-2026-11-10, the unlimited account and the variable of the environment. The page of the
-administrator of paragraph 4.8 reads the level. No surface reads the limits now.
+2026-11-10, the unlimited account, the variable of the environment and the routes. The
+page of the administrator of paragraph 4.8 reads the level.
 
 The official instance gives three levels of account: the free account, the supporter
 account and the unlimited account. The supporter account has one price: 9,99 euros for
@@ -583,6 +583,20 @@ Each surface reads them, and the application holds no other rule of the payment:
 - `canAddAccount` reads the level, the variable, the programmes of the accounts of the
   user and the catalogue. It examines a new account only.
 - `canWriteExpiryLots` reads the level and the variable.
+
+**The routes refuse with one code.** A request above the limits gets the status 403 and
+the code `supporter_required`. The status 402 is reserved, and the clients handle it
+badly. Each form knows its request, thus it shows its own message.
+
+| Route | The examination |
+|---|---|
+| `POST /api/accounts` | `canAddAccount`, then `canWriteExpiryLots` for the lots of the first balance |
+| `POST /api/accounts/:id/snapshots` | `canWriteExpiryLots`, in `recordSnapshot` of `src/server/operations.ts` |
+
+Each route examines the request first and the level last. An account of an other user
+thus gives `unknown_account`, and a programme that does not exist gives
+`unknown_program`. An empty list of lots is not a lot. `index.ts` reads
+`FREE_ACCOUNT_LIMITS` at the start.
 
 `FREE_SOURCES` of the same file holds Amex and Revolut. The catalogue does not hold that
 list: it is a rule of the payment, not a fact of a programme. A second account in a

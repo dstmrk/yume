@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, errorCodeOf } from "./errors.ts";
+import { ApiError, errorCodeOf, isSupporterRequired } from "./errors.ts";
 
 describe("errorCodeOf", () => {
 	it("gives the field error of the body", () => {
@@ -29,5 +29,27 @@ describe("ApiError", () => {
 		expect(error.status).toBe(409);
 		expect(error.code).toBe("too_many_accounts");
 		expect(error.message).toBe("/api/accounts gives the status 409");
+	});
+});
+
+describe("isSupporterRequired", () => {
+	it("is true for the error of the limits of the free account", () => {
+		expect(
+			isSupporterRequired(
+				new ApiError("/api/accounts", 403, "supporter_required"),
+			),
+		).toBe(true);
+	});
+
+	// The status alone is not sufficient: an other refusal must show the
+	// general message.
+	it("is false for an other code with the same status", () => {
+		expect(
+			isSupporterRequired(new ApiError("/api/accounts", 403, "forbidden")),
+		).toBe(false);
+	});
+
+	it("is false for an error that is not of the API", () => {
+		expect(isSupporterRequired(new Error("supporter_required"))).toBe(false);
 	});
 });

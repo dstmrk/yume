@@ -1,3 +1,5 @@
+import { SUPPORTER_REQUIRED } from "../../shared/api.ts";
+
 /**
  * An answer of the API with a status that is not correct.
  *
@@ -24,4 +26,12 @@ export function errorCodeOf(body: unknown): string | null {
 		return null;
 	}
 	return typeof body.error === "string" ? body.error : null;
+}
+
+/**
+ * True when the server refuses a request that the free account cannot do. The
+ * form then shows its own message, not the general message of an error.
+ */
+export function isSupporterRequired(error: unknown): boolean {
+	return error instanceof ApiError && error.code === SUPPORTER_REQUIRED;
 }

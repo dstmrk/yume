@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
+	accountProgramIds,
 	addFavorite,
 	addSnapshot,
 	allPrograms,
@@ -19,6 +20,7 @@ import {
 	listUsers,
 	removeFavorite,
 	setUnlimited,
+	tierSourceOf,
 } from "./queries.ts";
 import {
 	account,
@@ -862,5 +864,47 @@ describe("setUnlimited", () => {
 	it("gives true when the flag already holds the value", () => {
 		setUnlimited(db, USER, true);
 		expect(setUnlimited(db, USER, true)).toBe(true);
+	});
+});
+
+describe("tierSourceOf", () => {
+	it("gives the two columns of the user", () => {
+		const supporterUntil = new Date("2027-01-01T00:00:00.000Z");
+		db.update(user)
+			.set({ supporterUntil, unlimited: true })
+			.where(eq(user.id, USER))
+			.run();
+
+		expect(tierSourceOf(db, USER)).toEqual({ supporterUntil, unlimited: true });
+		expect(tierSourceOf(db, OTHER_USER)).toEqual({
+			supporterUntil: null,
+			unlimited: false,
+		});
+	});
+
+	it("gives a free account to a user that does not exist", () => {
+		expect(tierSourceOf(db, "nobody")).toEqual({
+			supporterUntil: null,
+			unlimited: false,
+		});
+	});
+});
+
+describe("accountProgramIds", () => {
+	it("gives the programme of each account of the user only", () => {
+		createAccount(db, { userId: USER, programId: "ba-club" });
+		createAccount(db, { userId: USER, programId: "ba-club" });
+		createAccount(db, { userId: USER, programId: "amex-mr" });
+		createAccount(db, { userId: OTHER_USER, programId: "sas" });
+
+		expect(accountProgramIds(db, USER).sort()).toEqual([
+			"amex-mr",
+			"ba-club",
+			"ba-club",
+		]);
+	});
+
+	it("gives an empty list to a user with no account", () => {
+		expect(accountProgramIds(db, USER)).toEqual([]);
 	});
 });

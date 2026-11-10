@@ -11,9 +11,18 @@
  */
 
 import type { z } from "zod";
-import { addSnapshotSchema, type PotentialResponse } from "../shared/api.ts";
+import {
+	addSnapshotSchema,
+	type PotentialResponse,
+	SUPPORTER_REQUIRED,
+} from "../shared/api.ts";
 import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { potentialMiles } from "../shared/potential.ts";
+import {
+	accountTier,
+	canWriteExpiryLots,
+	type Entitlement,
+} from "../shared/tier.ts";
 import type { Db } from "./db/index.ts";
 import {
 	addSnapshot,
@@ -22,6 +31,7 @@ import {
 	allTransferRules,
 	currentBalances,
 	findAccount,
+	tierSourceOf,
 } from "./db/queries.ts";
 
 /**
@@ -49,25 +59,47 @@ export function latestObservedAt(now: Date): string {
 	return date.toISOString().slice(0, 10);
 }
 
+/**
+ * The level of the account of the user at `now`, with the state of the limits.
+ * `limits` is the value of `FREE_ACCOUNT_LIMITS`.
+ */
+export function entitlementOf(
+	db: Db,
+	userId: string,
+	limits: boolean,
+	now: Date,
+): Entitlement {
+	return { limits, tier: accountTier(tierSourceOf(db, userId), now) };
+}
+
 /** The result of `recordSnapshot`. Each error has the code of the API. */
 export type SnapshotResult =
 	| { ok: true; id: string }
 	| { ok: false; error: "unknown_account" }
 	| { ok: false; error: "invalid_body"; issues: z.core.$ZodIssue[] }
-	| { ok: false; error: "future_date" };
+	| { ok: false; error: "future_date" }
+	| { ok: false; error: typeof SUPPORTER_REQUIRED };
 
 /**
  * Adds a snapshot to an account of the user.
  *
- * The function examines the account first, then the body. An account of an
- * other user thus gives `unknown_account` with each body, and no answer says
- * that the account exists.
+ * The function examines the account first, then the body, then the level. An
+ * account of an other user thus gives `unknown_account` with each body, and
+ * no answer says that the account exists. A free account cannot write expiry
+ * lots when `limits` is true. An empty list of lots is not a lot.
  */
 export function recordSnapshot(
 	db: Db,
-	request: { userId: string; accountId: string; body: unknown; now: Date },
+	request: {
+		userId: string;
+		accountId: string;
+		body: unknown;
+		now: Date;
+		/** The value of `FREE_ACCOUNT_LIMITS`. */
+		limits: boolean;
+	},
 ): SnapshotResult {
-	const { userId, accountId, body, now } = request;
+	const { userId, accountId, body, now, limits } = request;
 	if (findAccount(db, accountId, userId) === undefined) {
 		return { ok: false, error: "unknown_account" };
 	}
@@ -77,6 +109,12 @@ export function recordSnapshot(
 	}
 	if (snapshot.data.observedAt > latestObservedAt(now)) {
 		return { ok: false, error: "future_date" };
+	}
+	if (
+		(snapshot.data.lots ?? []).length > 0 &&
+		!canWriteExpiryLots(entitlementOf(db, userId, limits, now))
+	) {
+		return { ok: false, error: SUPPORTER_REQUIRED };
 	}
 	return { ok: true, id: addSnapshot(db, { accountId, ...snapshot.data }) };
 }

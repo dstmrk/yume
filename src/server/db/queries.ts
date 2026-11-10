@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { AccountRow, ExpiryLot } from "../../shared/api.ts";
+import type { TierSource } from "../../shared/tier.ts";
 import type { Db } from "./index.ts";
 import {
 	balanceSnapshot,
@@ -368,4 +369,30 @@ export function setUnlimited(
 		.where(eq(user.id, userId))
 		.run();
 	return result.changes > 0;
+}
+
+/**
+ * The two columns of the user that give the level of the account. A user that
+ * does not exist gives the values of a free account.
+ */
+export function tierSourceOf(db: Db, userId: string): TierSource {
+	const row = db
+		.select({ supporterUntil: user.supporterUntil, unlimited: user.unlimited })
+		.from(user)
+		.where(eq(user.id, userId))
+		.get();
+	return row ?? { supporterUntil: null, unlimited: false };
+}
+
+/**
+ * The programme of each account of the user. A programme can repeat: the user
+ * can hold two accounts of one programme.
+ */
+export function accountProgramIds(db: Db, userId: string): string[] {
+	return db
+		.select({ programId: userAccount.programId })
+		.from(userAccount)
+		.where(eq(userAccount.userId, userId))
+		.all()
+		.map((row) => row.programId);
 }

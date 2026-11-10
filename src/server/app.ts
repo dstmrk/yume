@@ -11,14 +11,20 @@ import {
 	type FavoritesResponse,
 	type MeResponse,
 	type PotentialResponse,
+	SUPPORTER_REQUIRED,
 	setUnlimitedSchema,
 	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
-import { accountTier } from "../shared/tier.ts";
+import {
+	accountTier,
+	canAddAccount,
+	canWriteExpiryLots,
+} from "../shared/tier.ts";
 import { isAdmin } from "./admin.ts";
 import type { Auth } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
+	accountProgramIds,
 	addFavorite,
 	allCurrencies,
 	allPrograms,
@@ -34,6 +40,7 @@ import {
 	setUnlimited,
 } from "./db/queries.ts";
 import {
+	entitlementOf,
 	latestObservedAt,
 	potentialOf,
 	recordSnapshot,
@@ -86,15 +93,20 @@ export const MAX_BODY_BYTES = 16 * 1024;
  * Makes the application.
  *
  * `origins` holds the origin of the application and each origin of
- * `TRUSTED_ORIGINS`: Better Auth receives the same list. `adminEmail` is the
- * value of `ADMIN_EMAIL`. With no value, the instance has no administrator.
+ * `TRUSTED_ORIGINS`: Better Auth receives the same list.
  */
 export function createApp(
 	db: Db,
 	auth: Auth,
 	origins: string[],
-	adminEmail?: string,
+	options: {
+		/** The value of `ADMIN_EMAIL`. With no value, the instance has no administrator. */
+		adminEmail?: string;
+		/** The value of `FREE_ACCOUNT_LIMITS`. The default value is no limit. */
+		limits?: boolean;
+	} = {},
 ) {
+	const { adminEmail, limits = false } = options;
 	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
 
 	/**
@@ -231,15 +243,32 @@ export function createApp(
 		if (!body.success) {
 			return c.json({ error: "invalid_body", issues: body.error.issues }, 400);
 		}
-		const known = allPrograms(db).some(
+		const programs = allPrograms(db);
+		const known = programs.some(
 			(program) => program.id === body.data.programId,
 		);
 		if (!known) {
 			return c.json({ error: "unknown_program" }, 404);
 		}
+		const now = new Date();
 		const observedAt = body.data.snapshot?.observedAt;
-		if (observedAt !== undefined && observedAt > latestObservedAt(new Date())) {
+		if (observedAt !== undefined && observedAt > latestObservedAt(now)) {
 			return c.json({ error: "future_date" }, 400);
+		}
+		// The limits of the free account: the programme, then the lots of the
+		// first balance. Paragraph 4.6 of `docs/architecture.md`.
+		const entitlement = entitlementOf(db, c.get("userId"), limits, now);
+		const allowed =
+			canAddAccount({
+				entitlement,
+				programId: body.data.programId,
+				accountProgramIds: accountProgramIds(db, c.get("userId")),
+				catalogue: { programs, currencies: allCurrencies(db) },
+			}) &&
+			((body.data.snapshot?.lots ?? []).length === 0 ||
+				canWriteExpiryLots(entitlement));
+		if (!allowed) {
+			return c.json({ error: SUPPORTER_REQUIRED }, 403);
 		}
 		// better-sqlite3 is synchronous and no `await` is between the count and
 		// the insert. Thus two requests at the same time cannot both pass.
@@ -262,6 +291,7 @@ export function createApp(
 			accountId: c.req.param("id"),
 			body: await c.req.json().catch(() => null),
 			now: new Date(),
+			limits,
 		});
 		if (result.ok) {
 			return c.json({ id: result.id }, 201);
@@ -273,6 +303,8 @@ export function createApp(
 				return c.json({ error: result.error, issues: result.issues }, 400);
 			case "future_date":
 				return c.json({ error: result.error }, 400);
+			case SUPPORTER_REQUIRED:
+				return c.json({ error: result.error }, 403);
 		}
 	});
 

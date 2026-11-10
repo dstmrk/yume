@@ -1058,6 +1058,145 @@ describe("the routes of the favourites", () => {
 	});
 });
 
+/**
+ * The limits of the free account, with `FREE_ACCOUNT_LIMITS` at true.
+ * Paragraph 4.6 of `docs/architecture.md` gives the rules. `canAddAccount`
+ * and `canWriteExpiryLots` have their own tests: these tests examine the
+ * answer of the routes.
+ */
+describe("the limits of the free account", () => {
+	let limited: ReturnType<typeof createApp>;
+
+	beforeEach(() => {
+		const auth = createAuth(db, {
+			secret: "a-secret-for-the-test",
+			baseURL: BASE_URL,
+			google: {
+				clientId: "client-id-test",
+				clientSecret: "client-secret-test",
+			},
+		});
+		limited = createApp(db, auth, [BASE_URL], { limits: true });
+	});
+
+	function postTo(
+		target: ReturnType<typeof createApp>,
+		path: string,
+		body: unknown,
+	) {
+		return target.request(path, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie },
+			body: JSON.stringify(body),
+		});
+	}
+
+	const LOTS = [{ points: 500, expiresOn: "2027-03-31" }];
+
+	it("refuses Klarna to a free account and writes no row", async () => {
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "klarna",
+		});
+
+		expect(response.status).toBe(403);
+		expect(await response.json()).toEqual({ error: "supporter_required" });
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("gives Amex to a free account", async () => {
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "amex-mr",
+		});
+
+		expect(response.status).toBe(201);
+	});
+
+	it("refuses the third airline programme to a free account", async () => {
+		createAccount(db, { userId, programId: "ba-club" });
+		createAccount(db, { userId, programId: "flying-blue" });
+
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "sas",
+		});
+
+		expect(response.status).toBe(403);
+		expect(countAccounts(db, userId)).toBe(2);
+	});
+
+	it("counts the airline programmes of the user, not of the instance", async () => {
+		createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+		createAccount(db, { userId: OTHER_USER, programId: "flying-blue" });
+
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "sas",
+		});
+
+		expect(response.status).toBe(201);
+	});
+
+	it("refuses a first balance with lots and writes no account", async () => {
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "amex-mr",
+			snapshot: { points: 1900, observedAt: "2026-11-01", lots: LOTS },
+		});
+
+		expect(response.status).toBe(403);
+		expect(await response.json()).toEqual({ error: "supporter_required" });
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("accepts a first balance with no lot", async () => {
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "amex-mr",
+			snapshot: { points: 1900, observedAt: "2026-11-01", lots: [] },
+		});
+
+		expect(response.status).toBe(201);
+	});
+
+	it("refuses the lots of a new snapshot of a free account", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const response = await postTo(
+			limited,
+			`/api/accounts/${accountId}/snapshots`,
+			{ points: 1900, observedAt: "2026-11-01", lots: LOTS },
+		);
+
+		expect(response.status).toBe(403);
+		expect(await response.json()).toEqual({ error: "supporter_required" });
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	it("gives each function to an unlimited account", async () => {
+		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
+
+		const created = await postTo(limited, "/api/accounts", {
+			programId: "klarna",
+			snapshot: { points: 1900, observedAt: "2026-11-01", lots: LOTS },
+		});
+
+		expect(created.status).toBe(201);
+	});
+
+	it("gives each function to a free account with no limits", async () => {
+		const created = await post("/api/accounts", {
+			programId: "klarna",
+			snapshot: { points: 1900, observedAt: "2026-11-01", lots: LOTS },
+		});
+
+		expect(created.status).toBe(201);
+	});
+
+	it("examines the programme before the level", async () => {
+		const response = await postTo(limited, "/api/accounts", {
+			programId: "nothing",
+		});
+
+		expect(response.status).toBe(404);
+	});
+});
+
 describe("the routes of the administrator", () => {
 	/** The address of the user of the session. `insertUser` writes it. */
 	const ADMIN_EMAIL = "primo@example.com";
@@ -1077,7 +1216,7 @@ describe("the routes of the administrator", () => {
 				clientSecret: "client-secret-test",
 			},
 		});
-		admin = createApp(db, auth, [BASE_URL], ADMIN_EMAIL);
+		admin = createApp(db, auth, [BASE_URL], { adminEmail: ADMIN_EMAIL });
 	});
 
 	function adminGet(target: ReturnType<typeof createApp>, path: string) {

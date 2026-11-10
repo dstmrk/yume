@@ -13,6 +13,7 @@ import {
 import { airlinesOf } from "../lib/airlines.ts";
 import { createAccount } from "../lib/api.ts";
 import { readOptionalPoints } from "../lib/balance.ts";
+import { isSupporterRequired } from "../lib/errors.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
 import { Button } from "./ui/button.tsx";
 import {
@@ -150,7 +151,9 @@ function Fields({
 				<p className="text-destructive text-sm">
 					{isTooManyAccounts(save.error)
 						? text.tooManyAccountsError
-						: text.saveError}
+						: isSupporterRequired(save.error)
+							? text.freeAccountLimitError
+							: text.saveError}
 				</p>
 			)}
 

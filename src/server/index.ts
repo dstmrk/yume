@@ -10,6 +10,7 @@ import { serve } from "@hono/node-server";
 import { serveStatic } from "@hono/node-server/serve-static";
 import { LOCALES, routing } from "../shared/locale.ts";
 import { pageOfPath } from "../shared/routes.ts";
+import { parseFreeAccountLimits } from "../shared/tier.ts";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
@@ -64,6 +65,21 @@ const trustedOrigins = (process.env.TRUSTED_ORIGINS ?? "")
  */
 const adminEmail = process.env.ADMIN_EMAIL;
 
+/**
+ * The limits of the free account. With no value, the instance has no limit: a
+ * self-hosted installation keeps each function. A value that is not `true` or
+ * `false` stops the server, because a defect in the variable of the official
+ * instance otherwise opens each function to each user. Paragraph 4.6 of
+ * `docs/architecture.md` gives the decision.
+ */
+let limits: boolean;
+try {
+	limits = parseFreeAccountLimits(process.env.FREE_ACCOUNT_LIMITS);
+} catch (error) {
+	console.error((error as Error).message);
+	process.exit(1);
+}
+
 const db = openDatabase(url);
 
 /**
@@ -85,7 +101,10 @@ cleanExpired();
 setInterval(cleanExpired, CLEANUP_INTERVAL_MS).unref();
 
 const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
-const app = createApp(db, auth, [baseURL, ...trustedOrigins], adminEmail);
+const app = createApp(db, auth, [baseURL, ...trustedOrigins], {
+	adminEmail,
+	limits,
+});
 
 /**
  * The files of the client, from the same origin as the API. The API routes are
