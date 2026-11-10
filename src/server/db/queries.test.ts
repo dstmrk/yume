@@ -21,6 +21,7 @@ import {
 import {
 	account,
 	balanceSnapshot,
+	expiryLot,
 	favoriteCurrency,
 	session,
 	user,
@@ -633,5 +634,138 @@ describe("deleteExpired", () => {
 
 	it("gives zero and throws nothing with no rows", () => {
 		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 0 });
+	});
+});
+
+describe("expiry lots", () => {
+	it("gives the lots of the most recent snapshot, in the order of the date", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 10000,
+			observedAt: "2026-11-10",
+			lots: [
+				{ points: 1000, expiresOn: "2027-12-31" },
+				{ points: 4000, expiresOn: "2027-03-31" },
+			],
+		});
+
+		expect(currentBalances(db, USER)[0]?.lots).toEqual([
+			{ points: 4000, expiresOn: "2027-03-31" },
+			{ points: 1000, expiresOn: "2027-12-31" },
+		]);
+	});
+
+	// The lots belong to the snapshot. A new snapshot with no lot gives a
+	// balance with no expiry, and the lots of the old snapshot stay with it.
+	it("gives no lot of an older snapshot", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 10000,
+			observedAt: "2026-11-01",
+			lots: [{ points: 4000, expiresOn: "2027-03-31" }],
+		});
+		addSnapshot(db, {
+			accountId: account,
+			points: 9000,
+			observedAt: "2026-11-10",
+		});
+
+		expect(currentBalances(db, USER)[0]).toMatchObject({
+			points: 9000,
+			lots: [],
+		});
+		expect(db.select().from(expiryLot).all()).toHaveLength(1);
+	});
+
+	it("gives an empty list for an account with no snapshot", () => {
+		createAccount(db, { userId: USER, programId: "ba-club" });
+		expect(currentBalances(db, USER)[0]?.lots).toEqual([]);
+	});
+
+	it("gives the lots of each account to that account only", () => {
+		const first = createAccount(db, { userId: USER, programId: "ba-club" });
+		const second = createAccount(db, {
+			userId: USER,
+			programId: "iberia-club",
+		});
+		addSnapshot(db, {
+			accountId: first,
+			points: 100,
+			observedAt: "2026-11-10",
+			lots: [{ points: 10, expiresOn: "2027-01-01" }],
+		});
+		addSnapshot(db, {
+			accountId: second,
+			points: 200,
+			observedAt: "2026-11-10",
+			lots: [{ points: 20, expiresOn: "2027-02-01" }],
+		});
+
+		const rows = currentBalances(db, USER);
+		expect(rows.find((row) => row.accountId === first)?.lots).toEqual([
+			{ points: 10, expiresOn: "2027-01-01" },
+		]);
+		expect(rows.find((row) => row.accountId === second)?.lots).toEqual([
+			{ points: 20, expiresOn: "2027-02-01" },
+		]);
+	});
+
+	it("writes the lots of the first balance of a new account", () => {
+		createAccount(db, {
+			userId: USER,
+			programId: "ba-club",
+			snapshot: {
+				points: 100,
+				observedAt: "2026-11-10",
+				lots: [{ points: 50, expiresOn: "2027-01-01" }],
+			},
+		});
+		expect(currentBalances(db, USER)[0]?.lots).toEqual([
+			{ points: 50, expiresOn: "2027-01-01" },
+		]);
+	});
+
+	// The snapshot and its lots are one transaction: a lot that the database
+	// refuses leaves no snapshot.
+	it("writes no snapshot when a lot fails", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		expect(() =>
+			addSnapshot(db, {
+				accountId: account,
+				points: 100,
+				observedAt: "2026-11-10",
+				lots: [
+					{ points: 10, expiresOn: "2027-01-01" },
+					{ points: 20, expiresOn: "2027-01-01" },
+				],
+			}),
+		).toThrow();
+		expect(snapshotCount(account)).toBe(0);
+	});
+
+	it("removes the lots with their snapshot", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		const snapshot = addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-11-10",
+			lots: [{ points: 10, expiresOn: "2027-01-01" }],
+		});
+		deleteSnapshot(db, snapshot, account);
+		expect(db.select().from(expiryLot).all()).toEqual([]);
+	});
+
+	it("removes the lots with their account", () => {
+		const account = createAccount(db, { userId: USER, programId: "ba-club" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 100,
+			observedAt: "2026-11-10",
+			lots: [{ points: 10, expiresOn: "2027-01-01" }],
+		});
+		deleteAccount(db, account, USER);
+		expect(db.select().from(expiryLot).all()).toEqual([]);
 	});
 });
