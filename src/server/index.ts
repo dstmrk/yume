@@ -47,8 +47,8 @@ if (!clientId || !clientSecret) {
 const google = { clientId, clientSecret };
 
 /**
- * The origin of the application. Better Auth refuses a request from an other
- * origin. In development the client of Vite is on the port 5173, thus
+ * The origin of the application. Better Auth and the middleware `csrf` of
+ * `createApp` refuse a request from an other origin. In development the client of Vite is on the port 5173, thus
  * `TRUSTED_ORIGINS` gives that origin to the server.
  */
 const baseURL = process.env.BETTER_AUTH_URL ?? `http://localhost:${port}`;
@@ -78,7 +78,7 @@ cleanExpired();
 setInterval(cleanExpired, CLEANUP_INTERVAL_MS).unref();
 
 const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
-const app = createApp(db, auth);
+const app = createApp(db, auth, [baseURL, ...trustedOrigins]);
 
 /**
  * The files of the client, from the same origin as the API. The API routes are

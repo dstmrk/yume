@@ -383,7 +383,7 @@ the author makes a new account with Google. No code keeps the old path.
 | Variable | Value |
 |---|---|
 | `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. |
-| `BETTER_AUTH_URL` | The origin of the application. Better Auth refuses a request from an other origin. The default value is `http://localhost:<PORT>`. |
+| `BETTER_AUTH_URL` | The origin of the application. Better Auth and the middleware `csrf` refuse a request from an other origin. The default value is `http://localhost:<PORT>`. |
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
@@ -433,6 +433,22 @@ technical ceilings, not the commercial limits of paragraph 4.6:
   loop, and one process serves each user.
 - `MAX_BODY_BYTES` is 16 KB. The middleware `bodyLimit` of Hono gives the status 413
   above it, also on `/api/auth/`. `c.req.json()` reads the full body into memory.
+
+The cookie of the session is `SameSite=Lax`. That attribute does not stop a form of an
+other subdomain of the same domain, for example `jellyfin.example.com` near
+`yume.example.com`. The browser sends the cookie with that form, and `c.req.json()`
+reads a body of `text/plain`. Therefore the middleware `csrf` of Hono comes after the
+session. It gives the status 403 to a form of an origin that is not `BETTER_AUTH_URL` or
+an origin of `TRUSTED_ORIGINS`. A request with no type of body also needs that origin: a
+`DELETE` has no body.
+
+The middleware `secureHeaders` of Hono gives the security headers to each answer, also
+to the files of the client. `X-Frame-Options: SAMEORIGIN` stops a page of an other site
+that shows Yume in a frame. The server gives no `Strict-Transport-Security`: the default
+of Hono holds `includeSubDomains`, and that value forces HTTPS on each other service of
+the domain. The proxy of the TLS gives that header. The server gives no
+Content-Security-Policy: the public page holds JSON-LD inline, and a policy needs its own
+design.
 
 ### 4.5 The peer dependency of Better Auth
 
