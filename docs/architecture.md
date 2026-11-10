@@ -693,7 +693,7 @@ The server gives four tools:
 
 | Tool | Operation | Annotations |
 |---|---|---|
-| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one. | `title`, `readOnlyHint: true` |
+| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true` |
 | `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true` |
 | `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true` |
 | `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true` |
@@ -724,6 +724,11 @@ the result of a tool to the person. Thus each tool obeys these rules:
 - Each quantity of points is an integer. A ratio is two integers.
 - `add_snapshot` refuses a date in the future, as `POST /api/accounts/:id/snapshots`
   does.
+- `add_snapshot` accepts the expiry lots of paragraph 3.2.1, with `addSnapshotSchema`.
+  The lots belong to the snapshot, thus a snapshot with no lots holds no lots. The form
+  of the dashboard gives the current lots again, and the tool cannot do that. Therefore
+  `list_accounts` gives the lots of the current snapshot, and the description of
+  `add_snapshot` states that a snapshot with no lots holds no lots.
 - An error gives its cause and the correct input, for example `future_date` with the
   latest date that the server accepts. The directory refuses a general error, for
   example "Bad Request" with no detail.
