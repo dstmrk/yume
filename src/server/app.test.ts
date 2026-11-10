@@ -1,12 +1,13 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp } from "./app.ts";
+import { createApp, MAX_ACCOUNTS_PER_USER, MAX_BODY_BYTES } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import {
 	addFavorite,
 	addSnapshot,
+	countAccounts,
 	createAccount,
 	currentBalances,
 	favoriteCurrencies,
@@ -211,6 +212,143 @@ describe("POST /api/accounts", () => {
 			programId: "does-not-exist",
 		});
 		expect(response.status).toBe(404);
+	});
+});
+
+// Sign-up is open, and two accounts of one programme are allowed on purpose.
+// Without a ceiling, one user with 50,000 accounts stops the process for about
+// one second on each `GET /api/potential`. Refer to paragraph 4.4 of
+// `docs/architecture.md`.
+describe("the ceiling of the accounts of a user", () => {
+	/** Writes accounts with the query: the route is too slow for 99 rows. */
+	function fill(owner: string, count: number) {
+		for (let index = 0; index < count; index++) {
+			createAccount(db, { userId: owner, programId: "ba-club" });
+		}
+	}
+
+	it("accepts the last account below the ceiling", async () => {
+		fill(userId, MAX_ACCOUNTS_PER_USER - 1);
+
+		const response = await post("/api/accounts", { programId: "ba-club" });
+
+		expect(response.status).toBe(201);
+		expect(countAccounts(db, userId)).toBe(MAX_ACCOUNTS_PER_USER);
+	});
+
+	it("refuses an account above the ceiling and writes no row", async () => {
+		fill(userId, MAX_ACCOUNTS_PER_USER);
+
+		const response = await post("/api/accounts", { programId: "ba-club" });
+
+		expect(response.status).toBe(409);
+		expect(await response.json()).toEqual({ error: "too_many_accounts" });
+		expect(countAccounts(db, userId)).toBe(MAX_ACCOUNTS_PER_USER);
+	});
+
+	it("counts the accounts of the user, not of the instance", async () => {
+		fill(OTHER_USER, MAX_ACCOUNTS_PER_USER);
+
+		const response = await post("/api/accounts", { programId: "ba-club" });
+
+		expect(response.status).toBe(201);
+	});
+
+	it("accepts an account again after a removal", async () => {
+		fill(userId, MAX_ACCOUNTS_PER_USER);
+		const [first] = currentBalances(db, userId);
+		await remove(`/api/accounts/${first?.accountId}`);
+
+		const response = await post("/api/accounts", { programId: "ba-club" });
+
+		expect(response.status).toBe(201);
+	});
+
+	// The body is examined first: a body that is not correct gives 400 also at
+	// the ceiling, and a programme that does not exist gives 404.
+	it("gives 400 for a body that is not correct, also at the ceiling", async () => {
+		fill(userId, MAX_ACCOUNTS_PER_USER);
+
+		expect((await post("/api/accounts", {})).status).toBe(400);
+	});
+});
+
+// `c.req.json()` reads the full body into memory, and the container has 512 MB.
+describe("the limit of the size of a body", () => {
+	/** A body of JSON of exactly `size` bytes. Zod removes the field `pad`. */
+	function bodyOf(size: number, fields: Record<string, unknown>) {
+		const empty = JSON.stringify({ ...fields, pad: "" });
+		return JSON.stringify({ ...fields, pad: "x".repeat(size - empty.length) });
+	}
+
+	function postRaw(path: string, body: string, headers: HeadersInit = {}) {
+		return app.request(path, {
+			method: "POST",
+			headers: { "content-type": "application/json", cookie, ...headers },
+			body,
+		});
+	}
+
+	it("accepts a body of exactly the limit", async () => {
+		const body = bodyOf(MAX_BODY_BYTES, { programId: "ba-club" });
+		expect(body.length).toBe(MAX_BODY_BYTES);
+
+		expect((await postRaw("/api/accounts", body)).status).toBe(201);
+	});
+
+	it("refuses a body above the limit on POST /api/accounts", async () => {
+		const body = bodyOf(MAX_BODY_BYTES + 1, { programId: "ba-club" });
+
+		const response = await postRaw("/api/accounts", body);
+
+		expect(response.status).toBe(413);
+		expect(await response.json()).toEqual({ error: "payload_too_large" });
+		expect(countAccounts(db, userId)).toBe(0);
+	});
+
+	it("refuses a body above the limit on POST /api/accounts/:id/snapshots", async () => {
+		const account = createAccount(db, { userId, programId: "ba-club" });
+		const body = bodyOf(MAX_BODY_BYTES + 1, {
+			points: 1000,
+			observedAt: "2026-08-11",
+		});
+
+		const response = await postRaw(`/api/accounts/${account}/snapshots`, body);
+
+		expect(response.status).toBe(413);
+		expect(currentBalances(db, userId)).toMatchObject([{ points: null }]);
+	});
+
+	// The server of Node gives the header `content-length`. The middleware
+	// then refuses the body before it reads it.
+	it("refuses a body with a content-length above the limit", async () => {
+		const body = bodyOf(MAX_BODY_BYTES + 1, { programId: "ba-club" });
+
+		const response = await postRaw("/api/accounts", body, {
+			"content-length": String(body.length),
+		});
+
+		expect(response.status).toBe(413);
+	});
+
+	it("keeps the sign-in of Better Auth below the limit", async () => {
+		const response = await app.request("/api/auth/sign-in/social", {
+			method: "POST",
+			headers: { "content-type": "application/json", origin: BASE_URL },
+			body: JSON.stringify({ provider: "google", callbackURL: "/dashboard" }),
+		});
+
+		expect(response.status).toBe(200);
+	});
+
+	it("refuses a body above the limit on a route of Better Auth", async () => {
+		const response = await postRaw(
+			"/api/auth/sign-in/social",
+			bodyOf(MAX_BODY_BYTES + 1, { provider: "google" }),
+			{ origin: BASE_URL },
+		);
+
+		expect(response.status).toBe(413);
 	});
 });
 

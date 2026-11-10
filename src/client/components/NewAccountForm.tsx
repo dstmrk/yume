@@ -3,6 +3,7 @@ import { useId, useState } from "react";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import { useI18n } from "../i18n/I18n.tsx";
 import {
+	isTooManyAccounts,
 	matchesProgram,
 	programAirlinesLine,
 	searchNamesOf,
@@ -152,7 +153,11 @@ function Fields({
 				<p className="text-destructive text-sm">{text.pointsError}</p>
 			)}
 			{save.isError && (
-				<p className="text-destructive text-sm">{text.saveError}</p>
+				<p className="text-destructive text-sm">
+					{isTooManyAccounts(save.error)
+						? text.tooManyAccountsError
+						: text.saveError}
+				</p>
 			)}
 
 			<div className="flex gap-2">

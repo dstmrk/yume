@@ -417,6 +417,15 @@ paths are the exceptions:
 Each route of the data reads the user with `c.get("userId")`. The application holds no
 user with a fixed value.
 
+The sign-up is open, thus two constants of `src/server/app.ts` limit each user. They are
+technical ceilings, not the commercial limits of paragraph 4.6:
+
+- `MAX_ACCOUNTS_PER_USER` is 100. Above it, `POST /api/accounts` gives the status 409
+  with `too_many_accounts`. `GET /api/potential` reads each account in one synchronous
+  loop, and one process serves each user.
+- `MAX_BODY_BYTES` is 16 KB. The middleware `bodyLimit` of Hono gives the status 413
+  above it, also on `/api/auth/`. `c.req.json()` reads the full body into memory.
+
 ### 4.5 The peer dependency of Better Auth
 
 Better Auth declares `better-sqlite3` in `peerDependencies` with the version 12, and the

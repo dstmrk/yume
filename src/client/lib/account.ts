@@ -1,5 +1,7 @@
+import { TOO_MANY_ACCOUNTS } from "../../shared/api.ts";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import { airlinesOf } from "./airlines.ts";
+import { ApiError } from "./errors.ts";
 
 /**
  * The comparison of the names, in the order of the dictionary of the language.
@@ -121,4 +123,13 @@ export function searchNamesOf(
 			];
 		}),
 	);
+}
+
+/**
+ * True when the server refuses the account because the user holds the maximum
+ * quantity of accounts. The form then shows its own message, not the general
+ * message of an error.
+ */
+export function isTooManyAccounts(error: unknown): boolean {
+	return error instanceof ApiError && error.code === TOO_MANY_ACCOUNTS;
 }
