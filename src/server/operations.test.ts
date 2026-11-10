@@ -1,11 +1,14 @@
+import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { addSnapshot, createAccount, currentBalances } from "./db/queries.ts";
+import { user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 import {
+	entitlementOf,
 	latestObservedAt,
 	potentialOf,
 	recordSnapshot,
@@ -46,8 +49,19 @@ describe("latestObservedAt", () => {
 });
 
 describe("recordSnapshot", () => {
-	function record(accountId: string, body: unknown, user = userId) {
-		return recordSnapshot(db, { userId: user, accountId, body, now: NOW });
+	function record(
+		accountId: string,
+		body: unknown,
+		user = userId,
+		limits = false,
+	) {
+		return recordSnapshot(db, {
+			userId: user,
+			accountId,
+			body,
+			now: NOW,
+			limits,
+		});
 	}
 
 	it("writes the snapshot of an account of the user", () => {
@@ -212,5 +226,121 @@ describe("potentialOf", () => {
 			(row) => row.currencyId === "avios",
 		);
 		expect(avios?.total).toBe(0);
+	});
+});
+
+describe("entitlementOf", () => {
+	it("gives free to a new user", () => {
+		expect(entitlementOf(db, userId, true, NOW)).toEqual({
+			limits: true,
+			tier: "free",
+		});
+	});
+
+	it("reads the flag unlimited of the user", () => {
+		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
+		expect(entitlementOf(db, userId, true, NOW).tier).toBe("unlimited");
+		expect(entitlementOf(db, OTHER_USER, true, NOW).tier).toBe("free");
+	});
+
+	it("reads the end of the supporter account at the clock", () => {
+		db.update(user)
+			.set({ supporterUntil: new Date("2026-11-10T00:00:00.000Z") })
+			.where(eq(user.id, userId))
+			.run();
+		expect(entitlementOf(db, userId, true, NOW).tier).toBe("supporter");
+		expect(
+			entitlementOf(db, userId, true, new Date("2026-11-10T00:00:00.000Z"))
+				.tier,
+		).toBe("free");
+	});
+
+	it("gives free to a user that does not exist", () => {
+		expect(entitlementOf(db, "nobody", true, NOW).tier).toBe("free");
+	});
+});
+
+describe("recordSnapshot with the limits of the free account", () => {
+	const LOTS = [{ points: 500, expiresOn: "2027-03-31" }];
+
+	function recordLimited(accountId: string, body: unknown) {
+		return recordSnapshot(db, {
+			userId,
+			accountId,
+			body,
+			now: NOW,
+			limits: true,
+		});
+	}
+
+	it("refuses the lots of a free account and writes no snapshot", () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = recordLimited(accountId, {
+			points: 1900,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result).toEqual({ ok: false, error: "supporter_required" });
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	it("accepts a snapshot of a free account with no lot", () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		expect(
+			recordLimited(accountId, { points: 1900, observedAt: "2026-11-09" }).ok,
+		).toBe(true);
+		expect(
+			recordLimited(accountId, {
+				points: 2000,
+				observedAt: "2026-11-09",
+				lots: [],
+			}).ok,
+		).toBe(true);
+	});
+
+	it("accepts the lots of an unlimited account", () => {
+		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = recordLimited(accountId, {
+			points: 1900,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result.ok).toBe(true);
+	});
+
+	// An account of an other user gives the same answer with each body. Thus no
+	// answer says that the account exists.
+	it("examines the account before the level", () => {
+		const accountId = createAccount(db, {
+			userId: OTHER_USER,
+			programId: "amex-mr",
+		});
+
+		const result = recordLimited(accountId, {
+			points: 1900,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result).toEqual({ ok: false, error: "unknown_account" });
+	});
+
+	it("examines the body before the level", () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = recordLimited(accountId, {
+			points: -1,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result.ok).toBe(false);
+		expect(!result.ok && result.error).toBe("invalid_body");
 	});
 });

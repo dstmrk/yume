@@ -5,6 +5,7 @@ import { useI18n } from "../i18n/I18n.tsx";
 import type { Messages } from "../i18n/messages.ts";
 import { addSnapshot } from "../lib/api.ts";
 import { parsePoints, todayIso } from "../lib/balance.ts";
+import { isSupporterRequired } from "../lib/errors.ts";
 import {
 	draftsOf,
 	type LotDraft,
@@ -230,7 +231,11 @@ function Fields({
 				<p className="text-destructive text-sm">{lotMessage(lotError, text)}</p>
 			)}
 			{save.isError && (
-				<p className="text-destructive text-sm">{text.saveError}</p>
+				<p className="text-destructive text-sm">
+					{isSupporterRequired(save.error)
+						? text.freeLotsError
+						: text.saveError}
+				</p>
 			)}
 
 			<div className="flex gap-2">

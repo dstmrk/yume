@@ -163,6 +163,9 @@ export const it = {
 	cancel: "Annulla",
 	saveError: "Salvataggio non riuscito.",
 	tooManyAccountsError: "Hai raggiunto il limite di conti.",
+	freeAccountLimitError:
+		"Con l'account gratuito puoi aggiungere Amex, Revolut e 2 programmi aerei.",
+	freeLotsError: "Le scadenze sono riservate ai sostenitori.",
 
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",
