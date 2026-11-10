@@ -579,8 +579,8 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-task 1 of paragraph 4.7.5
-only.
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 and 2 of paragraph
+4.7.5 only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
 agent, for example Claude or Claude Code, to that server. The agent then reads the
@@ -1579,6 +1579,7 @@ yume/
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the provider Google
       mcp.ts           # the MCP server and its tools
+      operations.ts    # the examinations that the routes and the tools share
       db/schema.ts     # the Drizzle tables, with the Better Auth tables
       db/seed/         # the catalogue of programmes and transfer rules
     shared/            # Zod schemas, the conversion and the languages, for both sides
