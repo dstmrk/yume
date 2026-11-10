@@ -886,13 +886,27 @@ strict and holds `unlimited` only. `supporter_until` keeps one writer, the payme
 Paragraph 4.6 gives the two writers.
 
 **The list holds no balance.** Each row holds the address, the date of the first
-sign-in, the level, the end of the supporter account, the flag and the quantity of
-accounts. The row holds no balance and no programme. The GDPR asks for the minimum of
-data (art. 5(1)(c)).
+sign-in, the level, the end of the supporter account and the flag. The row holds no
+account, no balance and no programme. The GDPR asks for the minimum of data
+(art. 5(1)(c)).
 
 **The page.** The client shows the page `/admin`. The dashboard shows a link to it only
 when `GET /api/me` gives true. The route sends each other user to the dashboard. That
 link and that redirect are not the protection: the server gives the protection.
+
+The page shows the users in the `Table` of shadcn/ui. The columns are the email, the
+date of the first sign-in, the level and a `Switch` for the flag. The date column is not
+visible below 768 pixels, and the table scrolls horizontally in its container.
+
+The header of the table holds two filters: a text for a part of the email, and four
+buttons for the level. A change of a filter goes back to the first page. The table shows
+20 rows on each page.
+
+The client filters and divides the list. `filterUsers` and `pageOf` of
+`src/client/lib/admin.ts` are pure functions with tests. The project uses no
+`@tanstack/react-table`: that library keeps the logic in a hook of the component, and
+the project has no test of a component. The server gives each user in one answer. Add
+a pagination on the server when the quantity of users makes that answer slow.
 
 ## 5. User interface
 

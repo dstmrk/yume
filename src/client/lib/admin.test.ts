@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adminSummary, dayOf } from "./admin.ts";
+import { adminSummary, dayOf, filterUsers, pageOf } from "./admin.ts";
 
 const NOW = new Date("2026-11-10T12:00:00Z");
 
@@ -50,5 +50,77 @@ describe("dayOf", () => {
 
 	it("gives the same text for a value that it cannot read", () => {
 		expect(dayOf("not-a-date")).toBe("not-a-date");
+	});
+});
+
+describe("filterUsers", () => {
+	const users = [
+		{ email: "anna@example.com", tier: "free" as const },
+		{ email: "Bruno@Example.com", tier: "supporter" as const },
+		{ email: "carla@other.org", tier: "unlimited" as const },
+	];
+
+	it("gives each user with no text and the filter all", () => {
+		expect(filterUsers(users, "", "all")).toEqual(users);
+	});
+
+	it("keeps the users of one level", () => {
+		expect(filterUsers(users, "", "supporter")).toEqual([users[1]]);
+	});
+
+	it("finds a part of the email and ignores the case", () => {
+		expect(filterUsers(users, "BRUNO", "all")).toEqual([users[1]]);
+		expect(filterUsers(users, "example", "all")).toEqual([users[0], users[1]]);
+	});
+
+	it("ignores the spaces at the two ends of the text", () => {
+		expect(filterUsers(users, "  carla ", "all")).toEqual([users[2]]);
+	});
+
+	it("applies the two filters together", () => {
+		expect(filterUsers(users, "example", "free")).toEqual([users[0]]);
+		expect(filterUsers(users, "carla", "free")).toEqual([]);
+	});
+
+	it("gives an empty list with no match", () => {
+		expect(filterUsers(users, "nobody", "all")).toEqual([]);
+	});
+});
+
+describe("pageOf", () => {
+	const items = Array.from({ length: 45 }, (_, index) => index);
+
+	it("gives the first page", () => {
+		expect(pageOf(items, 1, 20)).toEqual({
+			items: items.slice(0, 20),
+			page: 1,
+			pages: 3,
+		});
+	});
+
+	it("gives a last page that is not full", () => {
+		expect(pageOf(items, 3, 20).items).toEqual([40, 41, 42, 43, 44]);
+	});
+
+	// A filter or a change of a level can make the list shorter than the page.
+	it("gives the last page for a page after the end", () => {
+		expect(pageOf(items, 9, 20)).toMatchObject({ page: 3, pages: 3 });
+	});
+
+	it("gives the first page for a page before the start", () => {
+		expect(pageOf(items, 0, 20).page).toBe(1);
+		expect(pageOf(items, -2, 20).page).toBe(1);
+	});
+
+	it("gives one empty page with no item", () => {
+		expect(pageOf([], 1, 20)).toEqual({ items: [], page: 1, pages: 1 });
+	});
+
+	it("gives one page for a list of exactly one page", () => {
+		expect(pageOf(items.slice(0, 20), 1, 20).pages).toBe(1);
+	});
+
+	it("uses 20 items for each page by default", () => {
+		expect(pageOf(items, 1).items).toHaveLength(20);
 	});
 });

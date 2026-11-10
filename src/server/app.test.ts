@@ -1125,7 +1125,6 @@ describe("the routes of the administrator", () => {
 				tier: string;
 				supporterUntil: string | null;
 				unlimited: boolean;
-				accounts: number;
 			}[];
 		};
 
@@ -1135,8 +1134,7 @@ describe("the routes of the administrator", () => {
 			return ((await response.json()) as Body).users;
 		}
 
-		it("gives each user with the level and the quantity of accounts", async () => {
-			createAccount(db, { userId: OTHER_USER, programId: "ba-club" });
+		it("gives each user with the level", async () => {
 			const rows = await users();
 			expect(rows.map((row) => row.id).toSorted()).toEqual(
 				[OTHER_USER, userId].toSorted(),
@@ -1146,7 +1144,6 @@ describe("the routes of the administrator", () => {
 				tier: "free",
 				supporterUntil: null,
 				unlimited: false,
-				accounts: 1,
 			});
 		});
 

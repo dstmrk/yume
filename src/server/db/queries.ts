@@ -1,4 +1,4 @@
-import { and, asc, count, desc, eq, inArray, lt, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
 import type { AccountRow, ExpiryLot } from "../../shared/api.ts";
 import type { Db } from "./index.ts";
 import {
@@ -326,13 +326,12 @@ export type UserRow = {
 	createdAt: Date;
 	supporterUntil: Date | null;
 	unlimited: boolean;
-	accounts: number;
 };
 
 /**
- * Gives each user with the quantity of accounts, the newest user first.
+ * Gives each user, the newest user first.
  *
- * The list holds no balance and no programme: the administrator does not need
+ * The list holds no account, no balance and no programme: the administrator does not need
  * them, and the GDPR asks for the minimum of data (art. 5(1)(c)). The id is the
  * second key, thus two users of the same instant keep one order. Paragraph 4.8
  * of `docs/architecture.md` gives the rule.
@@ -345,11 +344,8 @@ export function listUsers(db: Db): UserRow[] {
 			createdAt: user.createdAt,
 			supporterUntil: user.supporterUntil,
 			unlimited: user.unlimited,
-			accounts: count(userAccount.id),
 		})
 		.from(user)
-		.leftJoin(userAccount, eq(userAccount.userId, user.id))
-		.groupBy(user.id)
 		.orderBy(desc(user.createdAt), asc(user.id))
 		.all();
 }

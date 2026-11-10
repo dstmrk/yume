@@ -402,7 +402,6 @@ export function createApp(
 				tier: accountTier(row, now),
 				supporterUntil: row.supporterUntil?.toISOString() ?? null,
 				unlimited: row.unlimited,
-				accounts: row.accounts,
 			})),
 		};
 		return c.json(body);

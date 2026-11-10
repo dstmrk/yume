@@ -3,6 +3,8 @@
  * `docs/architecture.md` gives the rules.
  */
 
+import type { AccountTier } from "../../shared/tier.ts";
+
 /** The window of the new users: 30 days of 24 hours. */
 const RECENT_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -33,4 +35,47 @@ export function adminSummary(
 export function dayOf(instant: string): string {
 	const at = Date.parse(instant);
 	return Number.isNaN(at) ? instant : new Date(at).toISOString().slice(0, 10);
+}
+
+/** The filter of the level: one level, or each level. */
+export type TierFilter = "all" | AccountTier;
+
+/**
+ * Keeps the users that match the text and the level.
+ *
+ * The text is a part of the email. The function ignores the case and the
+ * spaces at the two ends. An empty text keeps each user.
+ */
+export function filterUsers<T extends { email: string; tier: AccountTier }>(
+	users: readonly T[],
+	query: string,
+	tier: TierFilter,
+): T[] {
+	const text = query.trim().toLowerCase();
+	return users.filter(
+		(user) =>
+			(tier === "all" || user.tier === tier) &&
+			user.email.toLowerCase().includes(text),
+	);
+}
+
+/** The quantity of rows of one page of the table. */
+export const PAGE_SIZE = 20;
+
+/**
+ * Gives one page of a list, and the quantity of pages.
+ *
+ * A page outside the list gives the nearest page: a filter or a change of a
+ * level can make the list shorter than the current page. An empty list has one
+ * empty page.
+ */
+export function pageOf<T>(
+	items: readonly T[],
+	page: number,
+	size: number = PAGE_SIZE,
+): { items: T[]; page: number; pages: number } {
+	const pages = Math.max(1, Math.ceil(items.length / size));
+	const current = Math.min(Math.max(1, page), pages);
+	const start = (current - 1) * size;
+	return { items: items.slice(start, start + size), page: current, pages };
 }

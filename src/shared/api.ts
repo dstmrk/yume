@@ -190,8 +190,8 @@ export type MeResponse = {
 };
 
 /**
- * One user of the instance, for the administrator. The row holds no balance
- * and no programme. Paragraph 4.8 of `docs/architecture.md` gives the rule.
+ * One user of the instance, for the administrator. The row holds no account,
+ * no balance and no programme. Paragraph 4.8 of `docs/architecture.md` gives the rule.
  */
 export type AdminUser = {
 	id: string;
@@ -203,8 +203,6 @@ export type AdminUser = {
 	/** The end of the supporter account, in the ISO 8601 format, or null. */
 	supporterUntil: string | null;
 	unlimited: boolean;
-	/** The quantity of accounts of the user. */
-	accounts: number;
 };
 
 export type AdminUsersResponse = {

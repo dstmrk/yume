@@ -794,31 +794,6 @@ describe("listUsers", () => {
 		expect(listUsers(db).map((row) => row.id)).toEqual([USER, OTHER_USER]);
 	});
 
-	it("counts the accounts of each user, and gives 0 with no account", () => {
-		createAccount(db, { userId: USER, programId: "ba-club" });
-		createAccount(db, { userId: USER, programId: "ba-club" });
-		const rows = new Map(listUsers(db).map((row) => [row.id, row.accounts]));
-		expect(rows.get(USER)).toBe(2);
-		expect(rows.get(OTHER_USER)).toBe(0);
-	});
-
-	// The count of the accounts must not multiply with the snapshots.
-	it("counts an account with many snapshots one time", () => {
-		const account = createAccount(db, { userId: USER, programId: "ba-club" });
-		addSnapshot(db, {
-			accountId: account,
-			points: 1,
-			observedAt: "2026-01-01",
-		});
-		addSnapshot(db, {
-			accountId: account,
-			points: 2,
-			observedAt: "2026-01-02",
-		});
-		const row = listUsers(db).find((item) => item.id === USER);
-		expect(row?.accounts).toBe(1);
-	});
-
 	it("gives the two sources of the level", () => {
 		const until = new Date("2027-01-01T00:00:00Z");
 		db.update(user)
@@ -831,8 +806,8 @@ describe("listUsers", () => {
 		expect(row?.email).toBe(`${USER}@example.com`);
 	});
 
-	// The page of the administrator shows no balance of a user.
-	it("gives no balance and no programme", () => {
+	// The page of the administrator shows no account of a user.
+	it("gives no account, no balance and no programme", () => {
 		createAccount(db, {
 			userId: USER,
 			programId: "ba-club",
@@ -840,7 +815,6 @@ describe("listUsers", () => {
 		});
 		const row = listUsers(db).find((item) => item.id === USER);
 		expect(Object.keys(row ?? {}).toSorted()).toEqual([
-			"accounts",
 			"createdAt",
 			"email",
 			"id",
