@@ -455,26 +455,12 @@ export const it = {
 				contact: false,
 			},
 			{
-				title: "Collegare Claude",
+				title: "Collegare un assistente",
 				paragraphs: [
-					"Vale per claude.ai e per le app di Claude per computer e telefono.",
+					"Aggiungi https://yumemiles.com/mcp come connettore personalizzato del tuo assistente. Poi accedi a Yume con Google e, nella pagina di autorizzazione di Yume, controlla dove va il codice: claude.ai per Claude, localhost per Claude Code, cioè il tuo computer. Autorizza solo se hai avviato tu il collegamento.",
+					"Come aggiungere un connettore in Claude: support.claude.com/en/articles/11175166. Come aggiungere un server MCP in Claude Code: code.claude.com/docs/en/mcp.",
 				],
-				items: [
-					"Nelle impostazioni di Claude, apri i connettori e aggiungi un connettore personalizzato.",
-					"Scrivi Yume come nome e https://yumemiles.com/mcp come indirizzo.",
-					"Premi Connetti e accedi a Yume con Google.",
-					"Nella pagina di autorizzazione controlla che il codice vada a claude.ai, poi premi Autorizza.",
-				],
-				contact: false,
-			},
-			{
-				title: "Collegare Claude Code",
-				paragraphs: [],
-				items: [
-					"Nel terminale: claude mcp add --transport http yume https://yumemiles.com/mcp",
-					"In Claude Code scrivi /mcp, scegli yume e avvia l'accesso: si apre il browser.",
-					"Accedi con Google. La pagina di autorizzazione indica che il codice va a localhost, cioè al tuo computer: autorizza solo se hai avviato tu il collegamento.",
-				],
+				items: [],
 				contact: false,
 			},
 			{
@@ -484,7 +470,7 @@ export const it = {
 					"list_accounts: legge i tuoi conti, con il saldo più recente e le scadenze dei punti.",
 					"get_potential: legge le miglia potenziali di ogni valuta delle compagnie aeree.",
 					"get_catalogue: legge le valute, i programmi e le regole di trasferimento in vigore.",
-					"add_snapshot: aggiunge un saldo a un tuo conto. Claude ti chiede conferma prima di ogni scrittura.",
+					"add_snapshot: aggiunge un saldo a un tuo conto. È l'unico strumento che scrive.",
 				],
 				contact: false,
 			},

@@ -887,8 +887,9 @@ Each sub-task has one artefact that accepts or refuses it:
 6. The privacy policy. Section 9 and the list of recipients must give the tokens of
    paragraph 4.7.2. The artefact: the text that the author accepts. The directory
    refuses a submission with no such text.
-7. The public documentation: the URL of the server, the steps of the connection in
-   Claude and in Claude Code, and the four tools. The artefact: a public page that the
+7. The public documentation: the URL of the server, the links to the guides of Anthropic
+   for Claude and for Claude Code, and the four tools. The page gives no step of the
+   interface of Claude: a change of that interface then needs no change of the page. The artefact: a public page that the
    author accepts.
 8. The test account for the reviewers of Anthropic. It is a supporter account with
    accounts and snapshots of an example. The artefact: one connection from claude.ai
