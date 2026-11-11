@@ -101,9 +101,12 @@ cleanExpired();
 setInterval(cleanExpired, CLEANUP_INTERVAL_MS).unref();
 
 const auth = createAuth(db, { secret, baseURL, trustedOrigins, google });
+// The MCP server reads the keys of its tokens from this process, on the
+// machine itself. Paragraph 4.7.2 of `docs/architecture.md`.
 const app = createApp(db, auth, [baseURL, ...trustedOrigins], {
 	adminEmail,
 	limits,
+	jwksUrl: `http://127.0.0.1:${port}/api/auth/jwks`,
 });
 
 /**
