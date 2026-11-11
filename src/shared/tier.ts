@@ -115,6 +115,31 @@ export function canWriteExpiryLots(entitlement: Entitlement): boolean {
 	return !entitlement.limits || entitlement.tier !== "free";
 }
 
+/** An expiry lot, with the fields that the comparison reads. */
+type Lot = { readonly points: number; readonly expiresOn: string };
+
+/**
+ * Examines if each lot of a new snapshot is a lot of the current balance, with
+ * the same date and the same points.
+ *
+ * A free account cannot write a new lot, but it keeps the lots of the current
+ * balance. The form of a new balance sends those lots again, thus a former
+ * supporter can update the balance and keep the lots. The new snapshot can
+ * hold a part of them: the form removes the expired lots. Paragraph 4.6.
+ */
+export function keepsCurrentLots(
+	lots: readonly Lot[],
+	current: readonly Lot[],
+): boolean {
+	const left = current.map((lot) => `${lot.expiresOn}:${lot.points}`);
+	return lots.every((lot) => {
+		const index = left.indexOf(`${lot.expiresOn}:${lot.points}`);
+		if (index === -1) return false;
+		left.splice(index, 1);
+		return true;
+	});
+}
+
 /**
  * Reads the variable `FREE_ACCOUNT_LIMITS`. No value gives false: a
  * self-hosted installation keeps each function.

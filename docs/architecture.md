@@ -536,7 +536,9 @@ because the end of a supporter account removes nothing.
 The expiry lots of paragraph 3.2.1 are open to each user until the code of the supporter
 account exists, as Klarna. After that date, the end of a supporter account removes no lot.
 The lots of the current balance stay on the dashboard, and the user cannot write a new
-lot.
+lot. The form of a new balance sends the current lots again. `keepsCurrentLots` of
+`src/shared/tier.ts` accepts those lots, or a part of them, with the same date and the
+same points. Thus a free account with lots can update the balance.
 
 **The limit counts the programmes, not the currencies.** The British Airways Club and
 Iberia Club are two programmes, thus they use the two places of the free account. The
@@ -584,6 +586,13 @@ Each surface reads them, and the application holds no other rule of the payment:
   user and the catalogue. It examines a new account only.
 - `canWriteExpiryLots` reads the level and the variable.
 
+**The forms disable the options before the request.** `GET /api/me` gives the level and
+the value of the variable. `src/client/lib/limits.ts` reads the same functions as the
+server. The list of the new account shows a blocked programme, disabled, with a short
+line. The form of a new balance keeps the current lots of a free account as they are:
+the user can remove a lot, and cannot add or change one. With no answer of
+`GET /api/me`, the client blocks nothing, and the server examines each request.
+
 **The routes refuse with one code.** A request above the limits gets the status 403 and
 the code `supporter_required`. The status 402 is reserved, and the clients handle it
 badly. Each form knows its request, thus it shows its own message.
@@ -591,7 +600,7 @@ badly. Each form knows its request, thus it shows its own message.
 | Route | The examination |
 |---|---|
 | `POST /api/accounts` | `canAddAccount`, then `canWriteExpiryLots` for the lots of the first balance |
-| `POST /api/accounts/:id/snapshots` | `canWriteExpiryLots`, in `recordSnapshot` of `src/server/operations.ts` |
+| `POST /api/accounts/:id/snapshots` | `canWriteExpiryLots`, then `keepsCurrentLots`, in `recordSnapshot` of `src/server/operations.ts` |
 
 Each route examines the request first and the level last. An account of an other user
 thus gives `unknown_account`, and a programme that does not exist gives
@@ -909,7 +918,7 @@ none of those functions.
 
 | Route | Effect |
 |---|---|
-| `GET /api/me` | It gives `admin`, true or false. Each user with a session reads it. |
+| `GET /api/me` | It gives `admin`, the value of `FREE_ACCOUNT_LIMITS` and the level of the user. Each user with a session reads it. |
 | `GET /api/admin/users` | It gives each user, the newest first. |
 | `PUT /api/admin/users/:id/unlimited` | It writes the flag `unlimited` of a user. |
 

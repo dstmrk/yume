@@ -301,6 +301,64 @@ describe("recordSnapshot with the limits of the free account", () => {
 		).toBe(true);
 	});
 
+	// A former supporter keeps the lots of the current balance, and the form
+	// sends them again with each new balance. Paragraph 4.6.
+	it("accepts the current lots of a free account again", () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId,
+			points: 1900,
+			observedAt: "2026-11-01",
+			lots: [...LOTS, { points: 200, expiresOn: "2027-06-30" }],
+		});
+
+		const result = recordLimited(accountId, {
+			points: 2500,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result.ok).toBe(true);
+		expect(currentBalances(db, userId)[0]?.lots).toEqual(LOTS);
+	});
+
+	it("refuses a lot that the current balance of the account does not hold", () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId,
+			points: 1900,
+			observedAt: "2026-11-01",
+			lots: LOTS,
+		});
+
+		const result = recordLimited(accountId, {
+			points: 2500,
+			observedAt: "2026-11-09",
+			lots: [{ points: 600, expiresOn: "2027-03-31" }],
+		});
+
+		expect(result).toEqual({ ok: false, error: "supporter_required" });
+	});
+
+	it("reads the lots of the same account only", () => {
+		const withLots = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId: withLots,
+			points: 1900,
+			observedAt: "2026-11-01",
+			lots: LOTS,
+		});
+		const other = createAccount(db, { userId, programId: "revolut" });
+
+		const result = recordLimited(other, {
+			points: 1900,
+			observedAt: "2026-11-09",
+			lots: LOTS,
+		});
+
+		expect(result).toEqual({ ok: false, error: "supporter_required" });
+	});
+
 	it("accepts the lots of an unlimited account", () => {
 		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
 		const accountId = createAccount(db, { userId, programId: "amex-mr" });

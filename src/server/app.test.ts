@@ -1168,6 +1168,27 @@ describe("the limits of the free account", () => {
 		expect(currentBalances(db, userId)[0]?.points).toBeNull();
 	});
 
+	// A former supporter: the form of a new balance sends the current lots again.
+	it("accepts the current lots of a free account again", async () => {
+		const accountId = createAccount(db, {
+			userId,
+			programId: "amex-mr",
+			snapshot: { points: 1900, observedAt: "2026-10-01", lots: LOTS },
+		});
+
+		const response = await postTo(
+			limited,
+			`/api/accounts/${accountId}/snapshots`,
+			{ points: 2500, observedAt: "2026-11-01", lots: LOTS },
+		);
+
+		expect(response.status).toBe(201);
+		expect(currentBalances(db, userId)[0]).toMatchObject({
+			points: 2500,
+			lots: LOTS,
+		});
+	});
+
 	it("gives each function to an unlimited account", async () => {
 		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
 
@@ -1186,6 +1207,20 @@ describe("the limits of the free account", () => {
 		});
 
 		expect(created.status).toBe(201);
+	});
+
+	// The client disables the options of the forms with these two values.
+	it("gives the limits and the level in GET /api/me", async () => {
+		const free = await limited.request("/api/me", { headers: { cookie } });
+		expect(await free.json()).toEqual({
+			admin: false,
+			limits: true,
+			tier: "free",
+		});
+
+		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
+		const unlimited = await limited.request("/api/me", { headers: { cookie } });
+		expect(await unlimited.json()).toMatchObject({ tier: "unlimited" });
 	});
 
 	it("examines the programme before the level", async () => {
@@ -1239,13 +1274,21 @@ describe("the routes of the administrator", () => {
 	describe("GET /api/me", () => {
 		it("gives true to the administrator", async () => {
 			const response = await adminGet(admin, "/api/me");
-			expect(await response.json()).toEqual({ admin: true });
+			expect(await response.json()).toEqual({
+				admin: true,
+				limits: false,
+				tier: "free",
+			});
 		});
 
 		it("gives false to an other user", async () => {
 			const response = await adminGet(app, "/api/me");
 			expect(response.status).toBe(200);
-			expect(await response.json()).toEqual({ admin: false });
+			expect(await response.json()).toEqual({
+				admin: false,
+				limits: false,
+				tier: "free",
+			});
 		});
 	});
 

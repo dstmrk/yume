@@ -342,6 +342,9 @@ bash .claude/hooks/test-block-private-data-commit.sh
   not find the error. Make the table again and fill the column, as
   `drizzle/0008_snapshot_created_at.sql` does.
 - Do not commit the database file, the `data/` directory or a `.env` file.
+- A pull request can merge before your last push. Before you start again from `main`,
+  examine `git log origin/main..origin/<branch>`. A commit in that list is not in `main`:
+  merge the branch into the new work. Otherwise the reset removes the commit.
 
 ## Hooks
 

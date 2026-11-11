@@ -1,9 +1,9 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { ExpiryLot } from "../../shared/api.ts";
 import { useI18n } from "../i18n/I18n.tsx";
 import type { Messages } from "../i18n/messages.ts";
-import { addSnapshot } from "../lib/api.ts";
+import { addSnapshot, fetchMe } from "../lib/api.ts";
 import { parsePoints, todayIso } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
 import {
@@ -12,6 +12,7 @@ import {
 	type LotError,
 	readLots,
 } from "../lib/expiry.ts";
+import { lotsLocked } from "../lib/limits.ts";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -27,6 +28,10 @@ import { Label } from "./ui/label.tsx";
  * the snapshot, thus the form gives again the lots of the current balance, and
  * the user corrects them. Paragraph 3.2.1 of `docs/architecture.md` gives the
  * model.
+ *
+ * A free account with the limits keeps its current lots as they are: it can
+ * remove a lot, and it cannot add or change one. The server accepts those
+ * lots again. Paragraph 4.6 gives the rule.
  */
 export function NewBalanceForm({
 	accountId,
@@ -99,6 +104,9 @@ function Fields({
 		setRows(
 			rows.map((row) => (row.key === key ? { ...row, [field]: value } : row)),
 		);
+
+	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+	const locked = lotsLocked(me.data);
 
 	const queryClient = useQueryClient();
 	const save = useMutation({
@@ -178,6 +186,7 @@ function Fields({
 								value={row.points}
 								inputMode="numeric"
 								autoComplete="off"
+								readOnly={locked}
 								onChange={(event) =>
 									change(row.key, "points", event.target.value)
 								}
@@ -193,6 +202,7 @@ function Fields({
 								type="date"
 								className="appearance-none"
 								min={observedAt}
+								readOnly={locked}
 								value={row.expiresOn}
 								onChange={(event) =>
 									change(row.key, "expiresOn", event.target.value)
@@ -211,17 +221,21 @@ function Fields({
 						</Button>
 					</div>
 				))}
-				<Button
-					variant="outline"
-					type="button"
-					className="self-start"
-					onClick={() => {
-						setRows([...rows, { key: nextKey, points: "", expiresOn: "" }]);
-						setNextKey(nextKey + 1);
-					}}
-				>
-					{text.addExpiry}
-				</Button>
+				{locked ? (
+					<p className="text-muted-foreground text-sm">{text.freeLotsError}</p>
+				) : (
+					<Button
+						variant="outline"
+						type="button"
+						className="self-start"
+						onClick={() => {
+							setRows([...rows, { key: nextKey, points: "", expiresOn: "" }]);
+							setNextKey(nextKey + 1);
+						}}
+					>
+						{text.addExpiry}
+					</Button>
+				)}
 			</fieldset>
 
 			{invalid && (
