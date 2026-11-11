@@ -315,6 +315,56 @@ describe("the list of the tools", () => {
 		const tool = tools.find((item) => item.name === "add_snapshot");
 		expect(tool?.annotations?.destructiveHint).toBe(true);
 	});
+
+	// The directory of OpenAI refuses a tool with no explicit value of each
+	// of the three hints. Each tool reads the data of Yume only, thus
+	// openWorldHint is false. Paragraph 4.7.3.
+	it("gives the three hints to each tool with an explicit value", async () => {
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		const { tools } = await client.listTools();
+
+		const hints = Object.fromEntries(
+			tools.map((tool) => [
+				tool.name,
+				[
+					tool.annotations?.readOnlyHint,
+					tool.annotations?.destructiveHint,
+					tool.annotations?.openWorldHint,
+				],
+			]),
+		);
+		expect(hints).toEqual({
+			list_accounts: [true, false, false],
+			get_potential: [true, false, false],
+			get_catalogue: [true, false, false],
+			add_snapshot: [false, true, false],
+		});
+	});
+
+	// ChatGPT reads the authentication of a tool from `securitySchemes`. The
+	// scope is `balances`: `offline_access` gives the refresh token, not a
+	// permission of a tool. Paragraph 4.7.2.
+	it("declares OAuth with the scope balances on each tool", async () => {
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		const { tools } = await client.listTools();
+
+		for (const tool of tools) {
+			expect(tool._meta?.securitySchemes, tool.name).toEqual([
+				{ type: "oauth2", scopes: ["balances"] },
+			]);
+		}
+	});
+
+	// The client of the SDK examines each structured result with this schema,
+	// thus each test of a tool in this file also examines the schema.
+	it("gives an output schema to each tool", async () => {
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		const { tools } = await client.listTools();
+
+		for (const tool of tools) {
+			expect(tool.outputSchema?.type, tool.name).toBe("object");
+		}
+	});
 });
 
 describe("list_accounts", () => {

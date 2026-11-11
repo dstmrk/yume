@@ -50,6 +50,117 @@ export const POTENTIAL_NOTICE =
 export const SUPPORTER_NOTICE =
 	"The MCP server of Yume needs a supporter account. This account is a free account.";
 
+/**
+ * The authentication of each tool, for ChatGPT. Each tool needs the access
+ * token with the scope `balances`: `offline_access` gives the refresh token,
+ * not a permission of a tool. The transport refuses a request with no token
+ * before it reaches a tool, thus no tool is anonymous. The SDK gives no field
+ * `securitySchemes` on the tool, thus the value is in `_meta`, as the
+ * documentation of OpenAI shows. Paragraph 4.7.2 of `docs/architecture.md`.
+ */
+const AUTHENTICATED = {
+	securitySchemes: [{ type: "oauth2", scopes: ["balances"] }],
+};
+
+/**
+ * The hints of each tool. Each tool reads or writes the data of Yume only, not
+ * a public system: openWorldHint is false. The directory of OpenAI asks for an
+ * explicit value of each hint. Paragraph 4.7.3.
+ */
+const READS = {
+	readOnlyHint: true,
+	destructiveHint: false,
+	openWorldHint: false,
+} as const;
+
+const lotOutput = z.object({
+	points: z.number().int(),
+	expiresOn: z.string(),
+});
+
+/** The output of `list_accounts`. The SDK examines each result with it. */
+const accountsOutput = {
+	accounts: z.array(
+		z.object({
+			accountId: z.string(),
+			programId: z.string(),
+			programName: z.string(),
+			currencyId: z.string().nullable(),
+			points: z.number().int().nullable(),
+			observedAt: z.string().nullable(),
+			lots: z.array(lotOutput),
+		}),
+	),
+};
+
+/** The output of `get_potential`: `PotentialMiles` of `src/shared/`. */
+const potentialOutput = {
+	at: z.string(),
+	notice: z.string(),
+	potential: z.array(
+		z.object({
+			currencyId: z.string(),
+			current: z.number().int(),
+			fromTransfers: z.number().int(),
+			total: z.number().int(),
+			routes: z.array(
+				z.object({
+					fromProgramId: z.string(),
+					points: z.number().int(),
+					options: z.array(
+						z.object({ toProgramId: z.string(), points: z.number().int() }),
+					),
+				}),
+			),
+		}),
+	),
+};
+
+/** The output of `get_catalogue`: the rows of the three tables. */
+const catalogueOutput = {
+	at: z.string(),
+	country: z.string(),
+	currencies: z.array(
+		z.object({
+			id: z.string(),
+			code: z.string(),
+			name: z.string(),
+			kind: z.enum(["airline", "flexible", "hotel", "rail"]),
+		}),
+	),
+	programs: z.array(
+		z.object({
+			id: z.string(),
+			currencyId: z.string(),
+			code: z.string(),
+			name: z.string(),
+			transferable: z.boolean(),
+		}),
+	),
+	transferRules: z.array(
+		z.object({
+			fromProgramId: z.string(),
+			toProgramId: z.string(),
+			country: z.string(),
+			ratioNum: z.number().int(),
+			ratioDen: z.number().int(),
+			minTransfer: z.number().int(),
+			increment: z.number().int(),
+			validFrom: z.string(),
+			validTo: z.string().nullable(),
+		}),
+	),
+};
+
+/** The output of `add_snapshot`: the snapshot that the tool wrote. */
+const snapshotOutput = {
+	snapshotId: z.string(),
+	accountId: z.string(),
+	points: z.number().int(),
+	observedAt: z.string(),
+	lots: z.array(lotOutput),
+};
+
 export type McpOptions = {
 	/** The URL of the MCP server: `mcpResource` of `auth.ts`. */
 	resource: string;
@@ -159,7 +270,9 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 			title: "List accounts",
 			description:
 				"Gives the loyalty accounts of the user of Yume. Each account has its programme, its currency, the most recent balance in points with its date, and the expiry lots of that balance. An account with no balance has null.",
-			annotations: { title: "List accounts", readOnlyHint: true },
+			outputSchema: accountsOutput,
+			annotations: { title: "List accounts", ...READS },
+			_meta: AUTHENTICATED,
 		},
 		() =>
 			result(() => {
@@ -186,7 +299,9 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 			title: "Get potential miles",
 			description:
 				"Gives the potential miles of each airline currency for the user of Yume: the current balance, the miles that the transfers of the other balances can add, and the best route from each source programme. The value of each currency is separate: the same points cannot go to two currencies, so the result holds no sum of the currencies.",
-			annotations: { title: "Get potential miles", readOnlyHint: true },
+			outputSchema: potentialOutput,
+			annotations: { title: "Get potential miles", ...READS },
+			_meta: AUTHENTICATED,
 		},
 		() =>
 			result((now) => {
@@ -201,7 +316,9 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 			title: "Get catalogue",
 			description:
 				"Gives the catalogue of Yume: the currencies, the loyalty programmes and the transfer rules that apply today in the country of the catalogue. A ratio is two integers: ratioNum target points for ratioDen source points, with a minimum transfer and a step.",
-			annotations: { title: "Get catalogue", readOnlyHint: true },
+			outputSchema: catalogueOutput,
+			annotations: { title: "Get catalogue", ...READS },
+			_meta: AUTHENTICATED,
 		},
 		() =>
 			result((now) => {
@@ -248,11 +365,20 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 						"The parts of the balance that expire at a date. Their sum is not above the balance, and each date is unique.",
 					),
 			},
+			outputSchema: snapshotOutput,
+			/**
+			 * The tool removes no data, but the directory of Anthropic asks for
+			 * destructiveHint on each tool that changes data. The new balance
+			 * also changes the potential miles, and a transfer of points is
+			 * permanent. Paragraph 4.7.3.
+			 */
 			annotations: {
 				title: "Add a balance",
 				readOnlyHint: false,
 				destructiveHint: true,
+				openWorldHint: false,
 			},
+			_meta: AUTHENTICATED,
 		},
 		({ accountId, ...snapshot }) =>
 			result((now) => {
