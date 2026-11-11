@@ -487,6 +487,7 @@ the author makes a new account with Google. No code keeps the old path.
 | `TRUSTED_ORIGINS` | The other origins, separated with a comma. In development the client of Vite is on the port 5173. |
 | `FREE_ACCOUNT_LIMITS` | `true` activates the limits of the free account. No value or `false` gives no limit. Each other value gives an error. Refer to paragraph 4.6. |
 | `ADMIN_EMAIL` | The email address of the administrator. With no value, the installation has no administrator. Refer to paragraph 4.8. |
+| `OPENAI_APPS_CHALLENGE_TOKEN` | The token of the portal of OpenAI for the verification of the domain. With no value, `/.well-known/openai-apps-challenge` gives the status 404. Refer to paragraph 4.7.4. |
 
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
@@ -507,7 +508,7 @@ The machine itself is the exception: a browser accepts a `secure` cookie from
 `npm run dev:server` needs no certificate. A value that the function cannot read gives
 the attribute: a defect in the variable must not remove the protection.
 
-The file `.env.example` holds the five variables of Docker Compose, with no value. Copy
+The file `.env.example` holds the six variables of Docker Compose, with no value. Copy
 that file to `.env` and write the values. Docker Compose reads `.env` and it writes the
 values in `compose.yaml`. Node reads no `.env` file: `npm run dev:server` gives a key and
 the origin of the client of Vite for development. The two variables of Google need a
@@ -733,10 +734,19 @@ version 1.7.20. Keep `better-auth` and each package `@better-auth/*` at the same
 the plugins declare the core with a peer range.
 
 **The registration of a client uses CIMD only.** The client gives a URL as its
-`client_id`, and the server reads the metadata at that URL. Claude and Claude Code both
-give such a document. Dynamic Client Registration (RFC 7591) stays off: it makes one new
+`client_id`, and the server reads the metadata at that URL. Claude, Claude Code, ChatGPT
+and Codex give such a document. Dynamic Client Registration (RFC 7591) stays off: it makes one new
 row of client for each new connection, and that table then grows with no limit.
 Anthropic gives the same recommendation for a server with many users.
+
+**The authentication of a client at the token endpoint.** The metadata of the server
+gives `none` and `private_key_jwt`. Claude, Claude Code and Codex use `none`, with PKCE.
+The document of ChatGPT can prefer `private_key_jwt`: the client then signs an assertion
+with a key of its `jwks_uri`. Better Auth reads that address with the same transport of
+CIMD, and it accepts only an address on the origin of the `client_id`. Codex declares
+`http://127.0.0.1/callback` with no port, and it adds the port of its listener to the
+request. RFC 8252 gives that rule for a loopback address. The tests of
+`src/server/authorisation-openai.test.ts` make the two flows mechanical.
 
 The function that reads the document of a client is `fetchClientMetadataResource` of
 `@better-auth/cimd/node`. It resolves the name one time and refuses an address that is
@@ -798,8 +808,8 @@ Yume still keeps no token of Google. The tokens of the plugin are the tokens of 
 supporter account: refer to paragraph 4.6. The handler reads the pure function of
 paragraph 4.6 at each call of a tool: `canUseMcp` of `src/shared/tier.ts`. For a user who
 is not a supporter, each tool gives an error result with `isError: true`. The text of that
-error names the supporter account. Add the URL of the page of the subscription to that
-text when the page exists. The end of a supporter account thus
+error names the supporter account. It gives no URL of the page of the subscription: the
+directory of OpenAI refuses a text that promotes an upgrade. Refer to paragraph 4.7.4. The end of a supporter account thus
 stops the access at the next call. No data goes away: the access stops, and each balance
 stays on the dashboard.
 
@@ -823,6 +833,11 @@ behind Cloudflare Access, as paragraph 4.2 gives, must let these paths pass:
 - `/api/auth/oauth2/token`
 - `/api/auth/oauth2/revoke`
 
+The requests of ChatGPT and Codex come from the servers of OpenAI, with other addresses.
+OpenAI gives those addresses in its documentation: read them before you change the rules
+of Cloudflare Access. The verification of the domain of paragraph 4.7.4 also needs the
+path `/.well-known/openai-apps-challenge`.
+
 The page of authorisation goes through the browser of the person, thus Cloudflare Access
 can stay on it.
 
@@ -832,19 +847,42 @@ The server gives four tools:
 
 | Tool | Operation | Annotations |
 |---|---|---|
-| `list_accounts` | It gives the accounts of the user, with the name and the currency of the programme, and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true` |
-| `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true` |
-| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true` |
-| `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true` |
+| `list_accounts` | It gives the accounts of the user, with the name and the currency of the programme, and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
+| `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
+| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
+| `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false` |
 
-Each tool has a `title` and a hint. The directory of Anthropic refuses a tool with no
-such annotations, and Claude reads them for its permissions. Claude runs a tool with
+Each tool has a `title` and an explicit value of the three hints. The directory of
+Anthropic refuses a tool with no title and no hint, and Claude reads them for its
+permissions. The directory of OpenAI refuses a tool with no explicit value of each hint.
+Each tool reads or writes the data of Yume only, not a public system: `openWorldHint` is
+false. Claude runs a tool with
 `readOnlyHint: true` with no question. It asks the person before each call of a tool
 with `destructiveHint: true`.
 
 `add_snapshot` removes no data. It holds `destructiveHint: true` because the rules of the
-directory ask for that hint on each tool that changes data. The question of Claude also
-has a value: the person reads the number from the screenshot before the write.
+directory of Anthropic ask for that hint on each tool that changes data. The question of
+Claude also has a value: the person reads the number from the screenshot before the write.
+
+The directory of OpenAI gives `destructiveHint: false` to a write that only adds data. The
+two directories read one server, thus one value is necessary. The value stays `true`: the
+new balance changes the potential miles, and a transfer of points is permanent. A hint
+that is too strict gives one more question to the person. A hint that is too weak is a
+cause of refusal in the two directories. `docs/openai-submission.md` gives this reason
+for the portal of OpenAI.
+
+**Each tool declares its output and its authentication.** Each tool has an `outputSchema`,
+and the SDK examines each structured result with it. Thus a change of a result that a
+client reads makes a test of `mcp.test.ts` fail. Each tool also holds
+`_meta.securitySchemes` with the type `oauth2` and the scope `balances`: ChatGPT reads it.
+The SDK gives no field `securitySchemes` on the tool itself, thus the value is in `_meta`,
+as the examples of OpenAI show. `offline_access` is not in that list: it gives the
+refresh token, not a permission of a tool.
+
+The transport refuses a request with no token before it reaches a tool, thus no tool is
+anonymous. The error of a tool thus holds no `_meta["mcp/www_authenticate"]`: OpenAI
+gives that field for a server with anonymous tools and tools with a sign-in. The status
+401 of the transport is sufficient for the discovery and for a new sign-in.
 
 The server gives no tool that removes an account or a snapshot. An agent reads text from
 other sources, and a text can hold an instruction to the agent. A tool that removes data
@@ -917,12 +955,41 @@ The submission also needs these items:
 The submission states that the connector reads data and writes data. It also states the
 requirement of the user: an account of Yume with a supporter account.
 
+**The directory of OpenAI.** ChatGPT and Codex share one directory. The official instance
+goes in it with the same URL and the same tools: the server holds no code for one client
+only. The submission also needs these items:
+
+| Item | Source |
+|---|---|
+| The verification of the domain | `/.well-known/openai-apps-challenge`, with `OPENAI_APPS_CHALLENGE_TOKEN` |
+| The support URL | `/support`: `LegalPage` with the document `support` of `it.ts` |
+| The terms of the service | `/tos` |
+| The justification of each hint, the test cases and the starter prompts | `docs/openai-submission.md` |
+| A recording of a demonstration | A video of the author. The repository holds no video. |
+
+The portal gives the token of the verification. The operator writes it in `.env`, and
+the route gives it as plain text. The repository holds no token. A missing value gives
+the status 404, thus a self-hosted installation needs no value.
+
+The directory of OpenAI refuses the sale of a subscription in ChatGPT, and a text that
+promotes an upgrade. A person can sign in with an account that holds a subscription.
+Thus the error of a free account names the supporter account, and it gives no price and
+no address of a payment. Do not add the URL of the page of the subscription to that
+error while the server is in the directory of OpenAI.
+
 The rules of the review are on these pages of Anthropic. Read them again before the
 submission, because they change:
 
 - `https://claude.com/docs/connectors/building/review-criteria`
 - `https://claude.com/docs/connectors/building/submission`
 - `https://claude.com/docs/connectors/building/authentication`
+
+The rules of OpenAI are on these pages:
+
+- `https://developers.openai.com/plugins/build/mcp-server`
+- `https://developers.openai.com/plugins/build/auth`
+- `https://developers.openai.com/plugins/deploy/submission`
+- `https://developers.openai.com/apps-sdk/app-submission-guidelines`
 
 #### 4.7.5 The sub-tasks
 
@@ -1326,11 +1393,11 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds eight routes: `/` for the public page, `/dashboard` for the dashboard,
+The client holds nine routes: `/` for the public page, `/dashboard` for the dashboard,
 `/login` for the access, `/consent` for the authorisation of an assistant (paragraph
 4.7.2), `/admin` for the administrator (paragraph 4.8), `/privacy` for the policy of the
-personal data, `/tos` for the terms of the service and `/connector` for the documentation
-of the MCP server (paragraph 4.7.4). The two legal pages are public: Google asks for their
+personal data, `/tos` for the terms of the service, `/connector` for the documentation
+of the MCP server and `/support` for the contact (paragraph 4.7.4). The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
 from the dictionary, and `robots.txt` does not block them. The build writes a static
 page for each one, with its own title and canonical address. The check of Google reads
