@@ -115,9 +115,9 @@ function routesOf(
 
 /** The latest date of a list of routes. The routes are not empty. */
 function latestOf(routes: readonly Route[]): IsoDate {
-	return routes
-		.map((route) => route.rule.validFrom)
-		.reduce((latest, date) => (date > latest ? date : latest));
+	// An ISO date sorts as a text. `Math.max` reads no text.
+	const dates = routes.map((route) => route.rule.validFrom).toSorted();
+	return dates[dates.length - 1] as IsoDate;
 }
 
 /** The programme that a route reaches belongs to this currency. */
