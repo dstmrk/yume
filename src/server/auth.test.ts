@@ -602,3 +602,44 @@ describe("canServeMcp", () => {
 		expect(response.status).toBe(404);
 	});
 });
+
+/**
+ * The plugin `jwt` encrypts its private key with `BETTER_AUTH_SECRET`. With
+ * the header of the JWT on `get-session`, a new secret then gave the status
+ * 500 to each request of the session: no person could sign in. The MCP server
+ * needs no JWT of the session. Paragraph 4.3 of `docs/architecture.md`.
+ */
+describe("a new secret", () => {
+	it("keeps get-session after the keys of the tokens exist", async () => {
+		// The first request of the keys makes them with the old secret.
+		expect(
+			(await auth.handler(new Request(`${BASE_URL}/api/auth/jwks`))).status,
+		).toBe(200);
+
+		const renewed = createAuth(db, {
+			secret: "a-new-secret-for-the-test",
+			baseURL: BASE_URL,
+			google: GOOGLE,
+		});
+		insertUser(db, "after-the-new-secret");
+		const cookie = await sessionCookie(renewed, "after-the-new-secret");
+
+		const response = await renewed.handler(
+			new Request(`${BASE_URL}/api/auth/get-session`, { headers: { cookie } }),
+		);
+		expect(response.status).toBe(200);
+		expect(await response.json()).toMatchObject({
+			user: { id: "after-the-new-secret" },
+		});
+	});
+
+	it("gives no JWT in the header of get-session", async () => {
+		insertUser(db, "with-a-session");
+		const cookie = await sessionCookie(auth, "with-a-session");
+
+		const response = await auth.handler(
+			new Request(`${BASE_URL}/api/auth/get-session`, { headers: { cookie } }),
+		);
+		expect(response.headers.has("set-auth-jwt")).toBe(false);
+	});
+});

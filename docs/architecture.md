@@ -425,7 +425,7 @@ the author makes a new account with Google. No code keeps the old path.
 
 | Variable | Value |
 |---|---|
-| `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. |
+| `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. It also makes the keys of the table `jwks` unreadable: remove the rows of `jwks` with a new key. Each assistant of the MCP server then signs in again. |
 | `BETTER_AUTH_URL` | The origin of the application. Better Auth and the middleware `csrf` refuse a request from an other origin. The default value is `http://localhost:<PORT>`. |
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
