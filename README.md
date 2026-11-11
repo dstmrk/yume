@@ -23,7 +23,7 @@ manually.
 
 ## The pages
 
-Yume has five pages:
+Yume has these pages:
 
 | Page | Address | Who reads it |
 |---|---|---|
@@ -32,6 +32,10 @@ Yume has five pages:
 | The access | `/login` | Each visitor. The sign-in uses Google, and the first sign-in makes the account. |
 | The privacy policy | `/privacy` | Each visitor. It gives the personal data that Yume keeps and the rights of the user. |
 | The terms of the service | `/tos` | Each visitor. |
+| The calculator | `/calcolatore` | Each visitor. It gives the potential miles of the points that the visitor writes, with no account. |
+| The currencies | `/miglia`, `/miglia/<currency>` | Each visitor. One page for each airline currency, with the official ratios. |
+| The sources | `/punti/<source>` | Each visitor. One page for Amex, Revolut and Klarna, with each partner. |
+| The guides | `/guide/<slug>` | Each visitor. Three guides on the transfer of points and on the potential miles. |
 
 The application on the home screen of a telephone opens the dashboard.
 

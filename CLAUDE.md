@@ -148,7 +148,7 @@ Write a unit test for each new rule of the calculation.
 - A surface that shows the potential miles of the user also shows that a transfer of
   points is permanent. The public page does not show that warning: Yume moves no point,
   and that page shows the balance of no person. The warning is on the surface where the
-  person reads a real value and then decides.
+  person reads a real value and then decides: the dashboard and `/calcolatore`.
 - Do not show a potential value as a sum of all the currencies. The user cannot send the
   same points to two programmes.
 
@@ -390,6 +390,7 @@ and the catalogue.
 | Skill | Subject |
 |---|---|
 | `conversion-math` | The calculation of the potential miles. The sequence of the steps with integers, the difference between a currency and a programme, and the selection of a versioned rule. |
+| `seo-content` | The public pages for the search engines and the assistants. The pages of the catalogue, the calculator, the guides, the sitemap, `llms.txt` and the structured data. |
 
 The harness reads the field `description` of a skill. Then the harness starts the skill
 for a task that matches. Write the names of the files and of the fields in the
