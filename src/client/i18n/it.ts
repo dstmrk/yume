@@ -177,6 +177,30 @@ export const it = {
 	freeLotsError: "Le scadenze sono riservate ai sostenitori.",
 	supportersOnly: "Riservato ai sostenitori",
 
+	// The section of the supporter account on the dashboard. Paragraph 4.6.1
+	// of `docs/architecture.md`.
+	supporter: {
+		title: "Sostenitore",
+		offer:
+			"Klarna, hotel, programmi aerei senza limiti, scadenze e assistenti AI.",
+		perYear: "all'anno",
+		buy: "Diventa sostenitore",
+		renewal: "Si rinnova ogni anno. Disdici quando vuoi.",
+		withdrawal: "Recesso entro 14 giorni:",
+		terms: "Termini del servizio",
+		// The date follows a colon: "il" and "al" change before 1, 8 and 11.
+		renews: "Sei sostenitore. Prossimo rinnovo:",
+		ends: "Sei sostenitore. Scadenza:",
+		paymentFailed: "Rinnovo non riuscito: aggiorna il metodo di pagamento.",
+		manage: "Gestisci abbonamento",
+		activating:
+			"Pagamento ricevuto. L'attivazione può richiedere qualche minuto.",
+		opening: "Apertura…",
+		already: "Hai già un abbonamento: gestiscilo dal portale.",
+		unavailable: "Pagamento non disponibile. Riprova tra poco.",
+		link: "Diventa sostenitore",
+	},
+
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",
 

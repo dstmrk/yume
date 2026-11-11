@@ -13,6 +13,7 @@ import {
 	readLots,
 } from "../lib/expiry.ts";
 import { lotsLocked } from "../lib/limits.ts";
+import { SupporterLink } from "./SupporterPanel.tsx";
 import { Button } from "./ui/button.tsx";
 import { Input } from "./ui/input.tsx";
 import { Label } from "./ui/label.tsx";
@@ -222,7 +223,9 @@ function Fields({
 					</div>
 				))}
 				{locked ? (
-					<p className="text-muted-foreground text-sm">{text.freeLotsError}</p>
+					<p className="text-muted-foreground text-sm">
+						{text.freeLotsError} <SupporterLink />
+					</p>
 				) : (
 					<Button
 						variant="outline"
@@ -246,9 +249,13 @@ function Fields({
 			)}
 			{save.isError && (
 				<p className="text-destructive text-sm">
-					{isSupporterRequired(save.error)
-						? text.freeLotsError
-						: text.saveError}
+					{isSupporterRequired(save.error) ? (
+						<>
+							{text.freeLotsError} <SupporterLink />
+						</>
+					) : (
+						text.saveError
+					)}
 				</p>
 			)}
 

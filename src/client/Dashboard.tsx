@@ -16,6 +16,7 @@ import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { ConnectedAssistants } from "./components/ConnectedAssistants.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
+import { SupporterPanel } from "./components/SupporterPanel.tsx";
 import { Button, buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
@@ -35,7 +36,11 @@ import { toggleFavorite } from "./lib/favorites.ts";
 import { formatDate, formatPoints } from "./lib/format.ts";
 import { byValueDesc } from "./lib/sort.ts";
 
-export function Dashboard() {
+/**
+ * The dashboard. `returned` is true after the return from Stripe Checkout:
+ * the section of the supporter account then waits for the webhook.
+ */
+export function Dashboard(props: { returned: boolean }) {
 	const { t: text, intl } = useI18n();
 	const [expanded, setExpanded] = useState(false);
 	const queryClient = useQueryClient();
@@ -258,6 +263,8 @@ export function Dashboard() {
 					))}
 				</ul>
 			</BoardPanel>
+
+			<SupporterPanel returned={props.returned} />
 
 			<ConnectedAssistants />
 
