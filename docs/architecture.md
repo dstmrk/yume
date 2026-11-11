@@ -617,7 +617,7 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1, 2 and 3 of
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 4 of
 paragraph 4.7.5 only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
@@ -640,6 +640,10 @@ no adapter between Hono and the SDK.
 The server keeps no session of MCP: each request holds the full context. One process
 then needs no memory between two requests, and a restart of the container breaks no
 connection. The middleware `bodyLimit` of paragraph 4.4 also applies to `/mcp`.
+
+Each request makes a new server, and the transport answers with JSON. The server opens
+no stream of events, thus `GET /mcp` gives the status 405. In that mode the transport
+keeps a `GET` open with no end, and each `GET` then holds a connection.
 
 The path `/mcp` is not under `/api`. The middleware of the session and the middleware
 `csrf` thus do not apply. A request to `/mcp` holds a bearer token, and a browser sends
@@ -728,9 +732,10 @@ Yume still keeps no token of Google. The tokens of the plugin are the tokens of 
 
 **The supporter account.** On the official instance the MCP server is a function of the
 supporter account: refer to paragraph 4.6. The handler reads the pure function of
-paragraph 4.6 at each call of a tool. For a user who is not a supporter, each tool gives
-an error result with `isError: true`. The text of that error names the supporter account
-and gives the URL of the page of the subscription. The end of a supporter account thus
+paragraph 4.6 at each call of a tool: `canUseMcp` of `src/shared/tier.ts`. For a user who
+is not a supporter, each tool gives an error result with `isError: true`. The text of that
+error names the supporter account. Add the URL of the page of the subscription to that
+text when the page exists. The end of a supporter account thus
 stops the access at the next call. No data goes away: the access stops, and each balance
 stays on the dashboard.
 
@@ -739,9 +744,10 @@ work for each user. Claude then shows the text of the error to the person. A sta
 on the transport gives a general message of a failed connection, and the person does not
 know the cause.
 
-The code of the supporter account does not exist now. Until that code exists, the MCP
-server is open to each user, as Klarna is. Unlike Klarna, a user keeps no access after
-that date: the MCP server holds no data of the user to keep.
+`FREE_ACCOUNT_LIMITS` activates that rule. With no value, each user of the instance uses
+the MCP server, as paragraph 4.6 gives for a self-hosted installation. A user keeps no
+access at the end of a supporter account: the MCP server holds no data of the user to
+keep.
 
 **The network.** The requests of Claude come from the servers of Anthropic, not from the
 browser of the person. Their range of addresses is `160.79.104.0/21`. An installation
@@ -762,7 +768,7 @@ The server gives four tools:
 
 | Tool | Operation | Annotations |
 |---|---|---|
-| `list_accounts` | It gives the accounts of the user and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true` |
+| `list_accounts` | It gives the accounts of the user, with the name and the currency of the programme, and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true` |
 | `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true` |
 | `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true` |
 | `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true` |

@@ -21,7 +21,7 @@ import {
 	canWriteExpiryLots,
 } from "../shared/tier.ts";
 import { isAdmin } from "./admin.ts";
-import type { Auth } from "./auth.ts";
+import { type Auth, canServeMcp, mcpResource } from "./auth.ts";
 import type { Db } from "./db/index.ts";
 import {
 	accountProgramIds,
@@ -39,6 +39,7 @@ import {
 	removeFavorite,
 	setUnlimited,
 } from "./db/queries.ts";
+import { createMcpHandler } from "./mcp.ts";
 import {
 	entitlementOf,
 	latestObservedAt,
@@ -104,9 +105,16 @@ export function createApp(
 		adminEmail?: string;
 		/** The value of `FREE_ACCOUNT_LIMITS`. The default value is no limit. */
 		limits?: boolean;
+		/**
+		 * The address of the keys of the tokens of the MCP server, on the
+		 * machine itself. The default address is on the origin of the
+		 * application, thus it goes through the proxy of the TLS.
+		 */
+		jwksUrl?: string;
 	} = {},
 ) {
 	const { adminEmail, limits = false } = options;
+	const [baseURL = ""] = origins;
 	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
 
 	/**
@@ -180,13 +188,11 @@ export function createApp(
 	 * This middleware is after the session: a request with no session gets the
 	 * status 401, and the server reads no byte of its body.
 	 */
-	app.use(
-		"/api/*",
-		bodyLimit({
-			maxSize: MAX_BODY_BYTES,
-			onError: (c) => c.json({ error: "payload_too_large" }, 413),
-		}),
-	);
+	const limitBody = bodyLimit({
+		maxSize: MAX_BODY_BYTES,
+		onError: (c) => c.json({ error: "payload_too_large" }, 413),
+	});
+	app.use("/api/*", limitBody);
 
 	/**
 	 * The routes of Better Auth: the sign-in with Google, its callback, the
@@ -204,6 +210,23 @@ export function createApp(
 	 * `docs/architecture.md` gives the flow.
 	 */
 	app.get("/.well-known/*", (c) => auth.handler(c.req.raw));
+
+	/**
+	 * The MCP server. The path is not under `/api`: it reads an access token,
+	 * not the cookie of the session, thus the session and `csrf` do not apply.
+	 * A browser sends no such token with a form of an other site. The limit of
+	 * the size of a body applies. An origin on plain HTTP has no MCP server:
+	 * refer to `canServeMcp`. Paragraph 4.7.1 of `docs/architecture.md`.
+	 */
+	if (canServeMcp(baseURL)) {
+		const handleMcp = createMcpHandler(db, auth, {
+			resource: mcpResource(baseURL),
+			jwksUrl: options.jwksUrl ?? `${baseURL}/api/auth/jwks`,
+			limits,
+		});
+		app.use("/mcp", limitBody);
+		app.all("/mcp", (c) => handleMcp(c.req.raw));
+	}
 
 	/**
 	 * The state of the application, for the `HEALTHCHECK` of the container.

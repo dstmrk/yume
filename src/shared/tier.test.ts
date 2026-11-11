@@ -7,6 +7,7 @@ import type { Currency, Program } from "./catalogue.ts";
 import {
 	accountTier,
 	canAddAccount,
+	canUseMcp,
 	canWriteExpiryLots,
 	type Entitlement,
 	FREE_SOURCES,
@@ -220,6 +221,22 @@ describe("canWriteExpiryLots", () => {
 
 	it("gives the lots to a free account with no limits", () => {
 		expect(canWriteExpiryLots({ limits: false, tier: "free" })).toBe(true);
+	});
+});
+
+describe("canUseMcp", () => {
+	it("refuses the MCP server to a free account with the limits active", () => {
+		expect(canUseMcp(FREE)).toBe(false);
+	});
+
+	it("gives the MCP server to a supporter account and to an unlimited account", () => {
+		expect(canUseMcp(SUPPORTER)).toBe(true);
+		expect(canUseMcp(UNLIMITED)).toBe(true);
+	});
+
+	// A self-hosted installation keeps each function. Paragraph 4.6.
+	it("gives the MCP server to a free account with no limits", () => {
+		expect(canUseMcp({ limits: false, tier: "free" })).toBe(true);
 	});
 });
 

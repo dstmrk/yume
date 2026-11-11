@@ -141,6 +141,15 @@ export function keepsCurrentLots(
 }
 
 /**
+ * Examines if the user can call the tools of the MCP server. The sign-in and
+ * the list of the tools stay open to each user: a tool gives the error, and
+ * the agent shows it. Paragraph 4.7.2 of `docs/architecture.md`.
+ */
+export function canUseMcp(entitlement: Entitlement): boolean {
+	return !entitlement.limits || entitlement.tier !== "free";
+}
+
+/**
  * Reads the variable `FREE_ACCOUNT_LIMITS`. No value gives false: a
  * self-hosted installation keeps each function.
  *
