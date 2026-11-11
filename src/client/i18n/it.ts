@@ -292,8 +292,9 @@ export const it = {
 				],
 				items: [
 					"Dall'account Google, al primo accesso: l'indirizzo email e l'identificativo dell'account. Yume non chiede a Google il nome né la foto del profilo.",
-					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le valute preferite.",
+					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le eventuali scadenze dei punti, e le valute preferite.",
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
+					"Se colleghi un assistente AI (sezione 4-bis): il nome e l'indirizzo dell'applicazione che hai autorizzato, i permessi che le hai dato, la data dell'autorizzazione e i codici di accesso che Yume le rilascia.",
 					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",
 				],
 				contact: false,
@@ -303,6 +304,7 @@ export const it = {
 				paragraphs: [],
 				items: [
 					"Accesso, gestione dell'account e calcolo delle miglia potenziali: esecuzione del contratto (art. 6(1)(b) GDPR).",
+					"Collegamento di un assistente AI che scegli tu, e invio a esso dei dati che ti richiede: esecuzione del contratto (art. 6(1)(b) GDPR). Il collegamento è facoltativo e lo attivi solo tu.",
 					"Sicurezza delle sessioni e prevenzione degli abusi: legittimo interesse (art. 6(1)(f) GDPR).",
 					"Risposta alle autorità nei casi previsti dalla legge: obbligo di legge (art. 6(1)(c) GDPR).",
 					"Yume non fa profilazione né pubblicità, non usa servizi di analisi e non traccia il comportamento.",
@@ -314,6 +316,20 @@ export const it = {
 				paragraphs: [
 					"Yume usa l'indirizzo email e l'identificativo dell'account Google solo per creare il tuo account e farti accedere. Non li usa per pubblicità, non li vende, non li cede a terzi e non li usa per addestrare modelli di intelligenza artificiale.",
 					"L'uso e il trasferimento ad altre app delle informazioni ricevute dalle API di Google rispettano le Google API Services User Data Policy (developers.google.com/terms/api-services-user-data-policy), inclusi i requisiti di Limited Use.",
+					"Yume non invia a un assistente AI l'indirizzo email né l'identificativo dell'account Google.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "4-bis. Assistenti AI collegati (connettore MCP)",
+				paragraphs: [
+					"Puoi collegare a Yume un assistente AI, per esempio Claude di Anthropic, tramite il Model Context Protocol (MCP). Il collegamento è facoltativo e richiede l'account sostenitore.",
+					"Quando colleghi l'assistente, Yume ti chiede di accedere con Google e ti mostra una pagina di autorizzazione con il nome dell'applicazione e i permessi richiesti. Solo se accetti, Yume rilascia all'applicazione un codice di accesso personale.",
+					"Con il tuo codice di accesso l'assistente può leggere i tuoi programmi, i saldi con le scadenze e le miglia potenziali, leggere il catalogo pubblico dei programmi e delle regole di trasferimento, e aggiungere un nuovo saldo a un tuo programma. Non può cancellare dati, non può modificare il tuo account e non può trasferire punti: Yume non muove punti tra programmi.",
+					"Yume riceve dall'assistente solo i dati di ogni richiesta, per esempio il programma, il saldo e la data di un nuovo saldo. Yume non riceve né conserva le tue conversazioni con l'assistente, le immagini che gli mostri o altri contenuti.",
+					"L'assistente lo scegli tu, e il suo fornitore tratta i dati che Yume gli invia come titolare autonomo, secondo la propria informativa. Per Claude il fornitore è Anthropic: anthropic.com/legal/privacy. Yume non sceglie il fornitore, non gli invia dati per conto proprio e non ha con esso un contratto per i tuoi dati.",
+					"Puoi revocare in ogni momento l'accesso di ogni assistente dalla sezione \"Assistenti collegati\" della dashboard. La revoca blocca subito l'assistente e cancella i suoi codici di accesso. Scollegare il connettore nell'app dell'assistente non basta a revocare l'accesso su Yume. La cancellazione del tuo account revoca anche ogni accesso.",
 				],
 				items: [],
 				contact: false,
@@ -324,6 +340,7 @@ export const it = {
 				items: [
 					"Tutte le connessioni usano HTTPS.",
 					"Il cookie della sessione ha gli attributi Secure e HttpOnly: viaggia solo su HTTPS e gli script della pagina non lo leggono.",
+					"I codici di accesso degli assistenti AI sono conservati solo in forma cifrata con una funzione di hash: chi leggesse il database non potrebbe usarli. Ogni codice vale solo per Yume e solo per i permessi che hai accettato.",
 					"Il database non è raggiungibile da internet: lo legge solo il server di Yume, e solo il titolare accede al server.",
 				],
 				contact: false,
@@ -331,7 +348,7 @@ export const it = {
 			{
 				title: "6. Natura del conferimento",
 				paragraphs: [
-					"L'email dell'account Google è necessaria: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla.",
+					"L'email dell'account Google è necessaria: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla. Il collegamento di un assistente AI è facoltativo: senza, Yume funziona allo stesso modo.",
 				],
 				items: [],
 				contact: false,
@@ -345,6 +362,7 @@ export const it = {
 					"Google Ireland Ltd, che gestisce l'accesso con il tuo account Google come titolare autonomo. Informativa: policies.google.com/privacy.",
 					"IONOS SE (Germania), che fornisce il server su cui girano Yume e il suo database, come responsabile del trattamento (art. 28 GDPR). Informativa: ionos.it/terms-gtc/terms-privacy.",
 					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
+					"Il fornitore dell'assistente AI che colleghi tu, per esempio Anthropic per Claude, solo se lo colleghi e solo per i dati che l'assistente richiede, come titolare autonomo (sezione 4-bis).",
 					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
 				],
 				contact: false,
@@ -353,6 +371,7 @@ export const it = {
 				title: "8. Trasferimenti extra-UE",
 				paragraphs: [
 					"Google e Cloudflare possono trattare dati negli Stati Uniti. Il trasferimento si basa sul Data Privacy Framework UE-USA e sulle Clausole Contrattuali Standard della Commissione europea (decisione 2021/914).",
+					"Il fornitore di un assistente AI può trattare dati fuori dall'Unione europea, per esempio negli Stati Uniti. In quel caso l'invio avviene su tua richiesta, quando colleghi l'assistente e quando gli chiedi un'operazione, e il trasferimento segue le garanzie indicate nell'informativa del fornitore.",
 				],
 				items: [],
 				contact: false,
@@ -363,6 +382,8 @@ export const it = {
 				items: [
 					"Account, programmi e saldi: finché l'account esiste. Dopo una richiesta di cancellazione sono eliminati entro 30 giorni.",
 					"Sessione, con indirizzo IP e browser: finché la sessione esiste. Una sessione scade 7 giorni dopo l'ultimo uso e si chiude subito con Esci.",
+					"Autorizzazione di un assistente AI: finché non la revochi o non cancelli l'account.",
+					"Codici di accesso di un assistente AI: un codice di accesso scade dopo 1 ora; un codice di rinnovo scade dopo 30 giorni ed è sostituito a ogni uso. I codici scaduti o revocati sono eliminati entro un giorno.",
 					"Per chiedere la cancellazione del tuo account e di tutti i suoi dati, scrivi all'indirizzo qui sotto. Puoi anche togliere a Yume l'accesso al tuo account Google da myaccount.google.com/connections.",
 				],
 				contact: true,
@@ -388,7 +409,7 @@ export const it = {
 			{
 				title: "12. Cookie",
 				paragraphs: [
-					"Yume usa solo cookie tecnici, necessari all'accesso: il cookie della sessione, valido 7 giorni dall'ultimo uso, e un cookie temporaneo che protegge il passaggio da Google. Nessun cookie di profilazione o di terze parti: per questo la pagina non chiede un consenso (Linee guida del Garante sui cookie del 10 giugno 2021).",
+					"Yume usa solo cookie tecnici, necessari all'accesso: il cookie della sessione, valido 7 giorni dall'ultimo uso, e un cookie temporaneo che protegge il passaggio da Google. Nessun cookie di profilazione o di terze parti: per questo la pagina non chiede un consenso (Linee guida del Garante sui cookie del 10 giugno 2021). Il collegamento di un assistente AI non usa cookie aggiuntivi: l'assistente si identifica con il proprio codice di accesso.",
 				],
 				items: [],
 				contact: false,

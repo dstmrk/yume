@@ -618,7 +618,7 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 5 and 9 of
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 6 and 9 of
 paragraph 4.7.5.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
@@ -901,9 +901,9 @@ These items are open:
 - The sign-in of the reviewer. The sign-in uses Google only, thus the reviewer needs a
   Google account of the test. Google can ask for a second verification on a new device,
   and the reviewer cannot answer it.
-- The text of the privacy policy. The agent sends the data of the person to the provider
-  of the agent, and the person selects that provider. A professional must read the
-  text.
+- The review of the privacy policy. Section 4-bis of `/privacy` gives the MCP server. The
+  agent sends the data of the person to the provider of the agent, and the person
+  selects that provider. A professional must read that text.
 
 ### 4.8 The administrator
 
