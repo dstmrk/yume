@@ -20,11 +20,21 @@ import { createApp, MAX_BODY_BYTES } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
-import { addSnapshot, createAccount, currentBalances } from "./db/queries.ts";
+import {
+	addSnapshot,
+	createAccount,
+	currentBalances,
+	revokeConnection,
+} from "./db/queries.ts";
 import { transferRule, user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
-import { mcpAccessToken, testClientMetadata } from "./fixtures.ts";
+import {
+	mcpAccessToken,
+	mcpTokens,
+	TEST_CLIENT_ID,
+	testClientMetadata,
+} from "./fixtures.ts";
 
 const BASE_URL = "http://localhost:3000";
 const OTHER_USER = "an-other-user";
@@ -191,6 +201,85 @@ describe("the protection of /mcp", () => {
 	});
 });
 
+/** A request `tools/list` with a token, with no client of MCP. */
+function listTools(token: string): Promise<Response> {
+	return Promise.resolve(
+		app.request("/mcp", {
+			method: "POST",
+			headers: {
+				"content-type": "application/json",
+				accept: "application/json, text/event-stream",
+				authorization: `Bearer ${token}`,
+			},
+			body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+		}),
+	);
+}
+
+/**
+ * The revocation of an assistant. The JWT stays valid until its expiry, thus
+ * `/mcp` reads the consent at each request. Issue #97.
+ */
+describe("the revocation of an assistant", () => {
+	it("gives the tools to a token with a consent", async () => {
+		const token = await mcpAccessToken(app, cookie, BASE_URL);
+
+		expect((await listTools(token)).status).toBe(200);
+	});
+
+	it("refuses the same token at once after the revocation", async () => {
+		const token = await mcpAccessToken(app, cookie, BASE_URL);
+
+		revokeConnection(db, userId, TEST_CLIENT_ID);
+
+		const response = await listTools(token);
+		expect(response.status).toBe(401);
+		expect(response.headers.get("www-authenticate")).toContain(
+			'error="invalid_token"',
+		);
+	});
+
+	// Claude starts the sign-in again from the address of the metadata. The
+	// two answers 401 must give the same address.
+	it("gives the address of the metadata of the 401 with no token", async () => {
+		const token = await mcpAccessToken(app, cookie, BASE_URL);
+		revokeConnection(db, userId, TEST_CLIENT_ID);
+
+		const revoked = await listTools(token);
+		const none = await app.request("/mcp", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: "{}",
+		});
+
+		const metadataOf = (response: Response) =>
+			/resource_metadata="([^"]+)"/.exec(
+				response.headers.get("www-authenticate") ?? "",
+			)?.[1];
+		expect(metadataOf(revoked)).toBeDefined();
+		expect(metadataOf(revoked)).toBe(metadataOf(none));
+	});
+
+	it("refuses the refresh token after the revocation", async () => {
+		const { refreshToken } = await mcpTokens(app, cookie, BASE_URL);
+
+		revokeConnection(db, userId, TEST_CLIENT_ID);
+
+		const response = await app.request("/api/auth/oauth2/token", {
+			method: "POST",
+			headers: { "content-type": "application/x-www-form-urlencoded" },
+			body: new URLSearchParams({
+				grant_type: "refresh_token",
+				refresh_token: refreshToken,
+				client_id: TEST_CLIENT_ID,
+				resource: `${BASE_URL}/mcp`,
+			}).toString(),
+		});
+		expect(response.status).toBe(400);
+		expect(await response.json()).toMatchObject({ error: "invalid_grant" });
+	});
+});
+
 describe("the list of the tools", () => {
 	it("gives the three tools that read and the tool that writes", async () => {
 		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
@@ -271,13 +360,16 @@ describe("list_accounts", () => {
 	// The access token is a JWT, valid for one hour after the removal of the
 	// account. The server then reads the data of no person. Issue #97 refuses
 	// such a token with 401: the consent goes away with the user.
-	it("gives no data after the removal of the user", async () => {
-		createAccount(db, { userId, programId: "amex-mr" });
-		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+	// The access token is a JWT, valid for one hour after the removal of the
+	// account. The consent goes away with the user, thus `/mcp` refuses the
+	// token at once. Issue #97.
+	it("refuses the token after the removal of the user", async () => {
+		const token = await mcpAccessToken(app, cookie, BASE_URL);
 
 		db.delete(user).where(eq(user.id, userId)).run();
 
-		expect(await call(client, "list_accounts")).toEqual({ accounts: [] });
+		const response = await listTools(token);
+		expect(response.status).toBe(401);
 	});
 
 	it("gives no account of an other user", async () => {

@@ -224,3 +224,20 @@ export type AdminUsersResponse = {
 	/** The newest user first. */
 	users: AdminUser[];
 };
+
+/**
+ * An assistant that the user authorised on the MCP server, for example Claude.
+ * Issue #97 and paragraph 4.7.2 of `docs/architecture.md`.
+ */
+export type Connection = {
+	/** The URL of the Client ID Metadata Document of the client. */
+	clientId: string;
+	/** The name of the client, or its `clientId` with no name. */
+	name: string;
+	/** The host of the first redirect URI, or an empty text. */
+	host: string;
+	/** The moment of the consent, in the ISO 8601 format. */
+	connectedAt: string;
+};
+
+export type ConnectionsResponse = { connections: Connection[] };

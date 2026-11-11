@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { insertUser } from "./fixtures.ts";
+import { insertConnection, insertOAuthClient, insertUser } from "./fixtures.ts";
 import { type Db, openDatabase } from "./index.ts";
 import {
 	accountProgramIds,
@@ -17,8 +17,11 @@ import {
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
+	hasConnection,
+	listConnections,
 	listUsers,
 	removeFavorite,
+	revokeConnection,
 	setUnlimited,
 	tierSourceOf,
 } from "./queries.ts";
@@ -27,6 +30,9 @@ import {
 	balanceSnapshot,
 	expiryLot,
 	favoriteCurrency,
+	oauthAccessToken,
+	oauthConsent,
+	oauthRefreshToken,
 	session,
 	user,
 	userAccount,
@@ -594,20 +600,35 @@ describe("deleteExpired", () => {
 	it("removes an expired session and keeps a valid session", () => {
 		writeSession("expired", BEFORE);
 		writeSession("valid", AFTER);
-		expect(deleteExpired(db, NOW)).toEqual({ sessions: 1, verifications: 0 });
+		expect(deleteExpired(db, NOW)).toEqual({
+			sessions: 1,
+			verifications: 0,
+			accessTokens: 0,
+			refreshTokens: 0,
+		});
 		expect(ids(session)).toEqual(["valid"]);
 	});
 
 	it("keeps a session that expires at the moment of the cleanup", () => {
 		writeSession("now", NOW);
-		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 0 });
+		expect(deleteExpired(db, NOW)).toEqual({
+			sessions: 0,
+			verifications: 0,
+			accessTokens: 0,
+			refreshTokens: 0,
+		});
 		expect(ids(session)).toEqual(["now"]);
 	});
 
 	it("removes an expired verification and keeps a sign-in in progress", () => {
 		writeVerification("expired", BEFORE);
 		writeVerification("valid", AFTER);
-		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 1 });
+		expect(deleteExpired(db, NOW)).toEqual({
+			sessions: 0,
+			verifications: 1,
+			accessTokens: 0,
+			refreshTokens: 0,
+		});
 		expect(ids(verification)).toEqual(["valid"]);
 	});
 
@@ -636,8 +657,67 @@ describe("deleteExpired", () => {
 		expect(db.select().from(favoriteCurrency).all()).toHaveLength(1);
 	});
 
+	// The privacy policy promises the removal of an expired or revoked token
+	// within one day. Issue #97.
+	it("removes an expired access token and keeps a valid one", () => {
+		insertOAuthClient(db, "client");
+		insertConnection(db, {
+			id: "expired",
+			userId: USER,
+			clientId: "client",
+			expiresAt: BEFORE,
+		});
+		insertConnection(db, {
+			id: "valid",
+			userId: OTHER_USER,
+			clientId: "client",
+			expiresAt: AFTER,
+		});
+
+		expect(deleteExpired(db, NOW)).toMatchObject({ accessTokens: 1 });
+		expect(
+			db.select({ id: oauthAccessToken.id }).from(oauthAccessToken).all(),
+		).toEqual([{ id: "access-valid" }]);
+	});
+
+	it("removes an expired refresh token and a revoked one, and keeps a valid one", () => {
+		insertOAuthClient(db, "client");
+		insertConnection(db, {
+			id: "expired",
+			userId: USER,
+			clientId: "client",
+			expiresAt: BEFORE,
+		});
+		insertConnection(db, {
+			id: "revoked",
+			userId: USER,
+			clientId: "client",
+			expiresAt: AFTER,
+		});
+		insertConnection(db, {
+			id: "valid",
+			userId: OTHER_USER,
+			clientId: "client",
+			expiresAt: AFTER,
+		});
+		db.update(oauthRefreshToken)
+			.set({ revoked: BEFORE })
+			.where(eq(oauthRefreshToken.id, "refresh-revoked"))
+			.run();
+
+		expect(deleteExpired(db, NOW)).toMatchObject({ refreshTokens: 2 });
+		expect(
+			db.select({ id: oauthRefreshToken.id }).from(oauthRefreshToken).all(),
+		).toEqual([{ id: "refresh-valid" }]);
+	});
+
 	it("gives zero and throws nothing with no rows", () => {
-		expect(deleteExpired(db, NOW)).toEqual({ sessions: 0, verifications: 0 });
+		expect(deleteExpired(db, NOW)).toEqual({
+			sessions: 0,
+			verifications: 0,
+			accessTokens: 0,
+			refreshTokens: 0,
+		});
 	});
 });
 
@@ -906,5 +986,162 @@ describe("accountProgramIds", () => {
 
 	it("gives an empty list to a user with no account", () => {
 		expect(accountProgramIds(db, USER)).toEqual([]);
+	});
+});
+
+/**
+ * The assistants that a user authorised on the MCP server. Issue #97 and
+ * paragraph 4.7.2 of `docs/architecture.md`.
+ */
+describe("the connections of the MCP server", () => {
+	const CLAUDE = "https://claude.ai/oauth/mcp-client-metadata";
+	const CLAUDE_CODE = "https://claude.ai/oauth/claude-code-client-metadata";
+
+	/** The rows of the three tables for a user, as ids. */
+	function rowsOf(userId: string) {
+		return {
+			consents: db
+				.select({ id: oauthConsent.id })
+				.from(oauthConsent)
+				.where(eq(oauthConsent.userId, userId))
+				.all(),
+			refresh: db
+				.select({ id: oauthRefreshToken.id })
+				.from(oauthRefreshToken)
+				.where(eq(oauthRefreshToken.userId, userId))
+				.all(),
+			access: db
+				.select({ id: oauthAccessToken.id })
+				.from(oauthAccessToken)
+				.where(eq(oauthAccessToken.userId, userId))
+				.all(),
+		};
+	}
+
+	beforeEach(() => {
+		insertOAuthClient(db, CLAUDE, { name: "Claude" });
+		insertOAuthClient(db, CLAUDE_CODE, {
+			name: "Claude Code",
+			redirectUris: JSON.stringify(["http://localhost/callback"]),
+		});
+	});
+
+	it("gives an empty list to a user with no consent", () => {
+		expect(listConnections(db, USER)).toEqual([]);
+	});
+
+	it("gives the clients of the user, the newest first", () => {
+		insertConnection(db, {
+			id: "a",
+			userId: USER,
+			clientId: CLAUDE,
+			createdAt: new Date("2026-11-01T10:00:00Z"),
+		});
+		insertConnection(db, {
+			id: "b",
+			userId: USER,
+			clientId: CLAUDE_CODE,
+			createdAt: new Date("2026-11-05T10:00:00Z"),
+		});
+		insertConnection(db, { id: "c", userId: OTHER_USER, clientId: CLAUDE });
+
+		expect(listConnections(db, USER)).toEqual([
+			{
+				clientId: CLAUDE_CODE,
+				name: "Claude Code",
+				host: "localhost",
+				connectedAt: "2026-11-05T10:00:00.000Z",
+			},
+			{
+				clientId: CLAUDE,
+				name: "Claude",
+				host: "claude.ai",
+				connectedAt: "2026-11-01T10:00:00.000Z",
+			},
+		]);
+	});
+
+	it("gives the clientId of a client with no name", () => {
+		insertOAuthClient(db, "https://example.com/client", { name: null });
+		insertConnection(db, {
+			id: "a",
+			userId: USER,
+			clientId: "https://example.com/client",
+		});
+
+		expect(listConnections(db, USER)[0]?.name).toBe(
+			"https://example.com/client",
+		);
+	});
+
+	for (const redirectUris of ['["not a url"]', "not json", "[]"]) {
+		it(`gives an empty host for the redirect URIs ${redirectUris}`, () => {
+			insertOAuthClient(db, "https://example.com/client", { redirectUris });
+			insertConnection(db, {
+				id: "a",
+				userId: USER,
+				clientId: "https://example.com/client",
+			});
+
+			expect(listConnections(db, USER)[0]?.host).toBe("");
+		});
+	}
+
+	it("removes the consent and the tokens of the client of the user", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+
+		expect(revokeConnection(db, USER, CLAUDE)).toBe(true);
+		expect(rowsOf(USER)).toEqual({ consents: [], refresh: [], access: [] });
+	});
+
+	// With CIMD, each user of Claude has the same client_id.
+	it("keeps the rows of the same client for an other user", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+		insertConnection(db, { id: "b", userId: OTHER_USER, clientId: CLAUDE });
+
+		revokeConnection(db, USER, CLAUDE);
+
+		expect(rowsOf(OTHER_USER)).toEqual({
+			consents: [{ id: "consent-b" }],
+			refresh: [{ id: "refresh-b" }],
+			access: [{ id: "access-b" }],
+		});
+	});
+
+	it("keeps the rows of an other client of the same user", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+		insertConnection(db, { id: "b", userId: USER, clientId: CLAUDE_CODE });
+
+		revokeConnection(db, USER, CLAUDE);
+
+		expect(rowsOf(USER)).toEqual({
+			consents: [{ id: "consent-b" }],
+			refresh: [{ id: "refresh-b" }],
+			access: [{ id: "access-b" }],
+		});
+	});
+
+	it("gives false and removes nothing for a client with no consent", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+
+		expect(revokeConnection(db, USER, CLAUDE_CODE)).toBe(false);
+		expect(rowsOf(USER).consents).toHaveLength(1);
+	});
+
+	// A double click, or two tabs.
+	it("gives true, then false, for two revocations", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+
+		expect(revokeConnection(db, USER, CLAUDE)).toBe(true);
+		expect(revokeConnection(db, USER, CLAUDE)).toBe(false);
+	});
+
+	it("knows the connection before the revocation, and not after it", () => {
+		insertConnection(db, { id: "a", userId: USER, clientId: CLAUDE });
+
+		expect(hasConnection(db, USER, CLAUDE)).toBe(true);
+		expect(hasConnection(db, OTHER_USER, CLAUDE)).toBe(false);
+		revokeConnection(db, USER, CLAUDE);
+		expect(hasConnection(db, USER, CLAUDE)).toBe(false);
 	});
 });

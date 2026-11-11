@@ -3,6 +3,7 @@ import type {
 	AddSnapshotInput,
 	AdminUsersResponse,
 	CatalogueResponse,
+	ConnectionsResponse,
 	CreateAccountInput,
 	FavoritesResponse,
 	MeResponse,
@@ -191,6 +192,19 @@ export function addSnapshot(
 }
 
 /** Removes an account of the user, with each snapshot of that account. */
+/** The assistants that the user authorised on the MCP server. */
+export function fetchConnections(): Promise<ConnectionsResponse> {
+	return request<ConnectionsResponse>("GET", "/api/connections");
+}
+
+/**
+ * Revokes an assistant: its consent and its tokens go away. A client_id is a
+ * URL, thus the path holds it encoded.
+ */
+export function revokeConnection(clientId: string): Promise<void> {
+	return request("DELETE", `/api/connections/${encodeURIComponent(clientId)}`);
+}
+
 export function deleteAccount(accountId: string): Promise<void> {
 	return request("DELETE", `/api/accounts/${encodeURIComponent(accountId)}`);
 }

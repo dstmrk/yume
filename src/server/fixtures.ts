@@ -40,18 +40,29 @@ export async function testClientMetadata(
 	);
 }
 
-/**
- * Gives an access token of the MCP server for the user of `cookie`.
- *
- * It throws at each step that does not give the expected answer, with the
- * status: a test then shows the step that failed.
- */
+/** Gives an access token of the MCP server for the user of `cookie`. */
 export async function mcpAccessToken(
 	app: ReturnType<typeof createApp>,
 	cookie: string,
 	baseURL: string,
 	scope = "balances offline_access",
 ): Promise<string> {
+	return (await mcpTokens(app, cookie, baseURL, scope)).accessToken;
+}
+
+/**
+ * Gives the access token and the refresh token of the MCP server for the user
+ * of `cookie`.
+ *
+ * It throws at each step that does not give the expected answer, with the
+ * status: a test then shows the step that failed.
+ */
+export async function mcpTokens(
+	app: ReturnType<typeof createApp>,
+	cookie: string,
+	baseURL: string,
+	scope = "balances offline_access",
+): Promise<{ accessToken: string; refreshToken: string }> {
 	const verifier = randomBytes(32).toString("base64url");
 	const challenge = createHash("sha256").update(verifier).digest("base64url");
 	const query = new URLSearchParams({
@@ -98,9 +109,15 @@ export async function mcpAccessToken(
 			resource: `${baseURL}/mcp`,
 		}).toString(),
 	});
-	const body = (await token.json()) as { access_token?: string };
+	const body = (await token.json()) as {
+		access_token?: string;
+		refresh_token?: string;
+	};
 	if (body.access_token === undefined) {
 		throw new Error(`token gave ${token.status} ${JSON.stringify(body)}`);
 	}
-	return body.access_token;
+	return {
+		accessToken: body.access_token,
+		refreshToken: body.refresh_token ?? "",
+	};
 }
