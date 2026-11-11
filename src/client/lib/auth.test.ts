@@ -3,7 +3,9 @@ import { localeRouting } from "../../shared/locale.ts";
 import {
 	googleSignInBody,
 	loginErrorOf,
+	passwordSignInBody,
 	signedOAuthQuery,
+	signInTarget,
 	withOAuthQuery,
 } from "./auth.ts";
 
@@ -114,5 +116,75 @@ describe("withOAuthQuery", () => {
 	it("gives the same body with no signed query", () => {
 		expect(withOAuthQuery(body, "?error=access_denied")).toEqual(body);
 		expect(withOAuthQuery(body, "")).not.toHaveProperty("oauth_query");
+	});
+
+	it("adds the signed query to the body of the sign-in with a password", () => {
+		const password = passwordSignInBody(
+			"https://yumemiles.com",
+			"it",
+			"reviewer@example.com",
+			"a-password",
+		);
+		expect(withOAuthQuery(password, `?${SIGNED}`)).toEqual({
+			...password,
+			oauth_query: SIGNED,
+		});
+	});
+});
+
+describe("passwordSignInBody", () => {
+	it("gives the address, the password and the dashboard", () => {
+		expect(
+			passwordSignInBody(
+				"http://localhost:5173",
+				"it",
+				"reviewer@example.com",
+				"a-password",
+			),
+		).toEqual({
+			email: "reviewer@example.com",
+			password: "a-password",
+			callbackURL: "http://localhost:5173/dashboard",
+		});
+	});
+
+	// A person copies the address from a text, often with a space.
+	it("removes the spaces at the two ends of the address", () => {
+		const body = passwordSignInBody(
+			"https://yumemiles.com",
+			"it",
+			" reviewer@example.com ",
+			" a-password ",
+		);
+		expect(body.email).toBe("reviewer@example.com");
+		// A space can be a character of a password.
+		expect(body.password).toBe(" a-password ");
+	});
+
+	it("keeps the prefix of the language", () => {
+		const body = passwordSignInBody(
+			"https://yumemiles.com",
+			"en",
+			"a@b.c",
+			"p",
+			two,
+		);
+		expect(body.callbackURL).toBe("https://yumemiles.com/en/dashboard");
+	});
+});
+
+describe("signInTarget", () => {
+	it("reads the address of the answer", () => {
+		expect(signInTarget({ redirect: true, url: "/consent?x=1" })).toBe(
+			"/consent?x=1",
+		);
+	});
+
+	it("gives undefined with no address", () => {
+		expect(signInTarget({ redirect: false, token: "t" })).toBeUndefined();
+		expect(signInTarget({ url: "" })).toBeUndefined();
+		expect(signInTarget({ url: 3 })).toBeUndefined();
+		expect(signInTarget(null)).toBeUndefined();
+		expect(signInTarget("text")).toBeUndefined();
 	});
 });

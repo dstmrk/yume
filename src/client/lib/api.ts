@@ -9,7 +9,11 @@ import type {
 	MeResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
-import type { GoogleSignInBody } from "./auth.ts";
+import {
+	type GoogleSignInBody,
+	type PasswordSignInBody,
+	signInTarget,
+} from "./auth.ts";
 import type { ConsentBody } from "./consent.ts";
 import { ApiError, errorCodeOf } from "./errors.ts";
 
@@ -98,6 +102,18 @@ export async function startGoogleSignIn(
 		throw new Error("Better Auth gave no address of Google.");
 	}
 	return answer.url;
+}
+
+/**
+ * Signs in with a password, the account of the reviewers only. It gives the
+ * next page: `/consent` during an authorisation of the MCP server, otherwise
+ * the dashboard. Paragraph 4.1.1 of `docs/architecture.md`.
+ */
+export async function signInWithPassword(
+	body: PasswordSignInBody,
+): Promise<string> {
+	const answer = await postToAuth<unknown>("sign-in/email", body);
+	return signInTarget(answer) ?? body.callbackURL;
 }
 
 /**

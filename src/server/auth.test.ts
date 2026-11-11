@@ -11,6 +11,7 @@ import {
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { deleteExpired } from "./db/queries.ts";
+import { writeReviewer } from "./db/reviewer.ts";
 import { account, session, user, verification } from "./db/schema.ts";
 
 const BASE_URL = "http://localhost:3000";
@@ -345,37 +346,103 @@ describe("the cleanup of the expired rows", () => {
 	});
 });
 
+/** A request with JSON to an endpoint of Better Auth. */
+function post(path: string, body: unknown, instance: Auth = auth) {
+	return instance.handler(
+		new Request(`${BASE_URL}/api/auth/${path}`, {
+			method: "POST",
+			headers: { "content-type": "application/json", origin: BASE_URL },
+			body: JSON.stringify(body),
+		}),
+	);
+}
+
+// The password is for the account of the reviewers only. The administrator
+// makes it with `writeReviewer`. Paragraph 4.1.1 of `docs/architecture.md`.
 describe("the email address and the password", () => {
+	const EMAIL = "reviewer@example.com";
+	const PASSWORD = "a-password-of-the-test";
+
 	it("give no sign-up", async () => {
-		const response = await auth.handler(
-			new Request(`${BASE_URL}/api/auth/sign-up/email`, {
-				method: "POST",
-				headers: { "content-type": "application/json", origin: BASE_URL },
-				body: JSON.stringify({
-					name: "Utente",
-					email: "primo@example.com",
-					password: "una-parola-lunga",
-				}),
-			}),
-		);
+		const response = await post("sign-up/email", {
+			name: "Utente",
+			email: "primo@example.com",
+			password: "una-parola-lunga",
+		});
 
 		expect(response.status).not.toBe(200);
 		expect(db.select().from(user).all()).toHaveLength(0);
 	});
 
-	it("give no sign-in", async () => {
-		const response = await auth.handler(
-			new Request(`${BASE_URL}/api/auth/sign-in/email`, {
-				method: "POST",
-				headers: { "content-type": "application/json", origin: BASE_URL },
-				body: JSON.stringify({
-					email: "primo@example.com",
-					password: "una-parola-lunga",
-				}),
-			}),
+	it("give a session to the account of the reviewer", async () => {
+		await writeReviewer(db, EMAIL, PASSWORD);
+
+		const response = await post("sign-in/email", {
+			email: EMAIL,
+			password: PASSWORD,
+		});
+
+		expect(response.status).toBe(200);
+		expect(cookiesOf(response)).toContain(
+			(await auth.$context).authCookies.sessionToken.name,
 		);
+	});
+
+	it("give no session with a password that is not correct", async () => {
+		await writeReviewer(db, EMAIL, PASSWORD);
+
+		const response = await post("sign-in/email", {
+			email: EMAIL,
+			password: "an-other-password",
+		});
+
+		expect(response.status).toBe(401);
+	});
+
+	it("give no session to an address with no account", async () => {
+		const response = await post("sign-in/email", {
+			email: "primo@example.com",
+			password: "una-parola-lunga",
+		});
+
+		expect(response.status).toBe(401);
+		expect(db.select().from(user).all()).toHaveLength(0);
+	});
+
+	// A user of Google has no password, thus a password gives no session.
+	it("give no session to a user of Google", async () => {
+		const id = insertUser(db, "primo");
+		const now = new Date();
+		db.insert(account)
+			.values({
+				id: "account-1",
+				accountId: "google-sub",
+				providerId: "google",
+				userId: id,
+				createdAt: now,
+				updatedAt: now,
+			})
+			.run();
+
+		const response = await post("sign-in/email", {
+			email: "primo@example.com",
+			password: "una-parola-lunga",
+		});
+
+		expect(response.status).toBe(401);
+	});
+
+	// A reset needs an email, and Yume sends no email.
+	it("give no reset of the password", async () => {
+		await writeReviewer(db, EMAIL, PASSWORD);
+
+		const response = await post("request-password-reset", {
+			email: EMAIL,
+			redirectTo: "/login",
+		});
 
 		expect(response.status).not.toBe(200);
+		expect(db.select().from(verification).all()).toHaveLength(0);
 	});
 });
 

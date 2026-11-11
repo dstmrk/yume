@@ -266,16 +266,19 @@ Run these commands for the database and for the server:
 npm run db:generate # drizzle-kit generate, after a change to schema.ts
 npm run db:migrate  # it applies the migrations of drizzle/ with drizzle-orm
 npm run db:seed     # it writes the catalogue in the database
+npm run db:reviewer -- <address> # it writes the account of the reviewers
 npm run dev:server  # Hono on the port 3000
 npm run dev:client  # Vite on the port 5173, it sends /api to the port 3000
 npm run build       # Vite writes dist/, and Hono supplies those files
 ```
 
-The three commands of the database use `DATABASE_URL`. The default value is
+The four commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
 
-Google is the only provider of the sign-in. The first sign-in of a Google account makes
-the user. Paragraph 4.1 of `docs/architecture.md` gives the reasons.
+Google is the only provider of the sign-in for a person. The first sign-in of a Google
+account makes the user. Paragraph 4.1 of `docs/architecture.md` gives the reasons. The
+account of the reviewers of Anthropic signs in with a password. No person can make such
+an account: paragraph 4.1.1 gives the rules.
 
 The server needs `BETTER_AUTH_SECRET`, `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`.
 The server stops without one of those variables. `npm run dev:server` gives a key for

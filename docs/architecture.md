@@ -32,7 +32,7 @@ These constraints control all the decisions in this document:
 | User interface | Tailwind CSS v4, shadcn/ui | The repository contains the components. No external design system at runtime. |
 | Database | SQLite with `better-sqlite3` | One node, few writes, backup of one file. |
 | Schema and migrations | Drizzle and drizzle-kit | SQL-first. The repository contains the generated migrations. |
-| Authentication | Better Auth with the Drizzle adapter, Google as the only provider | Sessions on your own server. No password and no service of email. Refer to paragraph 4.1. |
+| Authentication | Better Auth with the Drizzle adapter, Google as the only provider for a person | Sessions on your own server. No service of email. Refer to paragraph 4.1. |
 | Validation | Zod | `src/shared/api.ts` holds one schema for each shape, and both sides read it. |
 | Tests | Vitest | |
 | Lint and format | Biome | One tool in the place of ESLint and Prettier. |
@@ -393,6 +393,60 @@ also in development. Add that provider with a requirement, for example an iOS
 application. The table `account` holds the provider in each row, thus a second provider
 needs no change of the schema.
 
+### 4.1.1 The account of the reviewers
+
+Status: **accepted**. Date: 2026-11-11.
+
+The directory of Anthropic asks for a test account with data: refer to paragraph 4.7.4.
+A Google account of the test is not sufficient. Google can ask for a verification on a
+new device, and the reviewer cannot answer it. The review also occurs again, for example
+for the label Verified.
+
+Thus one account signs in with an email address and a password. Better Auth gives
+`emailAndPassword` with `disableSignUp: true`. The reasons of paragraph 4.1 stay true:
+
+| Reason of paragraph 4.1 | The account of the reviewers |
+|---|---|
+| A password needs a reset, and a reset needs a service of email. | The options give no `sendResetPassword`. Better Auth then gives no reset and sends no email. The administrator gives a new password with the script. |
+| Google verifies the email address. | No person makes such an account. Only the administrator writes it, with the script. |
+| One provider gives one path in the code. | This is the cost: a second endpoint of the sign-in. The rate limit of Better Auth applies to it. |
+
+**The script writes the account.** `npm run db:reviewer -- <address>` calls
+`writeReviewer` of `src/server/db/reviewer.ts`. The script makes a random password and
+shows it one time: a password in the command stays in the history of the shell. A second
+call gives a new password and removes the sessions of the account. The image holds no
+npm, thus in the container use this command:
+
+```
+docker compose exec yume node --experimental-strip-types src/server/db/reviewer-run.ts <address>
+```
+
+**The address of the account is not verified.** That value gives two protections:
+
+- `isAdmin` of paragraph 4.8 refuses an address that is not verified. Thus the reviewer
+  is never the administrator, also with the address of `ADMIN_EMAIL`.
+- Better Auth links no Google account to a user with an address that is not verified:
+  `requireLocalEmailVerified` is true by default. Thus a Google account with the same
+  address cannot open the account of the reviewers.
+
+**A Google user receives no password.** `writeReviewer` refuses the address of a user
+with no password. A password on the account of a person gives a second path to the data
+of that person.
+
+**The account starts as a free account.** The administrator gives the unlimited account
+on `/admin`, as paragraph 4.6 gives. Then the administrator signs in with the password
+and writes the accounts and the snapshots of an example on the dashboard.
+
+**The page `/login` holds the form.** A link under the button of Google opens it, and
+the form stays on the same address. Thus the signed query of an authorisation of the MCP
+server stays in the address, and `withOAuthQuery` adds it to the sign-in. The plugin
+`mcp` goes on with the authorisation after each sign-in that writes a cookie of the
+session, not only after the callback of Google. `src/server/authorisation.test.ts`
+receives `/consent` after the sign-in with a password.
+
+A self-hosted installation needs no change: with no account of the script, the form
+gives a session to no person.
+
 ### 4.2 The consequences
 
 **A user who loses the Google account loses the access to Yume.** The administrator has
@@ -663,7 +717,8 @@ on that origin: refer to paragraph 4.2.
 
 A remote client of MCP needs OAuth 2.1. The cookie of the session of paragraph 4 does not
 go to a client on an other origin. Therefore Yume is also an authorisation server: it
-gives its own access tokens. The sign-in stays with Google only, as paragraph 4.1 gives.
+gives its own access tokens. The sign-in stays with Google, as paragraph 4.1 gives, and
+with the password of the account of paragraph 4.1.1.
 
 These plugins of Better Auth do the work:
 
@@ -891,17 +946,14 @@ Each sub-task has one artefact that accepts or refuses it:
    for Claude and for Claude Code, and the four tools. The page gives no step of the
    interface of Claude: a change of that interface then needs no change of the page. The artefact: a public page that the
    author accepts.
-8. The test account for the reviewers of Anthropic. It is a supporter account with
-   accounts and snapshots of an example. The artefact: one connection from claude.ai
-   with that account, with a call of each tool.
+8. The test account for the reviewers of Anthropic: paragraph 4.1.1. It is an
+   unlimited account with accounts and snapshots of an example. The artefact: one
+   connection from claude.ai with that account, with a call of each tool.
 9. The revocation of an assistant: issue #97. The artefact: a test that refuses the token
    of a revoked assistant at once, and the section "Assistenti collegati" on a telephone.
 
 These items are open:
 
-- The sign-in of the reviewer. The sign-in uses Google only, thus the reviewer needs a
-  Google account of the test. Google can ask for a second verification on a new device,
-  and the reviewer cannot answer it.
 - The review of the privacy policy. Section 4-bis of `/privacy` gives the MCP server. The
   agent sends the data of the person to the provider of the agent, and the person
   selects that provider. A professional must read that text.

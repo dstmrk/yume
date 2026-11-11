@@ -17,7 +17,8 @@
 		"build": "vite build && vite build --ssr prerender.tsx --outDir ../../dist-ssr && node dist-ssr/prerender.js",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "node --experimental-strip-types src/server/db/migrate.ts",
-		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts"
+		"db:seed": "node --experimental-strip-types src/server/db/seed/run.ts",
+		"db:reviewer": "node --experimental-strip-types src/server/db/reviewer-run.ts"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.6.2",
