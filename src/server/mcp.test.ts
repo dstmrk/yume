@@ -20,7 +20,7 @@ import { createApp, MAX_BODY_BYTES } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
-import { addSnapshot, createAccount } from "./db/queries.ts";
+import { addSnapshot, createAccount, currentBalances } from "./db/queries.ts";
 import { transferRule, user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
@@ -192,11 +192,12 @@ describe("the protection of /mcp", () => {
 });
 
 describe("the list of the tools", () => {
-	it("gives the three tools that only read", async () => {
+	it("gives the three tools that read and the tool that writes", async () => {
 		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
 		const { tools } = await client.listTools();
 
 		expect(tools.map((tool) => tool.name).sort()).toEqual([
+			"add_snapshot",
 			"get_catalogue",
 			"get_potential",
 			"list_accounts",
@@ -204,15 +205,26 @@ describe("the list of the tools", () => {
 	});
 
 	// The directory of Anthropic refuses a tool with no title and no hint.
-	it("gives a title and readOnlyHint to each tool", async () => {
+	it("gives a title, a description and a hint to each tool", async () => {
 		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
 		const { tools } = await client.listTools();
 
 		for (const tool of tools) {
 			expect(tool.annotations?.title, tool.name).toBeTruthy();
-			expect(tool.annotations?.readOnlyHint, tool.name).toBe(true);
 			expect(tool.description, tool.name).toBeTruthy();
+			const writes = tool.name === "add_snapshot";
+			expect(tool.annotations?.readOnlyHint, tool.name).toBe(!writes);
 		}
+	});
+
+	// The directory asks for this hint on each tool that changes data. Claude
+	// then asks the person before each call. Paragraph 4.7.3.
+	it("gives destructiveHint to add_snapshot", async () => {
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		const { tools } = await client.listTools();
+
+		const tool = tools.find((item) => item.name === "add_snapshot");
+		expect(tool?.annotations?.destructiveHint).toBe(true);
 	});
 });
 
@@ -371,6 +383,161 @@ describe("get_catalogue", () => {
 	});
 });
 
+describe("add_snapshot", () => {
+	const TODAY = new Date().toISOString().slice(0, 10);
+
+	/** Calls `add_snapshot` and gives the result. */
+	async function add(arguments_: Record<string, unknown>) {
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		return client.callTool({ name: "add_snapshot", arguments: arguments_ });
+	}
+
+	/** The text of the result of a tool. */
+	function textOf(result: Awaited<ReturnType<typeof add>>): string {
+		return JSON.stringify(result.content);
+	}
+
+	it("writes the balance of an account of the user", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({ accountId, points: 1900, observedAt: TODAY });
+
+		expect(result.isError).toBeFalsy();
+		expect(currentBalances(db, userId)[0]).toMatchObject({
+			points: 1900,
+			observedAt: TODAY,
+			lots: [],
+		});
+		expect(result.structuredContent).toMatchObject({
+			snapshotId: currentBalances(db, userId)[0]?.snapshotId,
+			accountId,
+			points: 1900,
+			observedAt: TODAY,
+		});
+	});
+
+	it("writes the expiry lots of the balance", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		await add({
+			accountId,
+			points: 1900,
+			observedAt: TODAY,
+			lots: [{ points: 500, expiresOn: "2099-03-31" }],
+		});
+
+		expect(currentBalances(db, userId)[0]?.lots).toEqual([
+			{ points: 500, expiresOn: "2099-03-31" },
+		]);
+	});
+
+	// The lots belong to the snapshot. A new balance with no lots holds no
+	// lots, as the description of the tool states. Paragraph 3.2.1.
+	it("keeps no lot of the balance before", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId,
+			points: 1000,
+			observedAt: "2026-01-01",
+			lots: [{ points: 500, expiresOn: "2099-03-31" }],
+		});
+
+		await add({ accountId, points: 1900, observedAt: TODAY });
+
+		expect(currentBalances(db, userId)[0]?.lots).toEqual([]);
+	});
+
+	it("refuses an account of an other user and writes nothing", async () => {
+		const accountId = createAccount(db, {
+			userId: OTHER_USER,
+			programId: "amex-mr",
+		});
+
+		const result = await add({ accountId, points: 1900, observedAt: TODAY });
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("list_accounts");
+		expect(currentBalances(db, OTHER_USER)[0]?.points).toBeNull();
+	});
+
+	// The directory refuses an error with no detail. The text names the field
+	// and the cause.
+	it("gives the cause of a balance that is not an integer", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({ accountId, points: 19.5, observedAt: TODAY });
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("points");
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	it("gives the cause of a balance below 0", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({ accountId, points: -1, observedAt: TODAY });
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("points");
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	// The SDK examines the arguments with the schema of the tool, before the
+	// tool runs. Its error also names the field.
+	it("gives the name of a field that is not present", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({ accountId, observedAt: TODAY });
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("points");
+	});
+
+	it("gives the cause of lots above the balance", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({
+			accountId,
+			points: 100,
+			observedAt: TODAY,
+			lots: [{ points: 500, expiresOn: "2099-03-31" }],
+		});
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("The lots are above the balance.");
+	});
+
+	it("gives the latest date that the server accepts for a future date", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+		const tomorrow = new Date();
+		tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
+		const latest = tomorrow.toISOString().slice(0, 10);
+
+		const result = await add({
+			accountId,
+			points: 1900,
+			observedAt: "2099-01-01",
+		});
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain(latest);
+		expect(currentBalances(db, userId)[0]?.points).toBeNull();
+	});
+
+	it("gives the cause of a date that does not exist", async () => {
+		const accountId = createAccount(db, { userId, programId: "amex-mr" });
+
+		const result = await add({
+			accountId,
+			points: 1900,
+			observedAt: "2026-02-30",
+		});
+
+		expect(result.isError).toBe(true);
+		expect(textOf(result)).toContain("observedAt");
+	});
+});
+
 /**
  * The MCP server is a function of the supporter account on the official
  * instance. A free user signs in and reads the list of the tools: each tool
@@ -391,15 +558,20 @@ describe("the supporter account", () => {
 		const client = await connect(
 			await mcpAccessToken(limited, limitedCookie, BASE_URL),
 		);
-		expect((await client.listTools()).tools).toHaveLength(3);
+		expect((await client.listTools()).tools).toHaveLength(4);
 	});
 
 	it("gives an error that names the supporter account to a free account", async () => {
 		const client = await connect(
 			await mcpAccessToken(limited, limitedCookie, BASE_URL),
 		);
-		for (const name of ["list_accounts", "get_potential", "get_catalogue"]) {
-			const result = await client.callTool({ name, arguments: {} });
+		for (const [name, args] of [
+			["list_accounts", {}],
+			["get_potential", {}],
+			["get_catalogue", {}],
+			["add_snapshot", { accountId: "x", points: 1, observedAt: "2026-11-09" }],
+		] as const) {
+			const result = await client.callTool({ name, arguments: args });
 			expect(result.isError, name).toBe(true);
 			expect(JSON.stringify(result.content)).toMatch(/supporter/i);
 		}
