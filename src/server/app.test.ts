@@ -1209,6 +1209,20 @@ describe("the limits of the free account", () => {
 		expect(created.status).toBe(201);
 	});
 
+	// The client disables the options of the forms with these two values.
+	it("gives the limits and the level in GET /api/me", async () => {
+		const free = await limited.request("/api/me", { headers: { cookie } });
+		expect(await free.json()).toEqual({
+			admin: false,
+			limits: true,
+			tier: "free",
+		});
+
+		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
+		const unlimited = await limited.request("/api/me", { headers: { cookie } });
+		expect(await unlimited.json()).toMatchObject({ tier: "unlimited" });
+	});
+
 	it("examines the programme before the level", async () => {
 		const response = await postTo(limited, "/api/accounts", {
 			programId: "nothing",
@@ -1260,13 +1274,21 @@ describe("the routes of the administrator", () => {
 	describe("GET /api/me", () => {
 		it("gives true to the administrator", async () => {
 			const response = await adminGet(admin, "/api/me");
-			expect(await response.json()).toEqual({ admin: true });
+			expect(await response.json()).toEqual({
+				admin: true,
+				limits: false,
+				tier: "free",
+			});
 		});
 
 		it("gives false to an other user", async () => {
 			const response = await adminGet(app, "/api/me");
 			expect(response.status).toBe(200);
-			expect(await response.json()).toEqual({ admin: false });
+			expect(await response.json()).toEqual({
+				admin: false,
+				limits: false,
+				tier: "free",
+			});
 		});
 	});
 

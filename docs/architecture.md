@@ -586,6 +586,13 @@ Each surface reads them, and the application holds no other rule of the payment:
   user and the catalogue. It examines a new account only.
 - `canWriteExpiryLots` reads the level and the variable.
 
+**The forms disable the options before the request.** `GET /api/me` gives the level and
+the value of the variable. `src/client/lib/limits.ts` reads the same functions as the
+server. The list of the new account shows a blocked programme, disabled, with a short
+line. The form of a new balance keeps the current lots of a free account as they are:
+the user can remove a lot, and cannot add or change one. With no answer of
+`GET /api/me`, the client blocks nothing, and the server examines each request.
+
 **The routes refuse with one code.** A request above the limits gets the status 403 and
 the code `supporter_required`. The status 402 is reserved, and the clients handle it
 badly. Each form knows its request, thus it shows its own message.
@@ -911,7 +918,7 @@ none of those functions.
 
 | Route | Effect |
 |---|---|
-| `GET /api/me` | It gives `admin`, true or false. Each user with a session reads it. |
+| `GET /api/me` | It gives `admin`, the value of `FREE_ACCOUNT_LIMITS` and the level of the user. Each user with a session reads it. |
 | `GET /api/admin/users` | It gives each user, the newest first. |
 | `PUT /api/admin/users/:id/unlimited` | It writes the flag `unlimited` of a user. |
 

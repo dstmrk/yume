@@ -166,6 +166,7 @@ export const it = {
 	freeAccountLimitError:
 		"Con l'account gratuito puoi aggiungere Amex, Revolut e 2 programmi aerei.",
 	freeLotsError: "Le scadenze sono riservate ai sostenitori.",
+	supportersOnly: "Riservato ai sostenitori",
 
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",

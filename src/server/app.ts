@@ -400,7 +400,10 @@ export function createApp(
 
 	/** The user of the session. The client reads if it is the administrator. */
 	app.get("/api/me", (c) => {
-		const body: MeResponse = { admin: c.get("admin") };
+		const body: MeResponse = {
+			admin: c.get("admin"),
+			...entitlementOf(db, c.get("userId"), limits, new Date()),
+		};
 		return c.json(body);
 	});
 

@@ -126,6 +126,7 @@ export function Dashboard() {
 	const allAccounts = [...accounts.data.accounts].sort(
 		byValueDesc((account) => account.points),
 	);
+	const programIds = allAccounts.map((account) => account.programId);
 
 	// The first access. The user has no account, thus the list of the cards and
 	// the panel of the accounts are both empty. That page shows two empty
@@ -152,6 +153,7 @@ export function Dashboard() {
 				<NewAccountForm
 					programs={catalogue.data.programs}
 					currencies={catalogue.data.currencies}
+					accountProgramIds={programIds}
 					defaultOpen
 				/>
 				<AdminLink />
@@ -259,6 +261,7 @@ export function Dashboard() {
 			<NewAccountForm
 				programs={catalogue.data.programs}
 				currencies={catalogue.data.currencies}
+				accountProgramIds={programIds}
 			/>
 			<AdminLink />
 			<SignOutButton />

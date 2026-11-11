@@ -192,9 +192,16 @@ export type PotentialResponse = {
 /**
  * The user of the session. `admin` is true for the address of `ADMIN_EMAIL`
  * only. The client shows the link of the page of the administrator with it.
+ *
+ * `limits` and `tier` give the entitlement of the user. The client disables
+ * the options of the forms with `canAddAccount` and `canWriteExpiryLots`. The
+ * server examines each request again: the client is not the protection.
  */
 export type MeResponse = {
 	admin: boolean;
+	/** The value of `FREE_ACCOUNT_LIMITS`. */
+	limits: boolean;
+	tier: AccountTier;
 };
 
 /**

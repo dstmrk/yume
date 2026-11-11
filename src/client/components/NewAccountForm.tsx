@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import type { Currency, Program } from "../../shared/catalogue.ts";
 import { useI18n } from "../i18n/I18n.tsx";
@@ -11,9 +11,10 @@ import {
 	sortPrograms,
 } from "../lib/account.ts";
 import { airlinesOf } from "../lib/airlines.ts";
-import { createAccount } from "../lib/api.ts";
+import { createAccount, fetchMe } from "../lib/api.ts";
 import { readOptionalPoints } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
+import { blockedPrograms } from "../lib/limits.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
 import { Button } from "./ui/button.tsx";
 import {
@@ -35,16 +36,23 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.tsx";
  * Refer to rule 3 of paragraph 3.5 of `docs/architecture.md`. Therefore the
  * list holds each programme, also a programme of an account that exists.
  *
+ * The list disables a programme above the limits of the free account, and it
+ * keeps the programme visible. Paragraph 4.6 of `docs/architecture.md` gives
+ * the limits.
+ *
  * The form is a standard form of shadcn/ui, not a surface of the board. Refer
  * to paragraph 5 of `docs/architecture.md`.
  */
 export function NewAccountForm({
 	programs,
 	currencies,
+	accountProgramIds,
 	defaultOpen = false,
 }: {
 	programs: readonly Program[];
 	currencies: readonly Currency[];
+	/** The programme of each account of the user. */
+	accountProgramIds: readonly string[];
 	/** The dashboard of a user with no account opens the form immediately. */
 	defaultOpen?: boolean;
 }) {
@@ -63,6 +71,7 @@ export function NewAccountForm({
 		<Fields
 			programs={programs}
 			currencies={currencies}
+			accountProgramIds={accountProgramIds}
 			onClose={() => setOpen(false)}
 		/>
 	);
@@ -71,10 +80,12 @@ export function NewAccountForm({
 function Fields({
 	programs,
 	currencies,
+	accountProgramIds,
 	onClose,
 }: {
 	programs: readonly Program[];
 	currencies: readonly Currency[];
+	accountProgramIds: readonly string[];
 	onClose: () => void;
 }) {
 	const { t: text, intl } = useI18n();
@@ -98,6 +109,14 @@ function Fields({
 			onClose();
 		},
 	});
+
+	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+	const blocked = blockedPrograms(
+		me.data,
+		programs,
+		currencies,
+		accountProgramIds,
+	);
 
 	const options = sortPrograms(programs, currencies, intl);
 	const searchNames = searchNamesOf(options, currencies);
@@ -125,6 +144,7 @@ function Fields({
 					id={`${fieldId}-program`}
 					options={options}
 					searchNames={searchNames}
+					blocked={blocked}
 					selected={selected}
 					onSelect={setProgramId}
 				/>
@@ -184,12 +204,15 @@ function ProgramPicker({
 	id,
 	options,
 	searchNames,
+	blocked,
 	selected,
 	onSelect,
 }: {
 	id: string;
 	options: readonly Program[];
 	searchNames: ReadonlyMap<string, readonly string[]>;
+	/** The programmes that the user cannot add now. */
+	blocked: ReadonlySet<string>;
 	selected: Program | undefined;
 	onSelect: (programId: string) => void;
 }) {
@@ -232,6 +255,7 @@ function ProgramPicker({
 								<CommandItem
 									key={program.id}
 									value={program.id}
+									disabled={blocked.has(program.id)}
 									onSelect={() => {
 										onSelect(program.id);
 										setOpen(false);
@@ -244,6 +268,11 @@ function ProgramPicker({
 										{line && (
 											<span className="text-muted-foreground text-sm">
 												{line}
+											</span>
+										)}
+										{blocked.has(program.id) && (
+											<span className="text-muted-foreground text-sm">
+												{text.supportersOnly}
 											</span>
 										)}
 									</span>
