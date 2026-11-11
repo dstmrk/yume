@@ -136,8 +136,16 @@ type MetadataFetch = Parameters<typeof cimd>[0]["fetchClientMetadataResource"];
  */
 function mcpPlugins(baseURL: string, fetchMetadata: MetadataFetch) {
 	return [
-		/** It signs the access tokens. It keeps its keys in the table `jwks`. */
-		jwt(),
+		/**
+		 * It signs the access tokens. It keeps its keys in the table `jwks`,
+		 * with the private key encrypted with `BETTER_AUTH_SECRET`.
+		 *
+		 * The session needs no JWT. With the header of the JWT on
+		 * `get-session`, a new secret gave the status 500 to each request of
+		 * the session, and no person could sign in. The plugin gives the same
+		 * advice for an OAuth provider.
+		 */
+		jwt({ disableSettingJwtHeader: true }),
 		/**
 		 * The authorisation server of the MCP server. The plugin sends a
 		 * person with no session to `/login`, and then to `/consent`.

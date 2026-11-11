@@ -1,5 +1,15 @@
-import { and, asc, desc, eq, inArray, lt, sql } from "drizzle-orm";
-import type { AccountRow, ExpiryLot } from "../../shared/api.ts";
+import {
+	and,
+	asc,
+	desc,
+	eq,
+	inArray,
+	isNotNull,
+	lt,
+	or,
+	sql,
+} from "drizzle-orm";
+import type { AccountRow, Connection, ExpiryLot } from "../../shared/api.ts";
 import type { TierSource } from "../../shared/tier.ts";
 import type { Db } from "./index.ts";
 import {
@@ -7,6 +17,10 @@ import {
 	currency,
 	expiryLot,
 	favoriteCurrency,
+	oauthAccessToken,
+	oauthClient,
+	oauthConsent,
+	oauthRefreshToken,
 	program,
 	session,
 	transferRule,
@@ -309,7 +323,12 @@ export function addSnapshot(
 export function deleteExpired(
 	db: Db,
 	now: Date,
-): { sessions: number; verifications: number } {
+): {
+	sessions: number;
+	verifications: number;
+	accessTokens: number;
+	refreshTokens: number;
+} {
 	return db.transaction((tx) => ({
 		sessions: tx.delete(session).where(lt(session.expiresAt, now)).run()
 			.changes,
@@ -317,7 +336,128 @@ export function deleteExpired(
 			.delete(verification)
 			.where(lt(verification.expiresAt, now))
 			.run().changes,
+		// The tokens of the MCP server. A revoked refresh token is of no use: a
+		// new token replaced it. Paragraph 4.7.2 of `docs/architecture.md`.
+		accessTokens: tx
+			.delete(oauthAccessToken)
+			.where(lt(oauthAccessToken.expiresAt, now))
+			.run().changes,
+		refreshTokens: tx
+			.delete(oauthRefreshToken)
+			.where(
+				or(
+					lt(oauthRefreshToken.expiresAt, now),
+					isNotNull(oauthRefreshToken.revoked),
+				),
+			)
+			.run().changes,
 	}));
+}
+
+/**
+ * The host of the first redirect URI of a client. The column holds a JSON
+ * array. A value that this function cannot read gives an empty text.
+ */
+function redirectHost(redirectUris: string): string {
+	try {
+		const uris: unknown = JSON.parse(redirectUris);
+		const first = Array.isArray(uris) ? uris[0] : undefined;
+		return typeof first === "string" ? new URL(first).hostname : "";
+	} catch {
+		return "";
+	}
+}
+
+/**
+ * The assistants that a user authorised on the MCP server, the newest first.
+ * Each row is one consent. Issue #97.
+ */
+export function listConnections(db: Db, userId: string): Connection[] {
+	return db
+		.select({
+			clientId: oauthConsent.clientId,
+			name: oauthClient.name,
+			redirectUris: oauthClient.redirectUris,
+			createdAt: oauthConsent.createdAt,
+		})
+		.from(oauthConsent)
+		.innerJoin(oauthClient, eq(oauthClient.clientId, oauthConsent.clientId))
+		.where(eq(oauthConsent.userId, userId))
+		.orderBy(desc(oauthConsent.createdAt))
+		.all()
+		.map((row) => ({
+			clientId: row.clientId,
+			name: row.name === null || row.name === "" ? row.clientId : row.name,
+			host: redirectHost(row.redirectUris),
+			connectedAt: (row.createdAt ?? new Date(0)).toISOString(),
+		}));
+}
+
+/**
+ * Removes the consent and each token of one client of one user. It gives true
+ * if a consent existed.
+ *
+ * The plugin removes the consent only, and a refresh token then makes new
+ * access tokens. Each condition holds the user and the client: with CIMD,
+ * each user of Claude has the same client. Issue #97.
+ */
+export function revokeConnection(
+	db: Db,
+	userId: string,
+	clientId: string,
+): boolean {
+	return db.transaction((tx) => {
+		tx.delete(oauthAccessToken)
+			.where(
+				and(
+					eq(oauthAccessToken.userId, userId),
+					eq(oauthAccessToken.clientId, clientId),
+				),
+			)
+			.run();
+		tx.delete(oauthRefreshToken)
+			.where(
+				and(
+					eq(oauthRefreshToken.userId, userId),
+					eq(oauthRefreshToken.clientId, clientId),
+				),
+			)
+			.run();
+		return (
+			tx
+				.delete(oauthConsent)
+				.where(
+					and(
+						eq(oauthConsent.userId, userId),
+						eq(oauthConsent.clientId, clientId),
+					),
+				)
+				.run().changes > 0
+		);
+	});
+}
+
+/**
+ * Examines if the user still holds a consent for the client. `/mcp` reads it
+ * at each request: a JWT stays valid after a revocation until its expiry.
+ */
+export function hasConnection(
+	db: Db,
+	userId: string,
+	clientId: string,
+): boolean {
+	return (
+		db
+			.select({ id: oauthConsent.id })
+			.from(oauthConsent)
+			.where(
+				and(
+					eq(oauthConsent.userId, userId),
+					eq(oauthConsent.clientId, clientId),
+				),
+			)
+			.get() !== undefined
+	);
 }
 
 /** A row of the list of the users, for the administrator. */

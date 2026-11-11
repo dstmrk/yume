@@ -3,7 +3,12 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, MAX_ACCOUNTS_PER_USER, MAX_BODY_BYTES } from "./app.ts";
 import { createAuth } from "./auth.ts";
-import { insertUser, sessionCookie } from "./db/fixtures.ts";
+import {
+	insertConnection,
+	insertOAuthClient,
+	insertUser,
+	sessionCookie,
+} from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import {
 	addFavorite,
@@ -12,6 +17,7 @@ import {
 	createAccount,
 	currentBalances,
 	favoriteCurrencies,
+	listConnections,
 } from "./db/queries.ts";
 import { user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
@@ -1469,5 +1475,102 @@ describe("the routes of the administrator", () => {
 			const row = db.select().from(user).where(eq(user.id, OTHER_USER)).get();
 			expect(row?.supporterUntil).toBeNull();
 		});
+	});
+});
+
+/**
+ * The assistants that the user authorised on the MCP server. Issue #97 and
+ * paragraph 4.7.2 of `docs/architecture.md`.
+ */
+describe("the connections of the MCP server", () => {
+	const CLAUDE = "https://claude.ai/oauth/mcp-client-metadata";
+	const CLAUDE_CODE = "https://claude.ai/oauth/claude-code-client-metadata";
+
+	beforeEach(() => {
+		insertOAuthClient(db, CLAUDE, { name: "Claude" });
+		insertOAuthClient(db, CLAUDE_CODE, { name: "Claude Code" });
+	});
+
+	/** The path of one connection: a client_id is a URL. */
+	function pathOf(clientId: string): string {
+		return `/api/connections/${encodeURIComponent(clientId)}`;
+	}
+
+	async function listed(): Promise<string[]> {
+		const body = await getJson<{ connections: { clientId: string }[] }>(
+			"/api/connections",
+		);
+		return body.connections.map((connection) => connection.clientId);
+	}
+
+	it("gives 401 with no session", async () => {
+		expect((await app.request("/api/connections")).status).toBe(401);
+		const response = await app.request(pathOf(CLAUDE), {
+			method: "DELETE",
+			headers: { origin: BASE_URL },
+		});
+		expect(response.status).toBe(401);
+	});
+
+	it("gives an empty list to a user with no consent", async () => {
+		expect(await listed()).toEqual([]);
+	});
+
+	it("gives the clients of the user and no client of an other user", async () => {
+		insertConnection(db, { id: "a", userId, clientId: CLAUDE });
+		insertConnection(db, {
+			id: "b",
+			userId: OTHER_USER,
+			clientId: CLAUDE_CODE,
+		});
+
+		const body = await getJson<{ connections: unknown[] }>("/api/connections");
+		expect(body.connections).toEqual([
+			{
+				clientId: CLAUDE,
+				name: "Claude",
+				host: "claude.ai",
+				connectedAt: expect.any(String),
+			},
+		]);
+	});
+
+	it("revokes a client, with a client_id that is a URL", async () => {
+		insertConnection(db, { id: "a", userId, clientId: CLAUDE });
+		insertConnection(db, { id: "b", userId, clientId: CLAUDE_CODE });
+
+		const response = await remove(pathOf(CLAUDE));
+
+		expect(response.status).toBe(204);
+		expect(await listed()).toEqual([CLAUDE_CODE]);
+	});
+
+	it("gives 404 to a client of an other user and keeps its row", async () => {
+		insertConnection(db, { id: "b", userId: OTHER_USER, clientId: CLAUDE });
+
+		const response = await remove(pathOf(CLAUDE));
+
+		expect(response.status).toBe(404);
+		expect(await response.json()).toEqual({ error: "unknown_connection" });
+		expect(listConnections(db, OTHER_USER)).toHaveLength(1);
+	});
+
+	it("gives 404 to a second revocation", async () => {
+		insertConnection(db, { id: "a", userId, clientId: CLAUDE });
+
+		expect((await remove(pathOf(CLAUDE))).status).toBe(204);
+		expect((await remove(pathOf(CLAUDE))).status).toBe(404);
+	});
+
+	it("refuses a revocation from an other origin", async () => {
+		insertConnection(db, { id: "a", userId, clientId: CLAUDE });
+
+		const response = await app.request(pathOf(CLAUDE), {
+			method: "DELETE",
+			headers: { cookie, origin: "https://evil.example.com" },
+		});
+
+		expect(response.status).toBe(403);
+		expect(await listed()).toEqual([CLAUDE]);
 	});
 });

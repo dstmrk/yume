@@ -13,6 +13,7 @@ import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
 import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
+import { ConnectedAssistants } from "./components/ConnectedAssistants.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { Button, buttonVariants } from "./components/ui/button.tsx";
@@ -257,6 +258,8 @@ export function Dashboard() {
 					))}
 				</ul>
 			</BoardPanel>
+
+			<ConnectedAssistants />
 
 			<NewAccountForm
 				programs={catalogue.data.programs}

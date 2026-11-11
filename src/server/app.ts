@@ -7,6 +7,7 @@ import {
 	type AccountsResponse,
 	type AdminUsersResponse,
 	type CatalogueResponse,
+	type ConnectionsResponse,
 	createAccountSchema,
 	type FavoritesResponse,
 	type MeResponse,
@@ -35,8 +36,10 @@ import {
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
+	listConnections,
 	listUsers,
 	removeFavorite,
+	revokeConnection,
 	setUnlimited,
 } from "./db/queries.ts";
 import { createMcpHandler } from "./mcp.ts";
@@ -476,6 +479,35 @@ export function createApp(
 		}
 		if (!setUnlimited(db, c.req.param("id"), body.data.unlimited)) {
 			return c.json({ error: "unknown_user" }, 404);
+		}
+		return c.body(null, 204);
+	});
+
+	/**
+	 * The assistants that the user authorised on the MCP server, the newest
+	 * first. Issue #97 and paragraph 4.7.2 of `docs/architecture.md`.
+	 */
+	app.get("/api/connections", (c) => {
+		const body: ConnectionsResponse = {
+			connections: listConnections(db, c.get("userId")),
+		};
+		return c.json(body);
+	});
+
+	/**
+	 * Revokes an assistant: the consent and each token of that client go away.
+	 * `/mcp` then refuses the token of the assistant at the next request. The
+	 * client_id is a URL, thus the client encodes it in the path. The query
+	 * holds the user: a client of an other user gives the status 404.
+	 */
+	app.delete("/api/connections/:clientId", (c) => {
+		const removed = revokeConnection(
+			db,
+			c.get("userId"),
+			c.req.param("clientId"),
+		);
+		if (!removed) {
+			return c.json({ error: "unknown_connection" }, 404);
 		}
 		return c.body(null, 204);
 	});

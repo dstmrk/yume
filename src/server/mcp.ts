@@ -27,6 +27,7 @@ import {
 	allPrograms,
 	allTransferRules,
 	currentBalances,
+	hasConnection,
 } from "./db/queries.ts";
 import {
 	entitlementOf,
@@ -84,6 +85,12 @@ export function createMcpHandler(
 			if (request.method !== "POST") {
 				return new Response(null, { status: 405, headers: { allow: "POST" } });
 			}
+			// The JWT stays valid until its expiry, also after a revocation or
+			// the removal of the account. The consent is the state of the
+			// access: with no consent the token is not valid. Issue #97.
+			if (!hasConnection(db, String(claims.sub), String(claims.client_id))) {
+				return revokedToken(options.resource);
+			}
 			const server = mcpServer(db, String(claims.sub), options.limits);
 			const transport = new WebStandardStreamableHTTPServerTransport({
 				sessionIdGenerator: undefined,
@@ -96,6 +103,26 @@ export function createMcpHandler(
 			resource: options.resource,
 			jwksUrl: options.jwksUrl,
 			requiredScopes: ["balances"],
+		},
+	);
+}
+
+/**
+ * The answer to a token whose consent does not exist. Claude then tries the
+ * refresh token, receives `invalid_grant`, and starts the sign-in again from
+ * the address of the metadata. That address is the address of the 401 of
+ * `requireMcpAuth`: the metadata path, then the path of the resource.
+ */
+function revokedToken(resource: string): Response {
+	const url = new URL(resource);
+	const metadata = `${url.origin}/.well-known/oauth-protected-resource${url.pathname}`;
+	return Response.json(
+		{ error: "invalid_token" },
+		{
+			status: 401,
+			headers: {
+				"www-authenticate": `Bearer error="invalid_token", resource_metadata="${metadata}"`,
+			},
 		},
 	);
 }

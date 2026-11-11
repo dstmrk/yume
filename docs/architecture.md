@@ -361,8 +361,9 @@ Better Auth removes an expired session only when the browser sends its cookie. T
 cookie expires with the session, thus the row stays with the IP address and the browser.
 Therefore the server calls `deleteExpired` of `src/server/db/queries.ts` at the start
 and then one time each day. That function removes each expired row of `session` and of
-`verification`. Section 9 of the privacy policy then stays true, with a delay of one day
-at most.
+`verification`. It also removes each expired row of `oauth_access_token` and of
+`oauth_refresh_token`, and each revoked refresh token: refer to paragraph 4.7.2. Section 9
+of the privacy policy then stays true, with a delay of one day at most.
 
 ### 4.1 Google is the only provider
 
@@ -425,7 +426,7 @@ the author makes a new account with Google. No code keeps the old path.
 
 | Variable | Value |
 |---|---|
-| `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. |
+| `BETTER_AUTH_SECRET` | The key of the signature of the cookies. The server stops without it. A new key removes each session. It also makes the keys of the table `jwks` unreadable: remove the rows of `jwks` with a new key. Each assistant of the MCP server then signs in again. |
 | `BETTER_AUTH_URL` | The origin of the application. Better Auth and the middleware `csrf` refuse a request from an other origin. The default value is `http://localhost:<PORT>`. |
 | `GOOGLE_CLIENT_ID` | The id of the OAuth client of Google. The server stops without it. Refer to paragraph 4.2. |
 | `GOOGLE_CLIENT_SECRET` | The secret of the OAuth client of Google. The server stops without it. |
@@ -617,8 +618,8 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 5 of
-paragraph 4.7.5 only.
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 5 and 9 of
+paragraph 4.7.5.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
 agent, for example Claude or Claude Code, to that server. The agent then reads the
@@ -727,6 +728,14 @@ the keys at `BETTER_AUTH_URL`, thus the process sends a request to itself throug
 proxy of the TLS. Give it the address of the process on `localhost` in `jwksUrl`. The refresh token changes at
 each use, because the client is public. The tables of the plugin refer to `user` with a
 foreign key, thus the removal of a user also removes the tokens.
+
+**The revocation.** The section "Assistenti collegati" of the dashboard lists the consents
+of the user: `GET /api/connections`. `DELETE /api/connections/:clientId` removes the
+consent, the refresh tokens and the access tokens of that client in one transaction. The
+endpoint `delete-consent` of the plugin removes the consent only, and a refresh token
+then makes new access tokens. A JWT also stays valid until its expiry, because
+`requireMcpAuth` reads no table. Therefore the handler of `/mcp` reads the consent at
+each request: with no consent it gives the status 401 with `invalid_token`.
 
 Yume still keeps no token of Google. The tokens of the plugin are the tokens of Yume.
 
@@ -884,19 +893,17 @@ Each sub-task has one artefact that accepts or refuses it:
 8. The test account for the reviewers of Anthropic. It is a supporter account with
    accounts and snapshots of an example. The artefact: one connection from claude.ai
    with that account, with a call of each tool.
+9. The revocation of an assistant: issue #97. The artefact: a test that refuses the token
+   of a revoked assistant at once, and the section "Assistenti collegati" on a telephone.
 
 These items are open:
 
 - The sign-in of the reviewer. The sign-in uses Google only, thus the reviewer needs a
   Google account of the test. Google can ask for a second verification on a new device,
   and the reviewer cannot answer it.
-
 - The text of the privacy policy. The agent sends the data of the person to the provider
   of the agent, and the person selects that provider. A professional must read the
   text.
-- A surface that shows the clients with access and that removes their tokens. Without
-  it, a person removes the access only with the removal of the account. Issue #97 gives
-  the work.
 
 ### 4.8 The administrator
 

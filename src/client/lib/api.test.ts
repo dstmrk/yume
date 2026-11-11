@@ -3,7 +3,9 @@ import {
 	createAccount,
 	deleteAccount,
 	fetchCatalogue,
+	fetchConnections,
 	fetchOAuthClientName,
+	revokeConnection,
 	sendConsent,
 	setFavorite,
 	setUnlimited,
@@ -173,5 +175,31 @@ describe("the authorisation of a client of the MCP server", () => {
 		await expect(
 			sendConsent({ accept: false, oauth_query: "client_id=x&sig=s" }),
 		).rejects.toThrow();
+	});
+});
+
+describe("the assistants of the MCP server", () => {
+	it("reads the list of the connections", async () => {
+		const fetch = answer(json({ connections: [] }, 200));
+		await expect(fetchConnections()).resolves.toEqual({ connections: [] });
+		expect(fetch).toHaveBeenCalledWith("/api/connections", { method: "GET" });
+	});
+
+	// A client_id is a URL, thus the path holds it encoded.
+	it("revokes a client with the client_id encoded in the path", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		const clientId = "https://claude.ai/oauth/mcp-client-metadata";
+
+		await expect(revokeConnection(clientId)).resolves.toBeUndefined();
+		expect(fetch).toHaveBeenCalledWith(
+			`/api/connections/${encodeURIComponent(clientId)}`,
+			{ method: "DELETE" },
+		);
+	});
+
+	it("gives an ApiError for a client that is not connected", async () => {
+		answer(json({ error: "unknown_connection" }, 404));
+		const error = await rejection(revokeConnection("x"));
+		expect(error.status).toBe(404);
 	});
 });

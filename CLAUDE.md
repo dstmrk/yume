@@ -289,6 +289,11 @@ form to the token endpoint. Add a path to `OAUTH_CLIENT_ENDPOINTS` of `src/serve
 only when that path reads no cookie. A test in `src/server/authorisation.test.ts` sends
 the form of Claude.
 
+The plugin `jwt` encrypts its private key with `BETTER_AUTH_SECRET`. Keep the option
+`disableSettingJwtHeader` of that plugin: without it, `get-session` signs a JWT, and a
+new secret gives the status 500 to each session. A test in `src/server/auth.test.ts`
+changes the secret.
+
 `ADMIN_EMAIL` is not necessary. It gives the administrator of the page `/admin`.
 Paragraph 4.8 of `docs/architecture.md` gives the rules.
 

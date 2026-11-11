@@ -158,6 +158,13 @@ export const it = {
 	removeError: "Rimozione non riuscita.",
 	confirm: "Conferma",
 
+	// The assistants connected to the MCP server. Paragraph 4.7.2 of
+	// `docs/architecture.md`.
+	connectionsTitle: "Assistenti collegati",
+	revokeConnection: "Revoca",
+	revokeConnectionQuestion:
+		"Revochi l'accesso? L'assistente non leggerà più i tuoi dati.",
+
 	save: "Salva",
 	saving: "Salvataggio…",
 	cancel: "Annulla",
