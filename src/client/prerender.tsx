@@ -140,6 +140,13 @@ const PAGES: readonly StaticPage[] = [
 		title: (t) => `${t.connector.title} — Yume`,
 		description: (t) => t.connector.description,
 	},
+	// The contact of the service. The directories of the assistants read it.
+	{
+		path: "/support",
+		element: <LegalPage document="support" />,
+		title: (t) => `${t.support.title} — Yume`,
+		description: (t) => t.support.description,
+	},
 ];
 
 for (const locale of LOCALES) {

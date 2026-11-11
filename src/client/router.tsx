@@ -137,6 +137,12 @@ const connectorRoute = createRoute({
 	component: () => <LegalPage document="connector" />,
 });
 
+const supportRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/support",
+	component: () => <LegalPage document="support" />,
+});
+
 const tosRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/tos",
@@ -152,6 +158,7 @@ const routeTree = rootRoute.addChildren([
 	privacyRoute,
 	tosRoute,
 	connectorRoute,
+	supportRoute,
 ]);
 
 /**

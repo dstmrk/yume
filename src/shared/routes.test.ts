@@ -149,7 +149,7 @@ describe("robots.txt", () => {
 	});
 
 	/** The pages with content for each person, also with no session. */
-	const PUBLIC = ["/", "/connector", "/privacy", "/tos"] as const;
+	const PUBLIC = ["/", "/connector", "/privacy", "/support", "/tos"] as const;
 
 	for (const path of PUBLIC) {
 		it(`does not block ${path}`, () => {
