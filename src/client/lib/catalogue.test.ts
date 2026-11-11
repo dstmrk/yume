@@ -13,8 +13,10 @@ import {
 	type Catalogue,
 	currencyPages,
 	EXAMPLE_POINTS,
+	formatRatio,
 	ratioOf,
 	SOURCE_SLUGS,
+	sourceLabel,
 	sourcePages,
 	unreachableCurrencies,
 } from "./catalogue.ts";
@@ -320,5 +322,49 @@ describe("the pages of the seed", () => {
 		for (const item of transferRules) {
 			expect(EXAMPLE_POINTS).toBeGreaterThanOrEqual(item.minTransfer);
 		}
+	});
+});
+
+describe("sourceLabel", () => {
+	it("gives the issuer and the currency", () => {
+		expect(
+			sourceLabel(testPrograms[0] as Program, testCurrencies[0] as Currency),
+		).toBe("Amex Membership Rewards");
+	});
+
+	// "Klarna Klarna Cashback" says the issuer two times.
+	it("gives the currency alone when it holds the issuer", () => {
+		expect(
+			sourceLabel(
+				{
+					id: "klarna",
+					currencyId: "k",
+					code: "K",
+					name: "Klarna",
+					transferable: false,
+				},
+				{ id: "k", code: "K", name: "Klarna Cashback", kind: "flexible" },
+			),
+		).toBe("Klarna Cashback");
+	});
+});
+
+describe("formatRatio", () => {
+	it("writes the two integers with the locale", () => {
+		expect(
+			formatRatio(rule("a", "b", { ratioNum: 4, ratioDen: 5 }), "it-IT"),
+		).toStrictEqual({ from: "5", to: "4" });
+	});
+
+	it("writes the hundredths of a large ratio", () => {
+		expect(
+			formatRatio(rule("a", "b", { ratioNum: 8002, ratioDen: 10000 }), "it-IT"),
+		).toStrictEqual({ from: "100", to: "80,02" });
+	});
+
+	it("writes the separator of the thousands", () => {
+		expect(
+			formatRatio(rule("a", "b", { ratioNum: 1, ratioDen: 30001 }), "it-IT"),
+		).toStrictEqual({ from: "30.001", to: "1" });
 	});
 });

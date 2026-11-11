@@ -94,3 +94,12 @@ export function formatHundredths(value: number, intl: string): string {
 	const rest = String(value % 100).padStart(2, "0");
 	return `${formatPoints(whole, intl)}${decimal(intl)}${rest}`;
 }
+
+const list = cached(
+	(intl) => new Intl.ListFormat(intl, { style: "long", type: "conjunction" }),
+);
+
+/** Joins names with the conjunction of the locale: `Amex, Revolut e Klarna`. */
+export function formatList(items: readonly string[], intl: string): string {
+	return list(intl).format(items);
+}

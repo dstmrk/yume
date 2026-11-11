@@ -20,6 +20,7 @@ import type {
 	TransferRule,
 } from "../../shared/catalogue.ts";
 import { isValidAt } from "../../shared/conversion.ts";
+import { formatHundredths, formatPoints } from "./format.ts";
 
 /** The three lists of the seed. */
 export type Catalogue = {
@@ -252,4 +253,30 @@ const LARGEST_READABLE = 100;
 
 function gcd(a: number, b: number): number {
 	return b === 0 ? a : gcd(b, a % b);
+}
+
+/**
+ * The name of a source for a person: the issuer and the currency, for example
+ * `Amex Membership Rewards`. A currency that already holds the name of the
+ * issuer stays alone: `Klarna Cashback`, not `Klarna Klarna Cashback`.
+ */
+export function sourceLabel(source: Program, currency: Currency): string {
+	return currency.name.startsWith(source.name)
+		? currency.name
+		: `${source.name} ${currency.name}`;
+}
+
+/** Writes the ratio of `ratioOf` with the locale of the page. */
+export function formatRatio(
+	rule: TransferRule,
+	intl: string,
+): { from: string; to: string } {
+	const ratio = ratioOf(rule);
+	return {
+		from: formatPoints(ratio.from, intl),
+		to:
+			ratio.toHundredths === null
+				? formatPoints(ratio.to ?? 0, intl)
+				: formatHundredths(ratio.toHundredths, intl),
+	};
 }

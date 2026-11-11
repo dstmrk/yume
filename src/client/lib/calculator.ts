@@ -88,3 +88,30 @@ export function calculatorRows(input: {
 	// `toSorted` is stable, thus two equal values keep the sequence above.
 	return rows.toSorted((a, b) => b.total - a.total);
 }
+
+/**
+ * Reads each field of the calculator. `typed` is true when one source holds
+ * more than 0 points. A field with a text that is not a quantity goes in
+ * `invalid`, and it gives no points.
+ */
+export function readCalculatorFields(
+	fields: Readonly<Record<string, string>>,
+	sourceIds: readonly string[],
+	intl: string,
+): { points: Record<string, number>; invalid: Set<string>; typed: boolean } {
+	const points: Record<string, number> = {};
+	const invalid = new Set<string>();
+	for (const id of sourceIds) {
+		const value = readCalculatorPoints(fields[id] ?? "", intl);
+		if (value === null) {
+			invalid.add(id);
+		} else {
+			points[id] = value;
+		}
+	}
+	return {
+		points,
+		invalid,
+		typed: Object.values(points).some((value) => value > 0),
+	};
+}

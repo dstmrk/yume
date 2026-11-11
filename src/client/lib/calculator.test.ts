@@ -4,7 +4,11 @@ import {
 	programs,
 	transferRules,
 } from "../../server/db/seed/catalogue.ts";
-import { calculatorRows, readCalculatorPoints } from "./calculator.ts";
+import {
+	calculatorRows,
+	readCalculatorFields,
+	readCalculatorPoints,
+} from "./calculator.ts";
 import type { Catalogue } from "./catalogue.ts";
 
 const IT = "it-IT";
@@ -147,5 +151,39 @@ describe("calculatorRows", () => {
 		});
 
 		expect(rows).toStrictEqual([]);
+	});
+});
+
+describe("readCalculatorFields", () => {
+	const ids = ["amex-mr", "revolut", "klarna"];
+
+	it("gives 0 to each field that the person did not write", () => {
+		expect(readCalculatorFields({}, ids, IT)).toStrictEqual({
+			points: { "amex-mr": 0, revolut: 0, klarna: 0 },
+			invalid: new Set(),
+			typed: false,
+		});
+	});
+
+	it("reads each field and marks a field that is not a quantity", () => {
+		const result = readCalculatorFields(
+			{ "amex-mr": "12.000", revolut: "abc" },
+			ids,
+			IT,
+		);
+
+		expect(result.points).toStrictEqual({ "amex-mr": 12000, klarna: 0 });
+		expect(result.invalid).toStrictEqual(new Set(["revolut"]));
+		expect(result.typed).toBe(true);
+	});
+
+	it("is not typed with zeros only", () => {
+		expect(readCalculatorFields({ revolut: "0" }, ids, IT).typed).toBe(false);
+	});
+
+	it("ignores a field of an other programme", () => {
+		const result = readCalculatorFields({ "ba-club": "5000" }, ids, IT);
+
+		expect(result.points).not.toHaveProperty("ba-club");
 	});
 });

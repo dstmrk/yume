@@ -9,8 +9,9 @@
 # /en/dashboard. The lines with `/*/` block those paths. Google and Bing read
 # the character `*`. Refer to paragraph 5.8 of docs/architecture.md.
 #
-# This file gives no `Sitemap`, because the site holds one public page. Add
-# that line with the first group of pages of the catalogue.
+# The pre-render writes `sitemap.xml` with each public page: the public page,
+# the calculator, the pages of the catalogue, the guides and the legal pages.
+# The address is absolute, as the format asks. `site.test.ts` examines it.
 
 User-agent: *
 Disallow: /api/
@@ -22,3 +23,5 @@ Disallow: /*/admin
 Disallow: /*/consent
 Disallow: /*/dashboard
 Disallow: /*/login
+
+Sitemap: https://yumemiles.com/sitemap.xml

@@ -23,6 +23,11 @@ describe("SITE_URL and the head of index.html", () => {
 		expect(head).toContain(`content="${SITE_URL}/icon-512.png"`);
 	});
 
+	it("gives the address of the sitemap in robots.txt", () => {
+		const robots = readFileSync("src/client/public/robots.txt", "utf8");
+		expect(robots).toContain(`\nSitemap: ${SITE_URL}/sitemap.xml\n`);
+	});
+
 	it("holds no slash at the end: each caller writes its own path", () => {
 		expect(SITE_URL.endsWith("/")).toBe(false);
 	});

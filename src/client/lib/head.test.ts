@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { localeRouting } from "../../shared/locale.ts";
 import { it as italian } from "../i18n/it.ts";
-import { appShellOf, headOf, localizeHead } from "./head.ts";
+import { appShellOf, headOf, localizeHead, ROBOTS_PREVIEW } from "./head.ts";
 
 const SITE = "https://yumemiles.com";
 const template = readFileSync("src/client/index.html", "utf8");
@@ -41,8 +41,16 @@ describe("localizeHead for the base language", () => {
 	// The head of `index.html` is Italian. The text of the dictionary must give
 	// the same head: a difference is a text that moved in one file only.
 	it("keeps the Italian text of index.html", () => {
-		const withoutLinks = html.replace(/\t\t<link rel="alternate"[^\n]*\n/g, "");
+		const withoutLinks = html
+			.replace(/\t\t<link rel="alternate"[^\n]*\n/g, "")
+			.replace(ROBOTS_PREVIEW, "");
 		expect(withoutLinks).toBe(template);
+	});
+
+	it("asks for no limit of the preview", () => {
+		expect(html).toContain(
+			'<meta name="robots" content="max-snippet:-1, max-image-preview:large, max-video-preview:-1" />',
+		);
 	});
 
 	it("gives a link hreflang to each language and x-default to the base", () => {
@@ -145,6 +153,10 @@ describe("appShellOf", () => {
 			"<title>Yume — How many miles your points are worth</title>",
 		);
 		expect(shell).toContain('<meta property="og:locale" content="en_GB" />');
+	});
+
+	it("holds no directive of the preview", () => {
+		expect(shell).not.toContain("max-snippet");
 	});
 
 	it("asks the search engines not to index the page", () => {

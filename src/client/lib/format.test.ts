@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatHundredths, formatPoints } from "./format.ts";
+import {
+	formatDate,
+	formatHundredths,
+	formatList,
+	formatPoints,
+} from "./format.ts";
 
 const IT = "it-IT";
 
@@ -78,5 +83,22 @@ describe("formatHundredths", () => {
 
 	it("follows the locale", () => {
 		expect(formatHundredths(8002, "en-GB")).toBe("80.02");
+	});
+});
+
+describe("formatList", () => {
+	it("joins the items with the conjunction of the locale", () => {
+		expect(formatList(["Amex", "Revolut", "Klarna"], IT)).toBe(
+			"Amex, Revolut e Klarna",
+		);
+		expect(formatList(["Amex", "Revolut"], IT)).toBe("Amex e Revolut");
+	});
+
+	it("gives one item alone", () => {
+		expect(formatList(["Amex"], IT)).toBe("Amex");
+	});
+
+	it("gives an empty text with no item", () => {
+		expect(formatList([], IT)).toBe("");
 	});
 });

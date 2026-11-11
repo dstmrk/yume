@@ -27,6 +27,8 @@ export const CLIENT_PATHS = [
 	"/privacy",
 	"/support",
 	"/tos",
+	"/calcolatore",
+	"/miglia",
 ] as const;
 
 /**

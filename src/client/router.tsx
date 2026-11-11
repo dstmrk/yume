@@ -28,14 +28,19 @@ import {
 } from "@tanstack/react-router";
 import { AdminPage } from "./AdminPage.tsx";
 import { AppShell } from "./AppShell.tsx";
+import { CalculatorPage } from "./CalculatorPage.tsx";
 import { ConsentPage } from "./ConsentPage.tsx";
+import { CurrenciesPage } from "./CurrenciesPage.tsx";
+import { CurrencyPage } from "./CurrencyPage.tsx";
 import { Dashboard } from "./Dashboard.tsx";
+import { GuidePage } from "./GuidePage.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchMe, fetchSession } from "./lib/api.ts";
 import { loginErrorOf } from "./lib/auth.ts";
 import { NotFoundPage } from "./NotFoundPage.tsx";
+import { SourcePage } from "./SourcePage.tsx";
 
 const rootRoute = createRootRoute({
 	component: () => (
@@ -149,6 +154,43 @@ const tosRoute = createRoute({
 	component: () => <LegalPage document="tos" />,
 });
 
+// The public pages of the catalogue, the calculator and the guides. Each
+// person reads them, with a session or with no session. The build writes a
+// static page for each value of a parameter, and the server gives that file.
+// An other value gives the page of the status 404, from the server and from
+// the component. Paragraph 5.5.5 of `docs/architecture.md`.
+const calculatorRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/calcolatore",
+	component: CalculatorPage,
+});
+
+const currenciesRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/miglia",
+	component: CurrenciesPage,
+});
+
+const currencyRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/miglia/$currencyId",
+	component: () => (
+		<CurrencyPage currencyId={currencyRoute.useParams().currencyId} />
+	),
+});
+
+const sourceRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/punti/$slug",
+	component: () => <SourcePage slug={sourceRoute.useParams().slug} />,
+});
+
+const guideRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/guide/$slug",
+	component: () => <GuidePage slug={guideRoute.useParams().slug} />,
+});
+
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
@@ -159,6 +201,11 @@ const routeTree = rootRoute.addChildren([
 	tosRoute,
 	connectorRoute,
 	supportRoute,
+	calculatorRoute,
+	currenciesRoute,
+	currencyRoute,
+	sourceRoute,
+	guideRoute,
 ]);
 
 /**
