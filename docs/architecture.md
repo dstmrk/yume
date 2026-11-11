@@ -618,7 +618,7 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 6 and 9 of
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 7 and 9 of
 paragraph 4.7.5.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
@@ -854,7 +854,7 @@ The submission also needs these items:
 |---|---|
 | The URL of the server | `https://<domain of the official instance>/mcp` |
 | The privacy policy | `/privacy`, with the text of sub-task 6 |
-| The public documentation | The page of sub-task 7 |
+| The public documentation | `/connector`: `LegalPage` with the document `connector` of `it.ts` |
 | The icon | `src/client/public/icon.svg` |
 | A support contact | The address of the instance on the page `/privacy` |
 | A test account | The account of sub-task 8 |
@@ -1273,10 +1273,11 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds seven routes: `/` for the public page, `/dashboard` for the dashboard,
+The client holds eight routes: `/` for the public page, `/dashboard` for the dashboard,
 `/login` for the access, `/consent` for the authorisation of an assistant (paragraph
 4.7.2), `/admin` for the administrator (paragraph 4.8), `/privacy` for the policy of the
-personal data and `/tos` for the terms of the service. The two legal pages are public: Google asks for their
+personal data, `/tos` for the terms of the service and `/connector` for the documentation
+of the MCP server (paragraph 4.7.4). The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
 from the dictionary, and `robots.txt` does not block them. The build writes a static
 page for each one, with its own title and canonical address. The check of Google reads

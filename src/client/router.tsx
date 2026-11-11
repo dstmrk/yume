@@ -129,6 +129,14 @@ const privacyRoute = createRoute({
 	component: () => <LegalPage document="privacy" />,
 });
 
+// The public documentation of the MCP server: the directory of Anthropic
+// asks for its address. Paragraph 4.7.4 of `docs/architecture.md`.
+const connectorRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/connector",
+	component: () => <LegalPage document="connector" />,
+});
+
 const tosRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/tos",
@@ -143,6 +151,7 @@ const routeTree = rootRoute.addChildren([
 	consentRoute,
 	privacyRoute,
 	tosRoute,
+	connectorRoute,
 ]);
 
 /**

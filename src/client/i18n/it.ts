@@ -102,6 +102,7 @@ export const it = {
 		"Yume è un progetto indipendente: non appartiene ad American Express, a Revolut, a Klarna né alle compagnie aeree o ai programmi fedeltà citati. Nomi e loghi sono marchi dei rispettivi proprietari.",
 	footerSource: "Codice su GitHub",
 	footerPrivacy: "Privacy",
+	footerConnector: "Assistenti AI",
 	footerTos: "Termini",
 
 	potentialTitle: "Miglia potenziali",
@@ -421,6 +422,105 @@ export const it = {
 				],
 				items: [],
 				contact: false,
+			},
+		],
+	},
+
+	// The page `/connector`: the public documentation of the MCP server, with
+	// the shape of a legal page. Paragraph 4.7.4 of `docs/architecture.md`.
+	connector: {
+		title: "Collegare un assistente AI a Yume",
+		description:
+			"Come collegare Claude, Claude Code o un altro assistente AI ai tuoi saldi su Yume con il connettore MCP.",
+		subtitle: "Connettore MCP di yumemiles.com",
+		updated: "Ultimo aggiornamento: novembre 2026",
+		contactLead: "Per un problema con il connettore scrivi a",
+		sections: [
+			{
+				title: "Cos'è",
+				paragraphs: [
+					"Yume offre un server MCP (Model Context Protocol). Un assistente AI collegato, per esempio Claude, legge i tuoi saldi e le miglia potenziali, e aggiunge un saldo quando glielo chiedi. Puoi mostrargli lo screenshot dell'app del programma e fargli scrivere il saldo.",
+					"Serve un account Yume con l'account sostenitore. L'accesso usa il tuo account Google, come sul sito.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "Indirizzo del server",
+				paragraphs: [
+					"https://yumemiles.com/mcp",
+					"Se hai installato Yume sul tuo server, l'indirizzo è https://<il tuo dominio>/mcp.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "Collegare Claude",
+				paragraphs: [
+					"Vale per claude.ai e per le app di Claude per computer e telefono.",
+				],
+				items: [
+					"Nelle impostazioni di Claude, apri i connettori e aggiungi un connettore personalizzato.",
+					"Scrivi Yume come nome e https://yumemiles.com/mcp come indirizzo.",
+					"Premi Connetti e accedi a Yume con Google.",
+					"Nella pagina di autorizzazione controlla che il codice vada a claude.ai, poi premi Autorizza.",
+				],
+				contact: false,
+			},
+			{
+				title: "Collegare Claude Code",
+				paragraphs: [],
+				items: [
+					"Nel terminale: claude mcp add --transport http yume https://yumemiles.com/mcp",
+					"In Claude Code scrivi /mcp, scegli yume e avvia l'accesso: si apre il browser.",
+					"Accedi con Google. La pagina di autorizzazione indica che il codice va a localhost, cioè al tuo computer: autorizza solo se hai avviato tu il collegamento.",
+				],
+				contact: false,
+			},
+			{
+				title: "Cosa può fare l'assistente",
+				paragraphs: [],
+				items: [
+					"list_accounts: legge i tuoi conti, con il saldo più recente e le scadenze dei punti.",
+					"get_potential: legge le miglia potenziali di ogni valuta delle compagnie aeree.",
+					"get_catalogue: legge le valute, i programmi e le regole di trasferimento in vigore.",
+					"add_snapshot: aggiunge un saldo a un tuo conto. Claude ti chiede conferma prima di ogni scrittura.",
+				],
+				contact: false,
+			},
+			{
+				title: "Esempi di richieste",
+				paragraphs: [],
+				items: [
+					"Quante miglia Avios potenziali ho?",
+					"Aggiorna il saldo Amex: ecco lo screenshot dell'app.",
+					"Da quali programmi posso trasferire punti a Flying Blue?",
+				],
+				contact: false,
+			},
+			{
+				title: "Limiti",
+				paragraphs: [
+					"L'assistente non può cancellare conti o saldi e non può trasferire punti: Yume non muove punti tra programmi. Le miglia potenziali sono un calcolo, non un saldo, e un trasferimento di punti è permanente.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "Revocare l'accesso",
+				paragraphs: [
+					"Nella dashboard di Yume, nella sezione Assistenti collegati, premi Revoca. L'assistente perde l'accesso subito. Rimuovere il connettore da Claude non basta a revocare l'accesso su Yume.",
+				],
+				items: [],
+				contact: false,
+			},
+			{
+				title: "Dati personali",
+				paragraphs: [
+					"La sezione 4-bis dell'informativa privacy, alla pagina /privacy, descrive quali dati riceve l'assistente e chi li tratta.",
+				],
+				items: [],
+				contact: true,
 			},
 		],
 	},

@@ -2,11 +2,15 @@ import { AppTitle } from "./components/board/AppTitle.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { CONTACT_EMAIL } from "./lib/site.ts";
 
-/** The legal documents of the dictionary. */
-export type LegalDocument = "privacy" | "tos";
+/** The documents of the dictionary with the shape of a legal page. */
+export type LegalDocument = "privacy" | "tos" | "connector";
 
 /**
- * A legal page: `/privacy` or `/tos`.
+ * A page of a document: `/privacy`, `/tos` or `/connector`.
+ *
+ * `/connector` is the public documentation of the MCP server, not a legal
+ * document. It has the same shape: sections of paragraphs and lists, and the
+ * address of the contact. Paragraph 4.7.4 of `docs/architecture.md`.
  *
  * Google asks for the address of the two pages before it publishes the
  * sign-in for each account, and the GDPR asks for the policy before the
