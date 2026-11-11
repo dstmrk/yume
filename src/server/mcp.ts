@@ -16,6 +16,7 @@ import { requireMcpAuth } from "@better-auth/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
+import { z } from "zod";
 import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { isValidAt } from "../shared/conversion.ts";
 import { canUseMcp } from "../shared/tier.ts";
@@ -27,7 +28,14 @@ import {
 	allTransferRules,
 	currentBalances,
 } from "./db/queries.ts";
-import { entitlementOf, potentialOf, today } from "./operations.ts";
+import {
+	entitlementOf,
+	latestObservedAt,
+	potentialOf,
+	recordSnapshot,
+	type SnapshotResult,
+	today,
+} from "./operations.ts";
 
 /**
  * The warning of each result of `get_potential`. The rules of the interface
@@ -101,19 +109,21 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 	 * level comes from the database at each call: the end of a supporter
 	 * account stops the access at the next call.
 	 */
-	function result(read: (now: Date) => Record<string, unknown>) {
+	function result(
+		run: (now: Date) => Record<string, unknown> | CallToolResult,
+	): CallToolResult {
 		const now = new Date();
 		if (!canUseMcp(entitlementOf(db, userId, limits, now))) {
-			return {
-				isError: true,
-				content: [{ type: "text", text: SUPPORTER_NOTICE }],
-			} satisfies CallToolResult;
+			return failure(SUPPORTER_NOTICE);
 		}
-		const body = read(now);
+		const body = run(now);
+		if ("content" in body) {
+			return body as CallToolResult;
+		}
 		return {
 			structuredContent: body,
 			content: [{ type: "text", text: JSON.stringify(body) }],
-		} satisfies CallToolResult;
+		};
 	}
 
 	server.registerTool(
@@ -181,5 +191,93 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 			}),
 	);
 
+	server.registerTool(
+		"add_snapshot",
+		{
+			title: "Add a balance",
+			description:
+				"Adds a balance in points to an account of the user of Yume, at a date. The balance with the most recent date is the current balance of the account. The expiry lots belong to the balance: a balance with no lots holds no lots, and the lots of the balance before do not carry over. list_accounts gives the ids of the accounts and their current lots. The date cannot be after tomorrow in UTC.",
+			inputSchema: {
+				accountId: z
+					.string()
+					.describe("The id of the account, from list_accounts."),
+				points: z.number().describe("The balance: an integer of 0 or more."),
+				observedAt: z
+					.string()
+					.describe("The date of the balance, in the format YYYY-MM-DD."),
+				lots: z
+					.array(
+						z.object({
+							points: z
+								.number()
+								.describe("The points that expire: an integer of 1 or more."),
+							expiresOn: z
+								.string()
+								.describe("The expiry date, in the format YYYY-MM-DD."),
+						}),
+					)
+					.optional()
+					.describe(
+						"The parts of the balance that expire at a date. Their sum is not above the balance, and each date is unique.",
+					),
+			},
+			annotations: {
+				title: "Add a balance",
+				readOnlyHint: false,
+				destructiveHint: true,
+			},
+		},
+		({ accountId, ...snapshot }) =>
+			result((now) => {
+				const written = recordSnapshot(db, {
+					userId,
+					accountId,
+					body: snapshot,
+					now,
+					limits,
+				});
+				if (!written.ok) {
+					return failure(snapshotErrorText(written, accountId, now));
+				}
+				return {
+					snapshotId: written.id,
+					accountId,
+					points: snapshot.points,
+					observedAt: snapshot.observedAt,
+					lots: snapshot.lots ?? [],
+				};
+			}),
+	);
+
 	return server;
+}
+
+/** The result of a tool that gives an error. Claude shows the text. */
+function failure(text: string): CallToolResult {
+	return { isError: true, content: [{ type: "text", text }] };
+}
+
+/**
+ * The text of an error of `add_snapshot`: the cause and the correct input.
+ * The directory of Anthropic refuses a general error. Paragraph 4.7.3.
+ */
+function snapshotErrorText(
+	written: Exclude<SnapshotResult, { ok: true }>,
+	accountId: string,
+	now: Date,
+): string {
+	switch (written.error) {
+		case "unknown_account":
+			return `No account of the user has the id ${accountId}. list_accounts gives the ids of the accounts.`;
+		case "invalid_body":
+			return `The balance is not valid. ${written.issues
+				.map(
+					(issue) => `${issue.path.join(".") || "balance"}: ${issue.message}`,
+				)
+				.join(" ")}`;
+		case "future_date":
+			return `The date is after ${latestObservedAt(now)}, the latest date that Yume accepts.`;
+		case "supporter_required":
+			return "The expiry lots need a supporter account.";
+	}
 }

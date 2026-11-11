@@ -617,7 +617,7 @@ These items are open:
 
 ### 4.7 The MCP server
 
-Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 4 of
+Status: **accepted**. Date: 2026-11-10. The code implements sub-tasks 1 to 5 of
 paragraph 4.7.5 only.
 
 Yume supplies a remote server of the Model Context Protocol (MCP). A person connects an
