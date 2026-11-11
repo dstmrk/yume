@@ -6,6 +6,9 @@
  *
  * The tables `user_account` and `balance_snapshot` hold user data.
  *
+ * The tables `stripe_customer` and `stripe_event` hold the payment of the
+ * supporter account: paragraph 4.6.1 of `docs/architecture.md`.
+ *
  * The tables `user`, `session`, `account` and `verification` belong to Better
  * Auth. Paragraph 4 of `docs/architecture.md` gives the reason for one schema.
  * The table `jwks` and the tables `oauth_*` belong to its plugins of the MCP
@@ -42,7 +45,8 @@ export const user = sqliteTable("user", {
 	createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 	/**
-	 * The end of the supporter account. Only the payment writes it. Better Auth
+	 * The end of the supporter account. Only the webhook of Stripe writes it,
+	 * in `src/server/billing.ts`. Better Auth
 	 * does not know these two columns, and the default values fill them at the
 	 * sign-in. `accountTier` of `src/shared/tier.ts` reads them.
 	 */
@@ -491,3 +495,42 @@ export const expiryLot = sqliteTable(
 	},
 	(table) => [primaryKey({ columns: [table.snapshotId, table.expiresOn] })],
 );
+
+/**
+ * The customer of Stripe of a user, with the state of the subscription.
+ *
+ * The checkout writes the row when it makes the customer, before the payment.
+ * Only the webhook of Stripe writes the other columns. The columns hold no
+ * date of the subscription: `user.supporter_until` holds the end of the
+ * period that the user paid. Paragraph 4.6.1 of `docs/architecture.md`.
+ */
+export const stripeCustomer = sqliteTable("stripe_customer", {
+	userId: text("user_id")
+		.primaryKey()
+		.references(() => user.id, { onDelete: "cascade" }),
+	customerId: text("customer_id").notNull().unique(),
+	/** The last subscription of the customer, or null before the first one. */
+	subscriptionId: text("subscription_id").unique(),
+	/** The status of that subscription in Stripe, for example `active`. */
+	status: text("status"),
+	/** True when the subscription stops at the end of the period. */
+	cancels: integer("cancels", { mode: "boolean" }).notNull().default(false),
+	/**
+	 * The field `created` of the last event that the webhook applied, in the
+	 * ISO 8601 format. Stripe gives no order of delivery: an older event does
+	 * not write the row.
+	 */
+	lastEventAt: text("last_event_at"),
+	createdAt: text("created_at").notNull(),
+});
+
+/**
+ * An event of Stripe that the webhook processed. Stripe can send one event
+ * more than one time: the id stops the second write. `deleteExpired` removes
+ * a row after 30 days, because Stripe tries again for 3 days at most.
+ */
+export const stripeEvent = sqliteTable("stripe_event", {
+	id: text("id").primaryKey(),
+	type: text("type").notNull(),
+	receivedAt: text("received_at").notNull(),
+});

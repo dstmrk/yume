@@ -15,6 +15,7 @@ import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { openDatabase } from "./db/index.ts";
 import { deleteExpired } from "./db/queries.ts";
+import { type Billing, createBilling, parseBillingConfig } from "./stripe.ts";
 
 const url = process.env.DATABASE_URL ?? "./data/yume.db";
 const port = Number(process.env.PORT ?? 3000);
@@ -80,6 +81,21 @@ try {
 	process.exit(1);
 }
 
+/**
+ * The payment of the supporter account. With no variable of Stripe, the
+ * instance holds no payment: a self-hosted installation needs none. A part of
+ * the three variables stops the server. Paragraph 4.6.1 of
+ * `docs/architecture.md` gives the decision.
+ */
+let billing: Billing | undefined;
+try {
+	const config = parseBillingConfig(process.env);
+	billing = config === undefined ? undefined : createBilling(config);
+} catch (error) {
+	console.error((error as Error).message);
+	process.exit(1);
+}
+
 const db = openDatabase(url);
 
 /**
@@ -108,6 +124,7 @@ const app = createApp(db, auth, [baseURL, ...trustedOrigins], {
 	limits,
 	jwksUrl: `http://127.0.0.1:${port}/api/auth/jwks`,
 	openaiChallenge: process.env.OPENAI_APPS_CHALLENGE_TOKEN,
+	billing,
 });
 
 /**

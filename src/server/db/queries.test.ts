@@ -34,6 +34,7 @@ import {
 	oauthConsent,
 	oauthRefreshToken,
 	session,
+	stripeEvent,
 	user,
 	userAccount,
 	verification,
@@ -605,6 +606,7 @@ describe("deleteExpired", () => {
 			verifications: 0,
 			accessTokens: 0,
 			refreshTokens: 0,
+			stripeEvents: 0,
 		});
 		expect(ids(session)).toEqual(["valid"]);
 	});
@@ -616,6 +618,7 @@ describe("deleteExpired", () => {
 			verifications: 0,
 			accessTokens: 0,
 			refreshTokens: 0,
+			stripeEvents: 0,
 		});
 		expect(ids(session)).toEqual(["now"]);
 	});
@@ -628,6 +631,7 @@ describe("deleteExpired", () => {
 			verifications: 1,
 			accessTokens: 0,
 			refreshTokens: 0,
+			stripeEvents: 0,
 		});
 		expect(ids(verification)).toEqual(["valid"]);
 	});
@@ -655,6 +659,32 @@ describe("deleteExpired", () => {
 		expect(db.select().from(userAccount).all()).toHaveLength(1);
 		expect(db.select().from(balanceSnapshot).all()).toHaveLength(1);
 		expect(db.select().from(favoriteCurrency).all()).toHaveLength(1);
+	});
+
+	// Stripe tries an event again for 3 days at most. After 30 days the id of
+	// the event stops no second write. Paragraph 4.6.1 of
+	// `docs/architecture.md`.
+	it("removes a Stripe event after 30 days and keeps a recent one", () => {
+		const DAY = 24 * 60 * 60 * 1000;
+		const at = (offset: number) =>
+			new Date(NOW.getTime() - offset).toISOString();
+		db.insert(stripeEvent)
+			.values([
+				{ id: "evt_old", type: "invoice.paid", receivedAt: at(30 * DAY + 1) },
+				{ id: "evt_limit", type: "invoice.paid", receivedAt: at(30 * DAY) },
+				{ id: "evt_new", type: "invoice.paid", receivedAt: at(DAY) },
+			])
+			.run();
+
+		expect(deleteExpired(db, NOW)).toMatchObject({ stripeEvents: 1 });
+		expect(
+			db
+				.select({ id: stripeEvent.id })
+				.from(stripeEvent)
+				.all()
+				.map((row) => row.id)
+				.sort(),
+		).toEqual(["evt_limit", "evt_new"]);
 	});
 
 	// The privacy policy promises the removal of an expired or revoked token
@@ -717,6 +747,7 @@ describe("deleteExpired", () => {
 			verifications: 0,
 			accessTokens: 0,
 			refreshTokens: 0,
+			stripeEvents: 0,
 		});
 	});
 });

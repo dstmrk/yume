@@ -23,6 +23,7 @@ import {
 	oauthRefreshToken,
 	program,
 	session,
+	stripeEvent,
 	transferRule,
 	user,
 	userAccount,
@@ -309,8 +310,15 @@ export function addSnapshot(
 }
 
 /**
- * Removes each expired row of `session` and of `verification`. It gives the
- * quantity of rows that it removes from each table.
+ * The time that the id of an event of Stripe stays. Stripe tries an event
+ * again for 3 days at most, thus 30 days give a large margin.
+ */
+export const STRIPE_EVENT_RETENTION_MS = 30 * 24 * 60 * 60 * 1000;
+
+/**
+ * Removes each expired row of `session` and of `verification`, and each id of
+ * an event of Stripe after `STRIPE_EVENT_RETENTION_MS`. It gives the quantity
+ * of rows that it removes from each table.
  *
  * Better Auth removes an expired session only when the browser sends its
  * cookie. The cookie expires with the session, thus the browser never sends it
@@ -328,7 +336,11 @@ export function deleteExpired(
 	verifications: number;
 	accessTokens: number;
 	refreshTokens: number;
+	stripeEvents: number;
 } {
+	const eventsBefore = new Date(
+		now.getTime() - STRIPE_EVENT_RETENTION_MS,
+	).toISOString();
 	return db.transaction((tx) => ({
 		sessions: tx.delete(session).where(lt(session.expiresAt, now)).run()
 			.changes,
@@ -350,6 +362,12 @@ export function deleteExpired(
 					isNotNull(oauthRefreshToken.revoked),
 				),
 			)
+			.run().changes,
+		// The ids of the events of Stripe. Paragraph 4.6.1 of
+		// `docs/architecture.md`.
+		stripeEvents: tx
+			.delete(stripeEvent)
+			.where(lt(stripeEvent.receivedAt, eventsBefore))
 			.run().changes,
 	}));
 }

@@ -1286,6 +1286,7 @@ describe("the limits of the free account", () => {
 			admin: false,
 			limits: true,
 			tier: "free",
+			billing: null,
 		});
 
 		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
@@ -1348,6 +1349,7 @@ describe("the routes of the administrator", () => {
 				admin: true,
 				limits: false,
 				tier: "free",
+				billing: null,
 			});
 		});
 
@@ -1358,6 +1360,7 @@ describe("the routes of the administrator", () => {
 				admin: false,
 				limits: false,
 				tier: "free",
+				billing: null,
 			});
 		});
 	});

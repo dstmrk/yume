@@ -3,19 +3,25 @@ import { Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
+import type Stripe from "stripe";
 import {
 	type AccountsResponse,
 	type AdminUsersResponse,
+	ALREADY_SUBSCRIBED,
+	type BillingRedirectResponse,
+	billingRequestSchema,
 	type CatalogueResponse,
 	type ConnectionsResponse,
 	createAccountSchema,
 	type FavoritesResponse,
 	type MeResponse,
+	NO_CUSTOMER,
 	type PotentialResponse,
 	SUPPORTER_REQUIRED,
 	setUnlimitedSchema,
 	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
+import { type Locale, routing } from "../shared/locale.ts";
 import {
 	accountTier,
 	canAddAccount,
@@ -23,6 +29,13 @@ import {
 } from "../shared/tier.ts";
 import { isAdmin } from "./admin.ts";
 import { type Auth, canServeMcp, mcpResource } from "./auth.ts";
+import {
+	billingStateOf,
+	handleStripeEvent,
+	startCheckout,
+	startPortal,
+	type WebhookOutcome,
+} from "./billing.ts";
 import type { Db } from "./db/index.ts";
 import {
 	accountProgramIds,
@@ -50,14 +63,23 @@ import {
 	recordSnapshot,
 	today,
 } from "./operations.ts";
+import type { Billing } from "./stripe.ts";
+
+/**
+ * The webhook of Stripe. Stripe sends each event from its servers, with no
+ * cookie: the signature of the body proves the sender. Paragraph 4.6.1 of
+ * `docs/architecture.md`.
+ */
+const STRIPE_WEBHOOK = "/api/stripe/webhook";
 
 /**
  * The routes with no session.
  *
  * The container reads the state of the application before a person signs in.
  * Better Auth controls its own routes: the sign-in has no session before it.
+ * Stripe sends the events of the webhook from its servers.
  */
-const PUBLIC = ["/api/health", "/api/auth/"];
+const PUBLIC = ["/api/health", "/api/auth/", STRIPE_WEBHOOK];
 
 /**
  * The endpoints of OAuth that a client calls from its server, not from a
@@ -94,6 +116,22 @@ export const MAX_ACCOUNTS_PER_USER = 100;
 export const MAX_BODY_BYTES = 16 * 1024;
 
 /**
+ * The maximum size of the body of an event of Stripe, in bytes.
+ *
+ * An event of a subscription holds the subscription, its items and the
+ * changed fields. A body above `MAX_BODY_BYTES` is possible, and a refusal
+ * makes Stripe send the event again for 3 days.
+ */
+export const MAX_WEBHOOK_BYTES = 256 * 1024;
+
+/** The results of an event that need no line in the log. */
+const QUIET_OUTCOMES: ReadonlySet<WebhookOutcome> = new Set([
+	"applied",
+	"recorded",
+	"ignored",
+]);
+
+/**
  * Makes the application.
  *
  * `origins` holds the origin of the application and each origin of
@@ -120,9 +158,15 @@ export function createApp(
 		 * path gives the status 404.
 		 */
 		openaiChallenge?: string;
+		/**
+		 * The payment of the supporter account. With no value, the instance
+		 * holds no route of the payment: a self-hosted installation needs
+		 * none. Paragraph 4.6.1 of `docs/architecture.md`.
+		 */
+		billing?: Billing;
 	} = {},
 ) {
-	const { adminEmail, limits = false } = options;
+	const { adminEmail, billing, limits = false } = options;
 	const openaiChallenge = options.openaiChallenge?.trim() ?? "";
 	const [baseURL = ""] = origins;
 	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
@@ -202,7 +246,9 @@ export function createApp(
 		maxSize: MAX_BODY_BYTES,
 		onError: (c) => c.json({ error: "payload_too_large" }, 413),
 	});
-	app.use("/api/*", limitBody);
+	app.use("/api/*", (c, next) =>
+		c.req.path === STRIPE_WEBHOOK ? next() : limitBody(c, next),
+	);
 
 	/**
 	 * The routes of Better Auth: the sign-in with Google, its callback, the
@@ -443,14 +489,130 @@ export function createApp(
 		return c.json(body);
 	});
 
-	/** The user of the session. The client reads if it is the administrator. */
+	/**
+	 * The user of the session. The client reads if it is the administrator,
+	 * the level and the state of the payment.
+	 */
 	app.get("/api/me", (c) => {
 		const body: MeResponse = {
 			admin: c.get("admin"),
 			...entitlementOf(db, c.get("userId"), limits, new Date()),
+			billing:
+				billing === undefined ? null : billingStateOf(db, c.get("userId")),
 		};
 		return c.json(body);
 	});
+
+	if (billing !== undefined) {
+		/**
+		 * The address of the dashboard in the language of the page, for the
+		 * return from Stripe. The origin of the request is the origin of the
+		 * return when it is an origin of the application: the client of Vite
+		 * in development. Each other origin gives `BETTER_AUTH_URL`, thus no
+		 * request makes Stripe send the user to an other site.
+		 */
+		const dashboardUrl = (origin: string | undefined, locale: Locale) =>
+			`${origin !== undefined && origins.includes(origin) ? origin : baseURL}${routing.pathFor(locale, "/dashboard")}`;
+
+		/**
+		 * Gives the address of Stripe Checkout for the supporter account. The
+		 * client then opens it. After the payment Stripe opens the dashboard
+		 * with `?checkout=done`.
+		 */
+		app.post("/api/billing/checkout", async (c) => {
+			const body = billingRequestSchema.safeParse(
+				await c.req.json().catch(() => null),
+			);
+			if (!body.success) {
+				return c.json(
+					{ error: "invalid_body", issues: body.error.issues },
+					400,
+				);
+			}
+			const dashboard = dashboardUrl(c.req.header("origin"), body.data.locale);
+			const result = await startCheckout(db, billing, {
+				userId: c.get("userId"),
+				successUrl: `${dashboard}?checkout=done`,
+				cancelUrl: dashboard,
+				now: new Date(),
+			});
+			if (result.ok) {
+				const answer: BillingRedirectResponse = { url: result.url };
+				return c.json(answer);
+			}
+			return result.error === ALREADY_SUBSCRIBED
+				? c.json({ error: result.error }, 409)
+				: c.json({ error: result.error }, 503);
+		});
+
+		/** Gives the address of the customer portal of Stripe. */
+		app.post("/api/billing/portal", async (c) => {
+			const body = billingRequestSchema.safeParse(
+				await c.req.json().catch(() => null),
+			);
+			if (!body.success) {
+				return c.json(
+					{ error: "invalid_body", issues: body.error.issues },
+					400,
+				);
+			}
+			const result = await startPortal(db, billing, {
+				userId: c.get("userId"),
+				returnUrl: dashboardUrl(c.req.header("origin"), body.data.locale),
+			});
+			if (result.ok) {
+				const answer: BillingRedirectResponse = { url: result.url };
+				return c.json(answer);
+			}
+			return result.error === NO_CUSTOMER
+				? c.json({ error: result.error }, 404)
+				: c.json({ error: result.error }, 503);
+		});
+
+		/**
+		 * The webhook of Stripe.
+		 *
+		 * The route reads the body as text: the signature covers the exact
+		 * bytes. A body with no correct signature gets the status 400. An
+		 * error of the processing gets the status 500, and Stripe then sends
+		 * the event again. Each other result gets the status 200.
+		 */
+		app.post(
+			STRIPE_WEBHOOK,
+			bodyLimit({
+				maxSize: MAX_WEBHOOK_BYTES,
+				onError: (c) => c.json({ error: "payload_too_large" }, 413),
+			}),
+			async (c) => {
+				const payload = await c.req.text();
+				let event: Stripe.Event;
+				try {
+					event = billing.stripe.webhooks.constructEvent(
+						payload,
+						c.req.header("stripe-signature") ?? "",
+						billing.webhookSecret,
+					);
+				} catch {
+					return c.json({ error: "invalid_signature" }, 400);
+				}
+				try {
+					const outcome = await handleStripeEvent(
+						db,
+						billing,
+						event,
+						new Date(),
+					);
+					if (!QUIET_OUTCOMES.has(outcome)) {
+						console.warn(`The event ${event.id} of Stripe gives ${outcome}.`);
+					}
+					return c.json({ received: true });
+				} catch (error) {
+					console.error(`The event ${event.id} of Stripe failed.`, error);
+					return c.json({ error: "internal_error" }, 500);
+				}
+			},
+		);
+	}
 
 	/**
 	 * The routes of the administrator.
