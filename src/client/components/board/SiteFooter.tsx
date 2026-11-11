@@ -48,6 +48,12 @@ export function SiteFooter() {
 					{text.footerConnector}
 				</a>
 				<a
+					href={routing.pathFor(locale, "/support")}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerSupport}
+				</a>
+				<a
 					href={SOURCE_URL}
 					target="_blank"
 					rel="noopener noreferrer"

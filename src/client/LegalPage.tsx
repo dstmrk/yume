@@ -3,10 +3,10 @@ import { useI18n } from "./i18n/I18n.tsx";
 import { CONTACT_EMAIL } from "./lib/site.ts";
 
 /** The documents of the dictionary with the shape of a legal page. */
-export type LegalDocument = "privacy" | "tos" | "connector";
+export type LegalDocument = "privacy" | "tos" | "connector" | "support";
 
 /**
- * A page of a document: `/privacy`, `/tos` or `/connector`.
+ * A page of a document: `/privacy`, `/tos`, `/connector` or `/support`.
  *
  * `/connector` is the public documentation of the MCP server, not a legal
  * document. It has the same shape: sections of paragraphs and lists, and the

@@ -103,6 +103,7 @@ export const it = {
 	footerSource: "Codice su GitHub",
 	footerPrivacy: "Privacy",
 	footerConnector: "Assistenti AI",
+	footerSupport: "Assistenza",
 	footerTos: "Termini",
 
 	potentialTitle: "Miglia potenziali",
@@ -332,11 +333,11 @@ export const it = {
 			{
 				title: "4-bis. Assistenti AI collegati (connettore MCP)",
 				paragraphs: [
-					"Puoi collegare a Yume un assistente AI, per esempio Claude di Anthropic, tramite il Model Context Protocol (MCP). Il collegamento è facoltativo e richiede l'account sostenitore.",
+					"Puoi collegare a Yume un assistente AI, per esempio Claude di Anthropic oppure ChatGPT o Codex di OpenAI, tramite il Model Context Protocol (MCP). Il collegamento è facoltativo e richiede l'account sostenitore.",
 					"Quando colleghi l'assistente, Yume ti chiede di accedere con Google e ti mostra una pagina di autorizzazione con il nome dell'applicazione e i permessi richiesti. Solo se accetti, Yume rilascia all'applicazione un codice di accesso personale.",
 					"Con il tuo codice di accesso l'assistente può leggere i tuoi programmi, i saldi con le scadenze e le miglia potenziali, leggere il catalogo pubblico dei programmi e delle regole di trasferimento, e aggiungere un nuovo saldo a un tuo programma. Non può cancellare dati, non può modificare il tuo account e non può trasferire punti: Yume non muove punti tra programmi.",
 					"Yume riceve dall'assistente solo i dati di ogni richiesta, per esempio il programma, il saldo e la data di un nuovo saldo. Yume non riceve né conserva le tue conversazioni con l'assistente, le immagini che gli mostri o altri contenuti.",
-					"L'assistente lo scegli tu, e il suo fornitore tratta i dati che Yume gli invia come titolare autonomo, secondo la propria informativa. Per Claude il fornitore è Anthropic: anthropic.com/legal/privacy. Yume non sceglie il fornitore, non gli invia dati per conto proprio e non ha con esso un contratto per i tuoi dati.",
+					"L'assistente lo scegli tu, e il suo fornitore tratta i dati che Yume gli invia come titolare autonomo, secondo la propria informativa. Per Claude il fornitore è Anthropic: anthropic.com/legal/privacy. Per ChatGPT e Codex il fornitore è OpenAI: openai.com/policies/privacy-policy. Yume non sceglie il fornitore, non gli invia dati per conto proprio e non ha con esso un contratto per i tuoi dati.",
 					"Puoi revocare in ogni momento l'accesso di ogni assistente dalla sezione \"Assistenti collegati\" della dashboard. La revoca blocca subito l'assistente e cancella i suoi codici di accesso. Scollegare il connettore nell'app dell'assistente non basta a revocare l'accesso su Yume. La cancellazione del tuo account revoca anche ogni accesso.",
 				],
 				items: [],
@@ -370,7 +371,7 @@ export const it = {
 					"Google Ireland Ltd, che gestisce l'accesso con il tuo account Google come titolare autonomo. Informativa: policies.google.com/privacy.",
 					"IONOS SE (Germania), che fornisce il server su cui girano Yume e il suo database, come responsabile del trattamento (art. 28 GDPR). Informativa: ionos.it/terms-gtc/terms-privacy.",
 					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
-					"Il fornitore dell'assistente AI che colleghi tu, per esempio Anthropic per Claude, solo se lo colleghi e solo per i dati che l'assistente richiede, come titolare autonomo (sezione 4-bis).",
+					"Il fornitore dell'assistente AI che colleghi tu, per esempio Anthropic per Claude o OpenAI per ChatGPT e Codex, solo se lo colleghi e solo per i dati che l'assistente richiede, come titolare autonomo (sezione 4-bis).",
 					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
 				],
 				contact: false,
@@ -438,7 +439,7 @@ export const it = {
 	connector: {
 		title: "Collegare un assistente AI a Yume",
 		description:
-			"Come collegare Claude, Claude Code o un altro assistente AI ai tuoi saldi su Yume con il connettore MCP.",
+			"Come collegare Claude, Claude Code, ChatGPT, Codex o un altro assistente AI ai tuoi saldi su Yume con il connettore MCP.",
 		subtitle: "Connettore MCP di yumemiles.com",
 		updated: "Ultimo aggiornamento: novembre 2026",
 		contactLead: "Per un problema con il connettore scrivi a",
@@ -464,8 +465,9 @@ export const it = {
 			{
 				title: "Collegare un assistente",
 				paragraphs: [
-					"Aggiungi https://yumemiles.com/mcp come connettore personalizzato del tuo assistente. Poi accedi a Yume con Google e, nella pagina di autorizzazione di Yume, controlla dove va il codice: claude.ai per Claude, localhost per Claude Code, cioè il tuo computer. Autorizza solo se hai avviato tu il collegamento.",
+					"Aggiungi https://yumemiles.com/mcp come connettore personalizzato del tuo assistente. Poi accedi a Yume con Google e, nella pagina di autorizzazione di Yume, controlla dove va il codice: claude.ai per Claude, chatgpt.com per ChatGPT, localhost o 127.0.0.1 per Claude Code e Codex, cioè il tuo computer. Autorizza solo se hai avviato tu il collegamento.",
 					"Come aggiungere un connettore in Claude: support.claude.com/en/articles/11175166. Come aggiungere un server MCP in Claude Code: code.claude.com/docs/en/mcp.",
+					"Come collegare un server MCP a ChatGPT e a Codex: learn.chatgpt.com/docs/extend/mcp.",
 				],
 				items: [],
 				contact: false,
@@ -502,7 +504,7 @@ export const it = {
 			{
 				title: "Revocare l'accesso",
 				paragraphs: [
-					"Nella dashboard di Yume, nella sezione Assistenti collegati, premi Revoca. L'assistente perde l'accesso subito. Rimuovere il connettore da Claude non basta a revocare l'accesso su Yume.",
+					"Nella dashboard di Yume, nella sezione Assistenti collegati, premi Revoca. L'assistente perde l'accesso subito. Rimuovere il connettore dall'assistente non basta a revocare l'accesso su Yume.",
 				],
 				items: [],
 				contact: false,
@@ -511,6 +513,29 @@ export const it = {
 				title: "Dati personali",
 				paragraphs: [
 					"La sezione 4-bis dell'informativa privacy, alla pagina /privacy, descrive quali dati riceve l'assistente e chi li tratta.",
+				],
+				items: [],
+				contact: true,
+			},
+		],
+	},
+
+	// The page `/support`: the contact of the service. The directories of the
+	// assistants ask for a public page of support. Paragraph 4.7.4 of
+	// `docs/architecture.md`.
+	support: {
+		title: "Assistenza",
+		description:
+			"Come contattare Yume per un problema con l'account, con i saldi o con un assistente AI collegato.",
+		subtitle: "Assistenza di yumemiles.com",
+		updated: "Ultimo aggiornamento: novembre 2026",
+		contactLead: "Scrivi a",
+		sections: [
+			{
+				title: "Contatti",
+				paragraphs: [
+					"Per un problema con l'account, con un saldo, con il calcolo delle miglia potenziali o con un assistente AI collegato, scrivi una email. Indica la pagina o l'assistente, cosa hai fatto e cosa hai visto.",
+					"Non scrivere nell'email codici di accesso o password.",
 				],
 				items: [],
 				contact: true,

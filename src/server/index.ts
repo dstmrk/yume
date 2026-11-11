@@ -107,6 +107,7 @@ const app = createApp(db, auth, [baseURL, ...trustedOrigins], {
 	adminEmail,
 	limits,
 	jwksUrl: `http://127.0.0.1:${port}/api/auth/jwks`,
+	openaiChallenge: process.env.OPENAI_APPS_CHALLENGE_TOKEN,
 });
 
 /**

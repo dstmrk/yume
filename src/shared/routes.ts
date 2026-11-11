@@ -25,6 +25,7 @@ export const CLIENT_PATHS = [
 	"/consent",
 	"/connector",
 	"/privacy",
+	"/support",
 	"/tos",
 ] as const;
 

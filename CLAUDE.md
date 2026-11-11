@@ -297,6 +297,14 @@ The plugin `jwt` encrypts its private key with `BETTER_AUTH_SECRET`. Keep the op
 new secret gives the status 500 to each session. A test in `src/server/auth.test.ts`
 changes the secret.
 
+The MCP server is in two directories: the directory of Anthropic and the directory of
+OpenAI. The two directories read one server with one URL. Before you change a tool, an
+annotation or a text of an error, read the rules of the two directories. The rules do not
+always agree: for `destructiveHint` of `add_snapshot`, Anthropic asks for `true` and
+OpenAI gives `false` to a write that only adds data. Paragraph 4.7.3 of
+`docs/architecture.md` gives the value and the reason. `docs/openai-submission.md` holds
+the data of the portal of OpenAI: change it with each change of a tool.
+
 `ADMIN_EMAIL` is not necessary. It gives the administrator of the page `/admin`.
 Paragraph 4.8 of `docs/architecture.md` gives the rules.
 

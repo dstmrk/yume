@@ -344,6 +344,70 @@ describe("the metadata of OAuth at the root", () => {
 	});
 });
 
+describe("the challenge of the domain of OpenAI", () => {
+	const PATH = "/.well-known/openai-apps-challenge";
+
+	/** The application with the value of `OPENAI_APPS_CHALLENGE_TOKEN`. */
+	function challengeApp(openaiChallenge: string) {
+		const auth = createAuth(db, {
+			secret: "a-secret-for-the-test",
+			baseURL: BASE_URL,
+			google: {
+				clientId: "client-id-test",
+				clientSecret: "client-secret-test",
+			},
+		});
+		return createApp(db, auth, [BASE_URL], { openaiChallenge });
+	}
+
+	// The portal of OpenAI reads the token as plain text: no JSON, no other
+	// character. Paragraph 4.7.4 of `docs/architecture.md`.
+	it("gives the exact token as plain text", async () => {
+		const withToken = challengeApp("token-of-the-portal");
+
+		const response = await withToken.request(PATH);
+
+		expect(response.status).toBe(200);
+		expect(response.headers.get("content-type")).toMatch(/^text\/plain/);
+		expect(await response.text()).toBe("token-of-the-portal");
+	});
+
+	// A value from `.env` can hold a space or a line end of the copy.
+	it("removes the spaces around the token", async () => {
+		const withToken = challengeApp("  token-of-the-portal\n");
+
+		expect(await (await withToken.request(PATH)).text()).toBe(
+			"token-of-the-portal",
+		);
+	});
+
+	it("gives the status 404 with no token", async () => {
+		expect((await app.request(PATH)).status).toBe(404);
+	});
+
+	// Docker Compose gives an empty text when `.env` holds no value.
+	it("gives the status 404 with an empty token", async () => {
+		const empty = challengeApp(" ");
+
+		expect((await empty.request(PATH)).status).toBe(404);
+	});
+
+	// The route comes before the routes of Better Auth, and it must not
+	// replace them.
+	it("keeps the metadata of OAuth with a token", async () => {
+		const withToken = challengeApp("token-of-the-portal");
+
+		for (const path of [
+			"/.well-known/oauth-authorization-server/api/auth",
+			"/.well-known/oauth-protected-resource/mcp",
+		]) {
+			const response = await withToken.request(path);
+			expect(response.status, path).toBe(200);
+			expect(await response.text(), path).not.toContain("token-of-the-portal");
+		}
+	});
+});
+
 describe("GET /api/health", () => {
 	it("gives the status ok when the database answers", async () => {
 		const body = await getJson<{ status: string }>("/api/health");
