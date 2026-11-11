@@ -114,9 +114,16 @@ export function createApp(
 		 * application, thus it goes through the proxy of the TLS.
 		 */
 		jwksUrl?: string;
+		/**
+		 * The value of `OPENAI_APPS_CHALLENGE_TOKEN`: the token of the portal
+		 * of OpenAI for the verification of the domain. With no value, the
+		 * path gives the status 404.
+		 */
+		openaiChallenge?: string;
 	} = {},
 ) {
 	const { adminEmail, limits = false } = options;
+	const openaiChallenge = options.openaiChallenge?.trim() ?? "";
 	const [baseURL = ""] = origins;
 	const app = new Hono<{ Variables: { userId: string; admin: boolean } }>();
 
@@ -212,6 +219,18 @@ export function createApp(
 	 * status 404 from the same handler. Paragraph 4.7.2 of
 	 * `docs/architecture.md` gives the flow.
 	 */
+	/**
+	 * The verification of the domain for the directory of OpenAI. The portal
+	 * gives the token, and the operator writes it in the environment. The
+	 * route comes before the routes of Better Auth: the wildcard otherwise
+	 * gives the status 404. Paragraph 4.7.4 of `docs/architecture.md`.
+	 */
+	app.get("/.well-known/openai-apps-challenge", (c) =>
+		openaiChallenge === ""
+			? c.notFound()
+			: c.text(openaiChallenge, 200, { "cache-control": "no-store" }),
+	);
+
 	app.get("/.well-known/*", (c) => auth.handler(c.req.raw));
 
 	/**
