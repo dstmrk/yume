@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatPoints } from "./format.ts";
+import { formatDate, formatHundredths, formatPoints } from "./format.ts";
 
 const IT = "it-IT";
 
@@ -58,5 +58,25 @@ describe("the format in an other language", () => {
 
 	it("writes the month of English", () => {
 		expect(formatDate("2026-08-11", "en-GB")).toBe("11 Aug 2026");
+	});
+});
+
+describe("formatHundredths", () => {
+	it("writes the two decimals with the separator of the locale", () => {
+		expect(formatHundredths(8002, IT)).toBe("80,02");
+		expect(formatHundredths(13224, IT)).toBe("132,24");
+	});
+
+	it("keeps a zero after the separator", () => {
+		expect(formatHundredths(8005, IT)).toBe("80,05");
+		expect(formatHundredths(8000, IT)).toBe("80,00");
+	});
+
+	it("writes the separator of the thousands", () => {
+		expect(formatHundredths(123456, IT)).toBe("1.234,56");
+	});
+
+	it("follows the locale", () => {
+		expect(formatHundredths(8002, "en-GB")).toBe("80.02");
 	});
 });
