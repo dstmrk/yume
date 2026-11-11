@@ -247,7 +247,7 @@ video with the account of section 3 in ChatGPT:
 | Privacy policy | `https://yumemiles.com/privacy` | Status 200 |
 | Terms of service | `https://yumemiles.com/tos` | Status 200 |
 | Support | `https://yumemiles.com/support` | Status 404: the page needs a release that contains it |
-| Product availability | Free account. The supporter account of paragraph 4.6 does not exist yet. | |
+| Product availability | Free account, and the supporter account for 9,99 euros each year. The payment is on the site only, with Stripe: paragraph 4.6.1. | |
 | Payments or purchases | None in ChatGPT and in Codex | |
 | Icon | `src/client/public/icon.svg` | |
 
@@ -279,9 +279,8 @@ These steps need a person. No session of the harness can do them.
   ChatGPT and Codex, with the address `openai.com/policies/privacy-policy`. The session
   cannot read that page: the server gives the status 403. A person must read it. A
   professional must also confirm the role of OpenAI and the transfers out of the EU.
-- **The terms of the service.** `/tos` says that Yume is free. Paragraph 4.6 gives a
-  supporter account with a price. Update the terms before the code of the payment
-  exists.
+- **The terms of the service.** Section 7-bis of `/tos` gives the supporter account
+  and its price. A professional must read it before the launch: paragraph 4.6.1.
 - **The supporter account.** The directory of OpenAI refuses a text that promotes an
   upgrade. The error of a free account names the supporter account, with no price and
   no URL. Do not add a URL of a payment to that error.

@@ -50,6 +50,7 @@ reason. Add no other Italian text to that file.
 - User interface: Tailwind CSS v4, shadcn/ui
 - Database: SQLite with `better-sqlite3`. Schema and migrations with Drizzle.
 - Authentication: Better Auth with the Drizzle adapter
+- Payment: Stripe, with the package `stripe`. The official instance only.
 - Tests: Vitest. Lint and format: Biome.
 
 The project has one `package.json`. Do not add a monorepo tool.
@@ -308,6 +309,13 @@ the data of the portal of OpenAI: change it with each change of a tool.
 `ADMIN_EMAIL` is not necessary. It gives the administrator of the page `/admin`.
 Paragraph 4.8 of `docs/architecture.md` gives the rules.
 
+The payment of the supporter account needs `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`
+and `STRIPE_PRICE_SUPPORTER`: all, or none. With none, the instance holds no payment. A
+part of them stops the server. The webhook `/api/stripe/webhook` needs no session and
+has its own limit of 256 KB. Only the webhook writes `user.supporter_until`. Paragraph
+4.6.1 of `docs/architecture.md` gives the decisions, and the skill `stripe-billing`
+gives the method.
+
 Run these commands for the container:
 
 ```bash
@@ -390,6 +398,7 @@ and the catalogue.
 | Skill | Subject |
 |---|---|
 | `conversion-math` | The calculation of the potential miles. The sequence of the steps with integers, the difference between a currency and a programme, and the selection of a versioned rule. |
+| `stripe-billing` | The payment of the supporter account. The one writer of `supporter_until`, the events of the webhook, their order, the tests with no network and the configuration of Stripe. |
 
 The harness reads the field `description` of a skill. Then the harness starts the skill
 for a task that matches. Write the names of the files and of the fields in the

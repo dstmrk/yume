@@ -33,6 +33,7 @@ These constraints control all the decisions in this document:
 | Database | SQLite with `better-sqlite3` | One node, few writes, backup of one file. |
 | Schema and migrations | Drizzle and drizzle-kit | SQL-first. The repository contains the generated migrations. |
 | Authentication | Better Auth with the Drizzle adapter, Google as the only provider for a person | Sessions on your own server. No service of email. Refer to paragraph 4.1. |
+| Payment | Stripe, with the package `stripe` | Checkout, the customer portal and a webhook. The official instance only. Refer to paragraph 4.6.1. |
 | Validation | Zod | `src/shared/api.ts` holds one schema for each shape, and both sides read it. |
 | Tests | Vitest | |
 | Lint and format | Biome | One tool in the place of ESLint and Prettier. |
@@ -297,6 +298,9 @@ user_account(id, userId, programId)
 balance_snapshot(id, accountId, points, observedAt, createdAt)
 expiry_lot(snapshotId, expiresOn, points)  -- the key is the pair. Refer to paragraph 3.2.1
 favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragraph 5.0.2
+
+stripe_customer(userId, customerId, subscriptionId?, status?, cancels, lastEventAt?, createdAt)
+stripe_event(id, type, receivedAt)    -- refer to paragraph 4.6.1
 ```
 
 The tables `currency`, `program` and `transfer_rule` contain application data, not user
@@ -488,6 +492,13 @@ the author makes a new account with Google. No code keeps the old path.
 | `FREE_ACCOUNT_LIMITS` | `true` activates the limits of the free account. No value or `false` gives no limit. Each other value gives an error. Refer to paragraph 4.6. |
 | `ADMIN_EMAIL` | The email address of the administrator. With no value, the installation has no administrator. Refer to paragraph 4.8. |
 | `OPENAI_APPS_CHALLENGE_TOKEN` | The token of the portal of OpenAI for the verification of the domain. With no value, `/.well-known/openai-apps-challenge` gives the status 404. Refer to paragraph 4.7.4. |
+| `STRIPE_SECRET_KEY` | The secret key of Stripe, `sk_` or `rk_`. Its prefix gives the mode, live or test. Refer to paragraph 4.6.1. |
+| `STRIPE_WEBHOOK_SECRET` | The secret of the endpoint of the webhook in Stripe, `whsec_`. |
+| `STRIPE_PRICE_SUPPORTER` | The price of the supporter account in Stripe, `price_`. |
+
+The three variables of Stripe go together: all, or none. With none, the instance holds
+no payment. A part of them stops the server, and a value with the wrong prefix also stops
+it.
 
 A default value of the key in the code gives no security. Therefore the server writes a
 message and stops. Make a key with `openssl rand -base64 32`.
@@ -517,11 +528,13 @@ real OAuth client also in development, with the redirect URI on `localhost`.
 ### 4.4 The protection of the routes
 
 The first middleware of the application reads the session. Each route under `/api` needs
-that session, thus a new route is closed and no person must remember the protection. Two
+that session, thus a new route is closed and no person must remember the protection. Three
 paths are the exceptions:
 
 - `/api/health`, for the `HEALTHCHECK` of the container. Refer to paragraph 7.
 - `/api/auth/`, because the sign-in has no session before it.
+- `/api/stripe/webhook`, because Stripe sends each event from its servers. The signature
+  of the body proves the sender. Refer to paragraph 4.6.1.
 
 The MCP server of paragraph 4.7 is not under `/api`. The path `/mcp` reads an access
 token, not the cookie of the session. The paths `/.well-known/oauth-protected-resource`
@@ -544,7 +557,10 @@ technical ceilings, not the commercial limits of paragraph 4.6:
   with `too_many_accounts`. `GET /api/potential` reads each account in one synchronous
   loop, and one process serves each user.
 - `MAX_BODY_BYTES` is 16 KB. The middleware `bodyLimit` of Hono gives the status 413
-  above it, also on `/api/auth/`. `c.req.json()` reads the full body into memory.
+  above it, also on `/api/auth/`. `c.req.json()` reads the full body into memory. The
+  webhook of Stripe has its own limit, `MAX_WEBHOOK_BYTES`, of 256 KB: an event of a
+  subscription can be larger than 16 KB, and a refusal makes Stripe send it again for
+  3 days.
 
 The cookie of the session is `SameSite=Lax`. That attribute does not stop a form of an
 other subdomain of the same domain, for example `jellyfin.example.com` near
@@ -565,8 +581,9 @@ design.
 ### 4.6 The supporter account
 
 Status: **accepted**. Date: 2026-10-06. Changed: 2026-11-09, the price. Changed:
-2026-11-10, the unlimited account, the variable of the environment and the routes. The
-page of the administrator of paragraph 4.8 reads the level.
+2026-11-10, the unlimited account, the variable of the environment and the routes.
+Changed: 2026-11-11, the payment of paragraph 4.6.1. The page of the administrator of
+paragraph 4.8 reads the level.
 
 The official instance gives three levels of account: the free account, the supporter
 account and the unlimited account. The supporter account has one price: 9,99 euros for
@@ -585,12 +602,13 @@ one year. No other plan exists.
 Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
 A limit on them stops the users that those links bring.
 
-Klarna is the first source of that kind. It is open to each user until the code of the
-supporter account exists. A user who adds Klarna before that date keeps the account,
-because the end of a supporter account removes nothing.
+Klarna is the first source of that kind. It is open to each user until the official
+instance activates `FREE_ACCOUNT_LIMITS`, after the payment of paragraph 4.6.1. A user
+who adds Klarna before that date keeps the account, because the end of a supporter
+account removes nothing.
 
-The expiry lots of paragraph 3.2.1 are open to each user until the code of the supporter
-account exists, as Klarna. After that date, the end of a supporter account removes no lot.
+The expiry lots of paragraph 3.2.1 are open to each user until that date, as Klarna.
+After that date, the end of a supporter account removes no lot.
 The lots of the current balance stay on the dashboard, and the user cannot write a new
 lot. The form of a new balance sends the current lots again. `keepsCurrentLots` of
 `src/shared/tier.ts` accepts those lots, or a part of them, with the same date and the
@@ -667,9 +685,128 @@ thus gives `unknown_account`, and a programme that does not exist gives
 list: it is a rule of the payment, not a fact of a programme. A second account in a
 programme that the user holds uses no new place.
 
+Paragraph 4.6.1 gives the payment.
+
+### 4.6.1 The payment
+
+Status: **accepted**. Date: 2026-11-11.
+
+The supporter account is an annual subscription with an automatic renewal. Stripe holds
+the payment: Stripe Checkout, the customer portal and a webhook. The design follows the
+payment of ScontrinoZero, with one price and one interval.
+
+**Stripe holds the card.** The user writes the data of the card on the page of Stripe
+Checkout. Yume receives no data of a card, and Stripe asks for the authentication of the
+PSD2. The customer portal of Stripe gives the change of the card, the invoices and the
+end of the renewal. Yume holds no form for those operations.
+
+**Yume has its own account of Stripe.** The organisation of Stripe holds that account
+near the account of ScontrinoZero, with the same legal entity. The name, the receipts,
+the portal and the terms of the service of the checkout belong to the account. Thus a
+supporter of Yume reads no name of ScontrinoZero.
+
+**The webhook is the only writer of `user.supporter_until`.** That column holds the end
+of the period that the user paid. `accountTier` of paragraph 4.6 reads it, thus the level
+stops by itself at that instant. A lost event then gives no supporter account with no
+end. The application adjusts no date of Stripe when it reads it.
+
+| Status of the subscription in Stripe | `supporter_until` |
+|---|---|
+| `active` | The end of the current period |
+| `canceled` | The instant of the end, `ended_at`, and not more than the end of the period |
+| Each other status, for example `past_due` | The start of the current period |
+
+At the renewal Stripe moves the period first, then it charges the card. Thus after a
+failed payment the start of the new period is the end of the period that the user paid.
+The supporter account stops at that instant, and Stripe tries the card again. Paragraph
+4.6 says that the end of a supporter account removes nothing, thus the user loses no
+data. A payment then makes the subscription `active`, and the level comes back.
+
+**Two tables hold the state.** `src/server/db/schema.ts` holds them:
+
+- `stripe_customer` holds one row for each user with a customer of Stripe: the customer,
+  the last subscription, its status, the mark `cancels` and `last_event_at`. The checkout
+  writes the row with the customer, before the payment.
+- `stripe_event` holds the id of each event that the webhook processed. `deleteExpired`
+  of paragraph 4 removes a row after 30 days. Stripe tries an event again for 3 days at
+  most.
+
+**The webhook reads four events.** `src/server/billing.ts` processes them:
+
+| Event | Effect |
+|---|---|
+| `checkout.session.completed` | It reads the subscription from Stripe and writes it. It is the only event that replaces the subscription of the customer. |
+| `customer.subscription.updated` | The renewal, a failed payment, the return to `active`, and the end that the user selects in the portal. |
+| `customer.subscription.deleted` | The end of the subscription. |
+| `charge.dispute.created` | A line in the log. A person answers the dispute in Stripe. |
+
+The webhook needs no event `invoice.*`. A change of the period or of the status gives
+`customer.subscription.updated`, and that event holds the full subscription.
+
+**Stripe gives no order of delivery.** The webhook obeys these rules in one transaction:
+
+- An event with an id in `stripe_event` writes nothing.
+- An event with a field `created` before `last_event_at` writes nothing. Two events of
+  the same second both write.
+- A subscription with the status `canceled` stays stopped. An update of the same second
+  as the end cannot make it active again.
+- An update writes the last subscription of the customer only. An end also.
+- An event of a customer that Yume does not know writes nothing, and it gets the status
+  200. A shared account of Stripe, for example the test mode, sends the events of the
+  customers of an other application.
+
+better-sqlite3 is synchronous. Thus the webhook sends its one request to Stripe first,
+then it writes the id of the event and the state in one transaction. No other request
+runs in that transaction. An error writes nothing and gives the status 500, and Stripe
+then sends the event again.
+
+**The routes.**
+
+| Route | Effect |
+|---|---|
+| `POST /api/billing/checkout` | It makes the customer and a session of Stripe Checkout. It gives `{ url }`. A subscription with the status `active`, `past_due` or `unpaid` gives the status 409 with `already_subscribed`. |
+| `POST /api/billing/portal` | It makes a session of the customer portal. It gives `{ url }`. A user with no customer gets the status 404 with `no_customer`. |
+| `POST /api/stripe/webhook` | It verifies the signature of the body and processes the event. |
+| `GET /api/me` | It also gives `billing`: the status, the mark `cancels`, `supporterUntil` and `portal`. |
+
+The body of the two routes of the user holds the language of the page only. The server
+writes the address of the return to the dashboard of that language. An error of Stripe
+gives the status 503 with `payment_unavailable`.
+
+The key of idempotency of the customer is the user. Thus two requests at the same time
+receive one customer. The key of the session holds the user, the hour and the two
+addresses: a double tap gives one session.
+
+**The return from Stripe.** Stripe opens `/dashboard?checkout=done` before the webhook
+arrives. The section of the supporter account then reads `GET /api/me` each 2 seconds,
+for 30 seconds at most. After the webhook, the address loses the parameter.
+
+**The consumer.** The user of Yume is a consumer. Section 7-bis of the terms of the
+service, `/tos`, gives these items:
+
+- The checkout asks for the acceptance of the terms: `consent_collection` of Stripe.
+  Stripe shows the link to the terms of the dashboard of Stripe, thus the server holds
+  no Italian text. The terms say that the service starts at once, on the request of the
+  user.
+- The user can withdraw in 14 days: art. 52 of the Codice del Consumo. The
+  administrator refunds the full price in Stripe and cancels the subscription at once.
+  The webhook then stops the supporter account.
+- The price on the page is final. The checkout uses no Stripe Tax, as ScontrinoZero.
+
+**The configuration of the instance.** The three variables of paragraph 4.3 enable the
+payment. `compose.yaml` holds none of them, as `FREE_ACCOUNT_LIMITS`: a self-hosted
+installation needs no payment. The official instance adds `FREE_ACCOUNT_LIMITS` and the three
+variables of Stripe in `compose.override.yaml`, near `compose.yaml`. Docker Compose reads that file by itself.
+The skill `stripe-billing` gives the configuration in Stripe.
+
 These items are open:
 
-- The payment service.
+- A professional must read section 7-bis of the terms and the changes of the privacy
+  policy before the launch.
+- The directive (EU) 2023/2673 adds a function of withdrawal on the site. A
+  professional must say if and when Italian law asks for it.
+- The removal of an account with a subscription. The administrator cancels the
+  subscription in Stripe before the removal of the user.
 
 ### 4.7 The MCP server
 
@@ -1827,6 +1964,8 @@ yume/
       fonts/             # the font files
     server/            # the Hono application
       auth.ts          # the Better Auth instance, with the provider Google
+      billing.ts       # the checkout, the portal and the webhook of Stripe
+      stripe.ts        # the variables and the client of Stripe
       admin.ts         # the administrator of ADMIN_EMAIL
       mcp.ts           # the MCP server and its tools
       operations.ts    # the examinations that the routes and the tools share
