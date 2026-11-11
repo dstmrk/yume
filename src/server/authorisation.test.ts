@@ -14,12 +14,18 @@
 import { createHash, randomBytes } from "node:crypto";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
-import { googleSignInBody, withOAuthQuery } from "../client/lib/auth.ts";
+import {
+	googleSignInBody,
+	passwordSignInBody,
+	signInTarget,
+	withOAuthQuery,
+} from "../client/lib/auth.ts";
 import { consentBody, consentRequestOf } from "../client/lib/consent.ts";
 import { createApp } from "./app.ts";
 import { type Auth, createAuth } from "./auth.ts";
 import { insertUser, sessionCookie } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
+import { writeReviewer } from "./db/reviewer.ts";
 import { oauthConsent, oauthRefreshToken } from "./db/schema.ts";
 
 const BASE_URL = "http://localhost:3000";
@@ -162,6 +168,37 @@ describe("the authorisation of a client of the MCP server", () => {
 		expect(response.status).toBe(200);
 		const { url } = (await response.json()) as { url: string };
 		expect(new URL(url).origin).toBe("https://accounts.google.com");
+	});
+
+	// The reviewer of Anthropic signs in with a password: paragraph 4.1.1 of
+	// `docs/architecture.md`. After the sign-in the server must go on with
+	// the authorisation, as after the callback of Google.
+	it("goes on with the authorisation after the sign-in with a password", async () => {
+		await writeReviewer(db, "reviewer@example.com", "a-password-of-the-test");
+		const page = locationOf(await app.request(authorizeUrl(pkce().challenge)));
+		const body = withOAuthQuery(
+			passwordSignInBody(
+				BASE_URL,
+				"it",
+				"reviewer@example.com",
+				"a-password-of-the-test",
+			),
+			page.search,
+		);
+
+		const response = await app.request("/api/auth/sign-in/email", {
+			method: "POST",
+			headers: { "content-type": "application/json", origin: BASE_URL },
+			body: JSON.stringify(body),
+		});
+		expect(response.status).toBe(200);
+		const url = signInTarget(await response.json());
+		expect(url).toBeDefined();
+		const next = new URL(url ?? "", BASE_URL);
+		expect(next.pathname).toBe("/consent");
+		expect(consentRequestOf(next.search)).toMatchObject({
+			clientId: CLIENT_ID,
+		});
 	});
 
 	it("sends a person with a session to /consent", async () => {

@@ -184,6 +184,13 @@ export const it = {
 	signInWithGoogle: "Accedi con Google",
 	signInNote: "Il primo accesso crea il tuo account.",
 	signInError: "Accesso con Google non riuscito.",
+	// The account of the reviewers of Anthropic. Paragraph 4.1.1 of
+	// `docs/architecture.md`.
+	passwordSignInLink: "Accesso con password",
+	passwordSignInNote: "Solo per l'account di prova dei revisori.",
+	emailLabel: "Email",
+	passwordLabel: "Password",
+	passwordSignInError: "Email o password non corretti.",
 	signOut: "Esci",
 
 	// The page of the administrator. Paragraph 4.8 of `docs/architecture.md`.

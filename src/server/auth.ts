@@ -5,9 +5,10 @@
  * schema and one pipeline of migrations control all the tables. Paragraph 4 of
  * `docs/architecture.md` gives the decisions.
  *
- * Google is the only provider. Yume holds no password and sends no email. The
- * first sign-in of a Google account makes the user, thus the registration is
- * open. Paragraph 4.1 of `docs/architecture.md` gives the reasons.
+ * Google is the only provider for a person. The first sign-in of a Google
+ * account makes the user, thus the registration is open. Paragraph 4.1 of
+ * `docs/architecture.md` gives the reasons. The account of the reviewers of
+ * Anthropic signs in with a password: paragraph 4.1.1. Yume sends no email.
  *
  * This file holds no Italian text. The client reads the field `code` of an
  * error and shows the message. Refer to the section Language rules in
@@ -211,6 +212,15 @@ export function createAuth(db: Db, options: AuthOptions) {
 				mapProfileToUser: () => ({ name: "", image: undefined }),
 			},
 		},
+
+		/**
+		 * The password of the account of the reviewers of Anthropic. No person
+		 * makes such an account: the sign-up is off, and the administrator
+		 * writes the account with `writeReviewer` of `db/reviewer.ts`. The
+		 * options give no `sendResetPassword`, thus Better Auth gives no reset
+		 * and sends no email. Paragraph 4.1.1 of `docs/architecture.md`.
+		 */
+		emailAndPassword: { enabled: true, disableSignUp: true },
 
 		databaseHooks: {
 			account: {

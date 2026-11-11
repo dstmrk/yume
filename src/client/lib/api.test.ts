@@ -9,6 +9,7 @@ import {
 	sendConsent,
 	setFavorite,
 	setUnlimited,
+	signInWithPassword,
 } from "./api.ts";
 import { ApiError } from "./errors.ts";
 
@@ -175,6 +176,34 @@ describe("the authorisation of a client of the MCP server", () => {
 		await expect(
 			sendConsent({ accept: false, oauth_query: "client_id=x&sig=s" }),
 		).rejects.toThrow();
+	});
+});
+
+describe("signInWithPassword", () => {
+	const body = {
+		email: "reviewer@example.com",
+		password: "a-password",
+		callbackURL: "http://localhost:5173/dashboard",
+	};
+
+	it("sends the body and gives the next page", async () => {
+		const fetch = answer(json({ redirect: true, url: "/consent?x=1" }, 200));
+		await expect(signInWithPassword(body)).resolves.toBe("/consent?x=1");
+		expect(fetch).toHaveBeenCalledWith("/api/auth/sign-in/email", {
+			method: "POST",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify(body),
+		});
+	});
+
+	it("gives the dashboard of the body with no address", async () => {
+		answer(json({ redirect: false, token: "t" }, 200));
+		await expect(signInWithPassword(body)).resolves.toBe(body.callbackURL);
+	});
+
+	it("gives an error for a password that is not correct", async () => {
+		answer(json({ code: "INVALID_EMAIL_OR_PASSWORD" }, 401));
+		await expect(signInWithPassword(body)).rejects.toThrow();
 	});
 });
 

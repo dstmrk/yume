@@ -1,6 +1,7 @@
 /**
- * The sign-in with Google, the only provider. Paragraph 4.1 of
- * `docs/architecture.md` gives the decision.
+ * The sign-in with Google, the only provider for a person, and the sign-in
+ * with a password of the account of the reviewers of Anthropic. Paragraphs 4.1
+ * and 4.1.1 of `docs/architecture.md` give the decisions.
  *
  * The functions are pure. The page of the access calls them, and `api.ts`
  * sends the request.
@@ -56,6 +57,69 @@ export function googleSignInBody(
 	};
 }
 
+/**
+ * The body of `POST /api/auth/sign-in/email`. Only the account of the
+ * reviewers has a password: paragraph 4.1.1 of `docs/architecture.md`.
+ */
+export type PasswordSignInBody = {
+	email: string;
+	password: string;
+	/** The page after a sign-in with no authorisation of the MCP server. */
+	callbackURL: string;
+	/** Refer to `GoogleSignInBody`. */
+	oauth_query?: string;
+};
+
+/**
+ * Gives the body of the sign-in with a password.
+ *
+ * The function removes the spaces at the two ends of the address, because a
+ * person copies it from the instructions. It keeps the password as it is: a
+ * space can be a character of a password.
+ */
+export function passwordSignInBody(
+	origin: string,
+	locale: Locale,
+	email: string,
+	password: string,
+): PasswordSignInBody;
+export function passwordSignInBody<L extends string>(
+	origin: string,
+	locale: L,
+	email: string,
+	password: string,
+	languages: PathFor<L>,
+): PasswordSignInBody;
+export function passwordSignInBody(
+	origin: string,
+	locale: string,
+	email: string,
+	password: string,
+	languages: PathFor<string> = routing,
+): PasswordSignInBody {
+	return {
+		email: email.trim(),
+		password,
+		callbackURL: `${origin}${languages.pathFor(locale, "/dashboard")}`,
+	};
+}
+
+/**
+ * Reads the next page from the answer of a sign-in with a password.
+ *
+ * With a signed query, the authorisation server goes on with the
+ * authorisation, and the field `url` gives `/consent`. With no signed query,
+ * the field gives `callbackURL`. It gives undefined with no address: the page
+ * then opens the dashboard.
+ */
+export function signInTarget(answer: unknown): string | undefined {
+	if (typeof answer !== "object" || answer === null) {
+		return undefined;
+	}
+	const { url } = answer as { url?: unknown };
+	return typeof url === "string" && url !== "" ? url : undefined;
+}
+
 /** The part of `localeRouting` that this file reads. */
 type PathFor<L extends string> = {
 	pathFor(locale: L, path: string): string;
@@ -109,10 +173,10 @@ export function signedOAuthQuery(search: string): string | undefined {
  * Adds the signed query of the address to the body of the sign-in, if the
  * address holds one. Refer to `signedOAuthQuery`.
  */
-export function withOAuthQuery(
-	body: GoogleSignInBody,
+export function withOAuthQuery<B extends { oauth_query?: string }>(
+	body: B,
 	search: string,
-): GoogleSignInBody {
+): B {
 	const query = signedOAuthQuery(search);
 	return query === undefined ? body : { ...body, oauth_query: query };
 }
