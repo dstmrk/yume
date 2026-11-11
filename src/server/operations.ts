@@ -22,6 +22,7 @@ import {
 	accountTier,
 	canWriteExpiryLots,
 	type Entitlement,
+	keepsCurrentLots,
 } from "../shared/tier.ts";
 import type { Db } from "./db/index.ts";
 import {
@@ -72,6 +73,14 @@ export function entitlementOf(
 	return { limits, tier: accountTier(tierSourceOf(db, userId), now) };
 }
 
+/** The expiry lots of the current balance of an account of the user. */
+function currentLotsOf(db: Db, userId: string, accountId: string) {
+	return (
+		currentBalances(db, userId).find((row) => row.accountId === accountId)
+			?.lots ?? []
+	);
+}
+
 /** The result of `recordSnapshot`. Each error has the code of the API. */
 export type SnapshotResult =
 	| { ok: true; id: string }
@@ -85,8 +94,10 @@ export type SnapshotResult =
  *
  * The function examines the account first, then the body, then the level. An
  * account of an other user thus gives `unknown_account` with each body, and
- * no answer says that the account exists. A free account cannot write expiry
- * lots when `limits` is true. An empty list of lots is not a lot.
+ * no answer says that the account exists. A free account cannot write a new
+ * expiry lot when `limits` is true. It can send again the lots of the current
+ * balance of the account, or a part of them. An empty list of lots is not a
+ * lot.
  */
 export function recordSnapshot(
 	db: Db,
@@ -110,9 +121,11 @@ export function recordSnapshot(
 	if (snapshot.data.observedAt > latestObservedAt(now)) {
 		return { ok: false, error: "future_date" };
 	}
+	const lots = snapshot.data.lots ?? [];
 	if (
-		(snapshot.data.lots ?? []).length > 0 &&
-		!canWriteExpiryLots(entitlementOf(db, userId, limits, now))
+		lots.length > 0 &&
+		!canWriteExpiryLots(entitlementOf(db, userId, limits, now)) &&
+		!keepsCurrentLots(lots, currentLotsOf(db, userId, accountId))
 	) {
 		return { ok: false, error: SUPPORTER_REQUIRED };
 	}

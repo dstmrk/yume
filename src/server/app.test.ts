@@ -1168,6 +1168,27 @@ describe("the limits of the free account", () => {
 		expect(currentBalances(db, userId)[0]?.points).toBeNull();
 	});
 
+	// A former supporter: the form of a new balance sends the current lots again.
+	it("accepts the current lots of a free account again", async () => {
+		const accountId = createAccount(db, {
+			userId,
+			programId: "amex-mr",
+			snapshot: { points: 1900, observedAt: "2026-10-01", lots: LOTS },
+		});
+
+		const response = await postTo(
+			limited,
+			`/api/accounts/${accountId}/snapshots`,
+			{ points: 2500, observedAt: "2026-11-01", lots: LOTS },
+		);
+
+		expect(response.status).toBe(201);
+		expect(currentBalances(db, userId)[0]).toMatchObject({
+			points: 2500,
+			lots: LOTS,
+		});
+	});
+
 	it("gives each function to an unlimited account", async () => {
 		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
 
