@@ -27,7 +27,7 @@ export function SiteFooter() {
 	return (
 		<footer className="mt-10 border-board-line border-t pt-4 pb-2 text-board-muted text-xs leading-relaxed">
 			<p>{text.footerDisclaimer}</p>
-			<p className="mt-3 flex gap-4">
+			<p className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
 				{/* The legal pages, in the language of the page. */}
 				<a
 					href={routing.pathFor(locale, "/privacy")}
@@ -40,6 +40,12 @@ export function SiteFooter() {
 					className="underline underline-offset-2 hover:text-board-text"
 				>
 					{text.footerTos}
+				</a>
+				<a
+					href={routing.pathFor(locale, "/connector")}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerConnector}
 				</a>
 				<a
 					href={SOURCE_URL}

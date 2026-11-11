@@ -10,6 +10,7 @@ describe("isClientPath", () => {
 		expect(isClientPath("/login")).toBe(true);
 		expect(isClientPath("/privacy")).toBe(true);
 		expect(isClientPath("/tos")).toBe(true);
+		expect(isClientPath("/connector")).toBe(true);
 	});
 
 	it("holds a path with a slash at the end", () => {
@@ -148,7 +149,7 @@ describe("robots.txt", () => {
 	});
 
 	/** The pages with content for each person, also with no session. */
-	const PUBLIC = ["/", "/privacy", "/tos"] as const;
+	const PUBLIC = ["/", "/connector", "/privacy", "/tos"] as const;
 
 	for (const path of PUBLIC) {
 		it(`does not block ${path}`, () => {

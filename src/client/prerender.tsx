@@ -132,6 +132,14 @@ const PAGES: readonly StaticPage[] = [
 		title: (t) => `${t.tos.title} — Yume`,
 		description: (t) => t.tos.description,
 	},
+	// The documentation of the MCP server. The reviewer of the directory of
+	// Anthropic and an assistant can read it with no JavaScript.
+	{
+		path: "/connector",
+		element: <LegalPage document="connector" />,
+		title: (t) => `${t.connector.title} — Yume`,
+		description: (t) => t.connector.description,
+	},
 ];
 
 for (const locale of LOCALES) {
