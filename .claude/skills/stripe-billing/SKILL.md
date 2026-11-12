@@ -135,7 +135,23 @@ mode:
 The price of the page is `SUPPORTER_PRICE_CENTS` of `src/shared/tier.ts`. A new price
 in Stripe needs the same change there. A subscription keeps its own price in Stripe.
 
-## 8. The development
+## 8. The text of the offer
+
+The section of the supporter account and section 7-bis of the terms name what the user
+buys. A promise of a function that does not exist is a defect of the contract with a
+consumer. Obey these rules:
+
+- Name only a function that `src/shared/tier.ts` gates: `canAddAccount`,
+  `canWriteExpiryLots` and `canUseMcp`.
+- Name only a source of points of `src/server/db/seed/catalogue.ts`. Read the catalogue,
+  not an example of `docs/architecture.md`. The type `currency.kind` allows `hotel` and
+  `rail`, but the catalogue holds no such currency.
+- Write "date di scadenza dei punti", not "scadenze". The function records the dates.
+  Yume sends no notification.
+- Change the offer, section 7-bis of `/tos` and section 7 of
+  `docs/openai-submission.md` together with a change of a limit.
+
+## 9. The development
 
 `npm run dev:server` holds no variable of Stripe, thus the dashboard shows no section.
 To try the payment, export the three variables of the test mode. Then send the events

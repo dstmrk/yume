@@ -181,8 +181,10 @@ export const it = {
 	// of `docs/architecture.md`.
 	supporter: {
 		title: "Sostenitore",
+		// Name only the functions that `src/shared/tier.ts` gates and the
+		// sources of the catalogue. The skill `stripe-billing` gives the rule.
 		offer:
-			"Klarna, hotel, programmi aerei senza limiti, scadenze e assistenti AI.",
+			"Klarna, programmi aerei senza limiti, date di scadenza dei punti e assistenti AI.",
 		perYear: "all'anno",
 		buy: "Diventa sostenitore",
 		renewal: "Si rinnova ogni anno. Disdici quando vuoi.",
@@ -651,7 +653,7 @@ export const it = {
 			{
 				title: "7-bis. Account sostenitore",
 				paragraphs: [
-					"L'account gratuito comprende Amex e Revolut senza limiti e 2 programmi aerei. L'account sostenitore aggiunge le altre fonti di punti, per esempio Klarna e i programmi alberghieri, i programmi aerei senza limiti, le scadenze dei punti e il collegamento di un assistente AI.",
+					"L'account gratuito comprende Amex e Revolut senza limiti e 2 programmi aerei. L'account sostenitore aggiunge le altre fonti di punti del catalogo, oggi Klarna, i programmi aerei senza limiti, le date di scadenza dei punti e il collegamento di un assistente AI.",
 				],
 				items: [
 					"Prezzo: 9,99 € all'anno, prezzo finale. Il pagamento avviene sulla pagina di Stripe Payments Europe, Ltd: Yume non riceve i dati della carta. Stripe ti invia la ricevuta via email.",

@@ -594,7 +594,7 @@ one year. No other plan exists.
 | Item | Free account | Supporter account and unlimited account |
 |---|---|---|
 | Amex and Revolut | No limit | No limit |
-| Each other source, for example Klarna or a hotel programme | Not available | No limit |
+| Each other source of the catalogue: today Klarna | Not available | No limit |
 | Airline programmes | 2 programmes | No limit |
 | Expiry lots of a balance | Not available | No limit |
 | The MCP server of paragraph 4.7 | Not available | Available |
