@@ -1766,6 +1766,16 @@ them, and that the names and the logos are trademarks of their owners.
 The dashboard holds the same foot. That surface needs it most: a person reads the names of
 the programmes there, with a real value.
 
+The foot also gives the publisher and the VAT number: "© 2026 Annadermolab — P.IVA
+11836750015". Art. 35 of DPR 633/1972 asks for the VAT number on the home page, and art. 7
+of D.Lgs. 70/2003 asks for the name of the provider. The VAT number belongs to the ditta
+individuale, not to the name Yume, thus the line names Annadermolab. The year is fixed:
+the build writes the public page, and a year of the clock changes at each build.
+
+Each installation shows that line, as it shows the legal pages of paragraph 5.5.1. A
+self-hosted installation thus names Annadermolab. The team accepts this limit: a line only
+for the official instance needs a value of the server in a static page.
+
 The `main` holds the page and the foot is outside it: the foot belongs to the site and not
 to the page. The column holds the full height of the screen and the `main` grows, thus the
 foot stays at the end of a page that is shorter than the screen.

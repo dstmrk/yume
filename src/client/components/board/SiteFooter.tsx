@@ -62,6 +62,9 @@ export function SiteFooter() {
 					{text.footerSource}
 				</a>
 			</p>
+			{/* The publisher and the VAT number, on each surface of each
+			    installation, as the legal pages. Paragraph 5.5.4. */}
+			<p className="mt-3">{text.footerPublisher}</p>
 		</footer>
 	);
 }

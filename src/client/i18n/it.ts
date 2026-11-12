@@ -104,6 +104,10 @@ export const it = {
 	footerPrivacy: "Privacy",
 	footerConnector: "Assistenti AI",
 	footerSupport: "Assistenza",
+	// The publisher of the official instance. Art. 35 DPR 633/1972 asks for
+	// the VAT number on the home page. Paragraph 5.5.4 of
+	// `docs/architecture.md`.
+	footerPublisher: "© 2026 Annadermolab — P.IVA 11836750015",
 	footerTos: "Termini",
 
 	potentialTitle: "Miglia potenziali",
