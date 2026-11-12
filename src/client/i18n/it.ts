@@ -256,6 +256,10 @@ export const it = {
 	footerPrivacy: "Privacy",
 	footerConnector: "Assistenti AI",
 	footerSupport: "Assistenza",
+	// The publisher of the official instance. Art. 35 DPR 633/1972 asks for
+	// the VAT number on the home page. Paragraph 5.5.4 of
+	// `docs/architecture.md`.
+	footerPublisher: "© 2026 Annadermolab — P.IVA 11836750015",
 	footerTos: "Termini",
 	footerCalculator: "Calcolatore",
 	footerCurrencies: "Valute",
@@ -330,6 +334,32 @@ export const it = {
 		"Con l'account gratuito puoi aggiungere Amex, Revolut e 2 programmi aerei.",
 	freeLotsError: "Le scadenze sono riservate ai sostenitori.",
 	supportersOnly: "Riservato ai sostenitori",
+
+	// The section of the supporter account on the dashboard. Paragraph 4.6.1
+	// of `docs/architecture.md`.
+	supporter: {
+		title: "Sostenitore",
+		// Name only the functions that `src/shared/tier.ts` gates and the
+		// sources of the catalogue. The skill `stripe-billing` gives the rule.
+		offer:
+			"Klarna, programmi aerei senza limiti, date di scadenza dei punti e assistenti AI.",
+		perYear: "all'anno",
+		buy: "Diventa sostenitore",
+		renewal: "Si rinnova ogni anno. Disdici quando vuoi.",
+		withdrawal: "Recesso entro 14 giorni:",
+		terms: "Termini del servizio",
+		// The date follows a colon: "il" and "al" change before 1, 8 and 11.
+		renews: "Sei sostenitore. Prossimo rinnovo:",
+		ends: "Sei sostenitore. Scadenza:",
+		paymentFailed: "Rinnovo non riuscito: aggiorna il metodo di pagamento.",
+		manage: "Gestisci abbonamento",
+		activating:
+			"Pagamento ricevuto. L'attivazione può richiedere qualche minuto.",
+		opening: "Apertura…",
+		already: "Hai già un abbonamento: gestiscilo dal portale.",
+		unavailable: "Pagamento non disponibile. Riprova tra poco.",
+		link: "Diventa sostenitore",
+	},
 
 	loading: "Caricamento…",
 	loadError: "Dati non disponibili.",
@@ -650,7 +680,8 @@ export const it = {
 					"Dati che inserisci tu: i programmi fedeltà, i saldi con la loro data e le eventuali scadenze dei punti, e le valute preferite.",
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
 					"Se colleghi un assistente AI (sezione 4-bis): il nome e l'indirizzo dell'applicazione che hai autorizzato, i permessi che le hai dato, la data dell'autorizzazione e i codici di accesso che Yume le rilascia.",
-					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti.",
+					"Se diventi sostenitore: gli identificativi del cliente e dell'abbonamento presso Stripe, lo stato dell'abbonamento e la data di fine del periodo pagato. Yume invia a Stripe il tuo indirizzo email.",
+					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti. I dati della carta li inserisci sulla pagina di Stripe, e Yume non li riceve.",
 				],
 				contact: false,
 			},
@@ -660,6 +691,7 @@ export const it = {
 				items: [
 					"Accesso, gestione dell'account e calcolo delle miglia potenziali: esecuzione del contratto (art. 6(1)(b) GDPR).",
 					"Collegamento di un assistente AI che scegli tu, e invio a esso dei dati che ti richiede: esecuzione del contratto (art. 6(1)(b) GDPR). Il collegamento è facoltativo e lo attivi solo tu.",
+					"Pagamento e rinnovo dell'account sostenitore: esecuzione del contratto (art. 6(1)(b) GDPR). Conservazione delle registrazioni dei pagamenti: obbligo di legge (art. 6(1)(c) GDPR).",
 					"Sicurezza delle sessioni e prevenzione degli abusi: legittimo interesse (art. 6(1)(f) GDPR).",
 					"Risposta alle autorità nei casi previsti dalla legge: obbligo di legge (art. 6(1)(c) GDPR).",
 					"Yume non fa profilazione né pubblicità, non usa servizi di analisi e non traccia il comportamento.",
@@ -703,7 +735,7 @@ export const it = {
 			{
 				title: "6. Natura del conferimento",
 				paragraphs: [
-					"L'email dell'account Google è necessaria: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla. Il collegamento di un assistente AI è facoltativo: senza, Yume funziona allo stesso modo.",
+					"L'email dell'account Google è necessaria: senza, l'account non si crea. Programmi e saldi sono facoltativi, ma senza di essi Yume non calcola nulla. Il collegamento di un assistente AI è facoltativo: senza, Yume funziona allo stesso modo. L'account sostenitore è facoltativo: per attivarlo servono i dati di pagamento che chiede Stripe.",
 				],
 				items: [],
 				contact: false,
@@ -717,6 +749,7 @@ export const it = {
 					"Google Ireland Ltd, che gestisce l'accesso con il tuo account Google come titolare autonomo. Informativa: policies.google.com/privacy.",
 					"IONOS SE (Germania), che fornisce il server su cui girano Yume e il suo database, come responsabile del trattamento (art. 28 GDPR). Informativa: ionos.it/terms-gtc/terms-privacy.",
 					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
+					"Stripe Payments Europe, Ltd (Irlanda), solo se diventi sostenitore, per il pagamento, il rinnovo e le ricevute dell'abbonamento. Stripe tratta i dati di pagamento come responsabile del trattamento (art. 28 GDPR) e, per i propri obblighi di legge e la prevenzione delle frodi, come titolare autonomo. Informativa: stripe.com/privacy.",
 					"Il fornitore dell'assistente AI che colleghi tu, per esempio Anthropic per Claude o OpenAI per ChatGPT e Codex, solo se lo colleghi e solo per i dati che l'assistente richiede, come titolare autonomo (sezione 4-bis).",
 					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
 				],
@@ -725,7 +758,7 @@ export const it = {
 			{
 				title: "8. Trasferimenti extra-UE",
 				paragraphs: [
-					"Google e Cloudflare possono trattare dati negli Stati Uniti. Il trasferimento si basa sul Data Privacy Framework UE-USA e sulle Clausole Contrattuali Standard della Commissione europea (decisione 2021/914).",
+					"Google, Cloudflare e Stripe possono trattare dati negli Stati Uniti. Il trasferimento si basa sul Data Privacy Framework UE-USA e sulle Clausole Contrattuali Standard della Commissione europea (decisione 2021/914).",
 					"Il fornitore di un assistente AI può trattare dati fuori dall'Unione europea, per esempio negli Stati Uniti. In quel caso l'invio avviene su tua richiesta, quando colleghi l'assistente e quando gli chiedi un'operazione, e il trasferimento segue le garanzie indicate nell'informativa del fornitore.",
 				],
 				items: [],
@@ -738,6 +771,7 @@ export const it = {
 					"Account, programmi e saldi: finché l'account esiste. Dopo una richiesta di cancellazione sono eliminati entro 30 giorni.",
 					"Sessione, con indirizzo IP e browser: finché la sessione esiste. Una sessione scade 7 giorni dopo l'ultimo uso e si chiude subito con Esci.",
 					"Autorizzazione di un assistente AI: finché non la revochi o non cancelli l'account.",
+					"Identificativi e stato dell'abbonamento: finché l'account esiste. Le registrazioni dei pagamenti restano presso Stripe e nella contabilità del titolare per 10 anni (art. 2220 c.c.).",
 					"Codici di accesso di un assistente AI: un codice di accesso scade dopo 1 ora; un codice di rinnovo scade dopo 30 giorni ed è sostituito a ogni uso. I codici scaduti o revocati sono eliminati entro un giorno.",
 					"Per chiedere la cancellazione del tuo account e di tutti i suoi dati, scrivi all'indirizzo qui sotto. Puoi anche togliere a Yume l'accesso al tuo account Google da myaccount.google.com/connections.",
 				],
@@ -895,7 +929,7 @@ export const it = {
 	tos: {
 		title: "Termini del servizio",
 		description:
-			"Le condizioni d'uso di Yume, il calcolatore gratuito delle miglia potenziali.",
+			"Le condizioni d'uso di Yume, il calcolatore delle miglia potenziali, e dell'account sostenitore.",
 		subtitle: "Condizioni d'uso di yumemiles.com",
 		updated: "Ultimo aggiornamento: novembre 2026",
 		contactLead: "Per informazioni o reclami scrivi a",
@@ -903,7 +937,8 @@ export const it = {
 			{
 				title: "1. Oggetto del servizio",
 				paragraphs: [
-					"Yume è un servizio gratuito di Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015. Mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
+					"Yume è un servizio di Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015. Mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
+					"L'account gratuito non ha costi. L'account sostenitore è a pagamento e aggiunge le funzioni della sezione 7-bis.",
 					"Yume non si collega ai tuoi conti, non legge i saldi in automatico e non trasferisce punti. Non appartiene ad American Express, a Revolut, a Klarna né ai programmi fedeltà citati.",
 				],
 				items: [],
@@ -959,10 +994,26 @@ export const it = {
 			{
 				title: "7. Disponibilità del servizio",
 				paragraphs: [
-					"Yume è gratuito e fornito così com'è. Non garantiamo continuità né assenza di errori, e possiamo cambiare o sospendere funzioni.",
+					"Yume è fornito così com'è. Non garantiamo continuità né assenza di errori, e possiamo cambiare o sospendere funzioni.",
+					"Se chiudiamo Yume o togliamo una funzione dell'account sostenitore prima della fine del periodo pagato, ti rimborsiamo la parte del prezzo del periodo che resta.",
 				],
 				items: [],
 				contact: false,
+			},
+			{
+				title: "7-bis. Account sostenitore",
+				paragraphs: [
+					"L'account gratuito comprende Amex e Revolut senza limiti e 2 programmi aerei. L'account sostenitore aggiunge le altre fonti di punti del catalogo, oggi Klarna, i programmi aerei senza limiti, le date di scadenza dei punti e il collegamento di un assistente AI.",
+				],
+				items: [
+					"Prezzo: 9,99 € all'anno, prezzo finale. Il pagamento avviene sulla pagina di Stripe Payments Europe, Ltd: Yume non riceve i dati della carta. Stripe ti invia la ricevuta via email.",
+					"Inizio: l'account sostenitore si attiva subito dopo il pagamento. Accettando questi Termini al pagamento chiedi che il servizio inizi prima della fine del periodo di recesso.",
+					"Rinnovo automatico: l'abbonamento si rinnova ogni anno allo stesso prezzo. Puoi disdire in ogni momento con \"Gestisci abbonamento\" nella dashboard: l'account sostenitore resta attivo fino alla fine del periodo pagato e non si rinnova.",
+					"Diritto di recesso: puoi recedere entro 14 giorni dal pagamento senza indicare un motivo (art. 52 D.Lgs. 206/2005). Scrivi all'indirizzo qui sotto, anche con il modulo tipo di recesso (Allegato I, parte B, del Codice del Consumo). Ti rimborsiamo l'intero importo entro 14 giorni con lo stesso mezzo di pagamento, e l'account torna gratuito.",
+					"Rinnovo non riuscito: se il pagamento del rinnovo non va a buon fine l'account torna gratuito. Stripe ritenta l'addebito per alcuni giorni; con il pagamento l'account sostenitore riprende.",
+					"Fine dell'account sostenitore: non perdi dati. Conti, saldi e scadenze restano, ma non puoi aggiungere conti o scadenze oltre i limiti dell'account gratuito.",
+				],
+				contact: true,
 			},
 			{
 				title: "8. Responsabilità",
@@ -975,7 +1026,7 @@ export const it = {
 			{
 				title: "9. Cancellazione e sospensione",
 				paragraphs: [
-					"Puoi chiedere la cancellazione del tuo account in ogni momento scrivendoci. I dati sono rimossi come descritto nell'Informativa privacy.",
+					"Puoi chiedere la cancellazione del tuo account in ogni momento scrivendoci. I dati sono rimossi come descritto nell'Informativa privacy. La cancellazione chiude anche l'abbonamento dell'account sostenitore, senza altri addebiti.",
 					"Possiamo sospendere o chiudere un account che viola questi Termini, con un avviso via email quando è possibile.",
 				],
 				items: [],

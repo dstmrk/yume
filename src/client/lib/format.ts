@@ -41,6 +41,22 @@ const day = cached(
 		}),
 );
 
+const euros = cached(
+	(intl) => new Intl.NumberFormat(intl, { style: "currency", currency: "EUR" }),
+);
+
+/**
+ * Writes a price in euros from its cents: 999 gives 9,99 € in Italian.
+ *
+ * The function gives the value to `Intl` as a decimal text. Thus no number
+ * with a decimal part occurs, as the rule 1 of the data asks.
+ */
+export function formatEuros(cents: number, intl: string): string {
+	const whole = Math.trunc(cents / 100);
+	const part = String(cents % 100).padStart(2, "0");
+	return euros(intl).format(`${whole}.${part}` as `${number}`);
+}
+
 /** Writes a quantity of points: 1900 gives 1.900 in Italian. */
 export function formatPoints(value: number, intl: string): string {
 	return points(intl).format(value);

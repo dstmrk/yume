@@ -16,6 +16,7 @@ import { readOptionalPoints } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
 import { blockedPrograms } from "../lib/limits.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
+import { SupporterLink } from "./SupporterPanel.tsx";
 import { Button } from "./ui/button.tsx";
 import {
 	Command,
@@ -169,11 +170,15 @@ function Fields({
 			)}
 			{save.isError && (
 				<p className="text-destructive text-sm">
-					{isTooManyAccounts(save.error)
-						? text.tooManyAccountsError
-						: isSupporterRequired(save.error)
-							? text.freeAccountLimitError
-							: text.saveError}
+					{isTooManyAccounts(save.error) ? (
+						text.tooManyAccountsError
+					) : isSupporterRequired(save.error) ? (
+						<>
+							{text.freeAccountLimitError} <SupporterLink />
+						</>
+					) : (
+						text.saveError
+					)}
 				</p>
 			)}
 

@@ -23,7 +23,12 @@ const PROGRAMS: readonly Program[] = [
 	program("sas", "sas"),
 ];
 
-const FREE: MeResponse = { admin: false, limits: true, tier: "free" };
+const FREE: MeResponse = {
+	admin: false,
+	limits: true,
+	tier: "free",
+	billing: null,
+};
 
 function blocked(me: MeResponse | undefined, held: string[] = []) {
 	return [...blockedPrograms(me, PROGRAMS, CURRENCIES, held)].sort();

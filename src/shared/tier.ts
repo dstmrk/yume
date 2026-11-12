@@ -52,6 +52,13 @@ export const FREE_SOURCES: ReadonlySet<string> = new Set([
 	"revolut",
 ]);
 
+/**
+ * The price of the supporter account for one year, in cents. The page shows
+ * this value, and Stripe Checkout shows the price of `STRIPE_PRICE_SUPPORTER`.
+ * The two must agree: change them together. Paragraph 4.6.
+ */
+export const SUPPORTER_PRICE_CENTS = 999;
+
 /** The quantity of airline programmes of the free account. */
 export const FREE_AIRLINE_PROGRAMS = 2;
 

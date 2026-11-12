@@ -2,6 +2,7 @@ import type {
 	AccountsResponse,
 	AddSnapshotInput,
 	AdminUsersResponse,
+	BillingRedirectResponse,
 	CatalogueResponse,
 	ConnectionsResponse,
 	CreateAccountInput,
@@ -9,6 +10,7 @@ import type {
 	MeResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
+import type { Locale } from "../../shared/locale.ts";
 import {
 	type GoogleSignInBody,
 	type PasswordSignInBody,
@@ -244,6 +246,25 @@ export function deleteSnapshot(
 /** Gives if the user of the session is the administrator. */
 export function fetchMe(): Promise<MeResponse> {
 	return request<MeResponse>("GET", "/api/me");
+}
+
+/**
+ * Gives the address of Stripe Checkout for the supporter account. The server
+ * writes the return to the dashboard of the language of the page.
+ */
+export function startCheckout(
+	locale: Locale,
+): Promise<BillingRedirectResponse> {
+	return request<BillingRedirectResponse>("POST", "/api/billing/checkout", {
+		locale,
+	});
+}
+
+/** Gives the address of the customer portal of Stripe. */
+export function openPortal(locale: Locale): Promise<BillingRedirectResponse> {
+	return request<BillingRedirectResponse>("POST", "/api/billing/portal", {
+		locale,
+	});
 }
 
 /** Each user of the instance. Only the administrator receives the list. */

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	formatDate,
+	formatEuros,
 	formatHundredths,
 	formatList,
 	formatPoints,
@@ -63,6 +64,21 @@ describe("the format in an other language", () => {
 
 	it("writes the month of English", () => {
 		expect(formatDate("2026-08-11", "en-GB")).toBe("11 Aug 2026");
+	});
+});
+
+describe("formatEuros", () => {
+	it("writes the price of the supporter account in Italian", () => {
+		expect(formatEuros(999, IT)).toBe("9,99\u00a0€");
+	});
+
+	it("writes a price with no cents and a price below one euro", () => {
+		expect(formatEuros(1000, IT)).toBe("10,00\u00a0€");
+		expect(formatEuros(5, IT)).toBe("0,05\u00a0€");
+	});
+
+	it("writes the price in English", () => {
+		expect(formatEuros(999, "en-GB")).toBe("€9.99");
 	});
 });
 

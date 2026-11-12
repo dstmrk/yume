@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
 	addSnapshotSchema,
+	billingRequestSchema,
 	createAccountSchema,
 	isoDateSchema,
 	MAX_EXPIRY_LOTS,
@@ -198,5 +199,32 @@ describe("addSnapshotSchema", () => {
 				lots: unique.slice(0, MAX_EXPIRY_LOTS),
 			}).success,
 		).toBe(true);
+	});
+});
+
+describe("billingRequestSchema", () => {
+	it("accepts the language of the page", () => {
+		expect(billingRequestSchema.safeParse({ locale: "it" }).success).toBe(true);
+	});
+
+	it("refuses a language that the application does not hold", () => {
+		expect(billingRequestSchema.safeParse({ locale: "xx" }).success).toBe(
+			false,
+		);
+	});
+
+	it("refuses a body with no language", () => {
+		expect(billingRequestSchema.safeParse({}).success).toBe(false);
+	});
+
+	// The server writes the return address. A field of the client must not
+	// change it.
+	it("refuses an other field, for example a return address", () => {
+		expect(
+			billingRequestSchema.safeParse({
+				locale: "it",
+				returnUrl: "https://example.com",
+			}).success,
+		).toBe(false);
 	});
 });

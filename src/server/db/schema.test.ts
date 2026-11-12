@@ -118,6 +118,41 @@ describe("the removal of a user", () => {
 		expect(db.select().from(schema.balanceSnapshot).all()).toEqual([]);
 	});
 
+	// Paragraph 4.6.1: the row of the customer goes away with the user. The
+	// subscription in Stripe stays: the administrator stops it in Stripe
+	// before the removal.
+	it("removes the customer of Stripe of the user", () => {
+		insertUser(db, "user-1");
+		db.insert(schema.stripeCustomer)
+			.values({
+				userId: "user-1",
+				customerId: "cus_1",
+				subscriptionId: "sub_1",
+				status: "active",
+				createdAt: new Date().toISOString(),
+			})
+			.run();
+
+		db.delete(schema.user).where(eq(schema.user.id, "user-1")).run();
+
+		expect(db.select().from(schema.stripeCustomer).all()).toEqual([]);
+	});
+
+	it("refuses a second row for one customer of Stripe", () => {
+		insertUser(db, "user-1");
+		insertUser(db, "user-2");
+		const row = (userId: string) => ({
+			userId,
+			customerId: "cus_1",
+			createdAt: new Date().toISOString(),
+		});
+		db.insert(schema.stripeCustomer).values(row("user-1")).run();
+
+		expect(() =>
+			db.insert(schema.stripeCustomer).values(row("user-2")).run(),
+		).toThrow();
+	});
+
 	// Paragraph 4.7.2: the removal of an account also removes each token of the
 	// MCP server. Without the cascade, the foreign key refuses the removal of a
 	// user who connected an assistant.

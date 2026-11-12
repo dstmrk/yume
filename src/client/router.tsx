@@ -39,6 +39,7 @@ import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchMe, fetchSession } from "./lib/api.ts";
 import { loginErrorOf } from "./lib/auth.ts";
+import { checkoutReturned } from "./lib/supporter.ts";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 import { SourcePage } from "./SourcePage.tsx";
 
@@ -69,12 +70,18 @@ const homeRoute = createRoute({
 const dashboardRoute = createRoute({
 	getParentRoute: () => rootRoute,
 	path: "/dashboard",
+	// Stripe Checkout opens the dashboard with `?checkout=done` after the
+	// payment. Paragraph 4.6.1 of `docs/architecture.md`.
+	validateSearch: (search: Record<string, unknown>): { checkout?: "done" } =>
+		checkoutReturned(search) ? { checkout: "done" } : {},
 	beforeLoad: async () => {
 		if ((await fetchSession()) === null) {
 			throw redirect({ to: "/login" });
 		}
 	},
-	component: Dashboard,
+	component: () => (
+		<Dashboard returned={dashboardRoute.useSearch().checkout === "done"} />
+	),
 });
 
 // The page of the administrator. Each other user reads the dashboard. The

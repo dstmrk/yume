@@ -8,6 +8,7 @@
 
 import { z } from "zod";
 import type { Currency, Program } from "./catalogue.ts";
+import { LOCALES } from "./locale.ts";
 import type { PotentialMiles } from "./potential.ts";
 import type { AccountTier } from "./tier.ts";
 
@@ -134,6 +135,39 @@ export const SUPPORTER_REQUIRED = "supporter_required";
  */
 export const setUnlimitedSchema = z.strictObject({ unlimited: z.boolean() });
 
+/**
+ * The body of `POST /api/billing/checkout` and of `POST /api/billing/portal`.
+ *
+ * The client gives the language of the page. The server then writes the
+ * address of the return to the dashboard of that language. The schema is
+ * strict: the client cannot give the return address. Paragraph 4.6.1 of
+ * `docs/architecture.md`.
+ */
+export const billingRequestSchema = z.strictObject({ locale: z.enum(LOCALES) });
+
+/**
+ * The error of `POST /api/billing/checkout` when the user holds a
+ * subscription that Stripe can charge, with the status 409. A second checkout
+ * makes a second subscription, and Stripe charges the two.
+ */
+export const ALREADY_SUBSCRIBED = "already_subscribed";
+
+/**
+ * The error of `POST /api/billing/portal` for a user with no customer of
+ * Stripe, with the status 404.
+ */
+export const NO_CUSTOMER = "no_customer";
+
+/**
+ * The error of the two routes of the payment when Stripe does not answer,
+ * with the status 503. The user can try again.
+ */
+export const PAYMENT_UNAVAILABLE = "payment_unavailable";
+
+export type BillingRequest = z.infer<typeof billingRequestSchema>;
+
+/** The answer of the two routes of the payment: the address of Stripe. */
+export type BillingRedirectResponse = { url: string };
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
 export type ExpiryLot = z.infer<typeof expiryLotSchema>;
@@ -202,6 +236,26 @@ export type MeResponse = {
 	/** The value of `FREE_ACCOUNT_LIMITS`. */
 	limits: boolean;
 	tier: AccountTier;
+	/** The state of the payment, or null on an instance with no payment. */
+	billing: BillingState | null;
+};
+
+/**
+ * The state of the payment of the supporter account. Paragraph 4.6.1 of
+ * `docs/architecture.md`.
+ */
+export type BillingState = {
+	/**
+	 * The status of the last subscription in Stripe, for example `active` or
+	 * `past_due`. Null before the first subscription.
+	 */
+	status: string | null;
+	/** True when the subscription stops at `supporterUntil`. */
+	cancels: boolean;
+	/** The end of the period that the user paid, in the ISO 8601 format, or null. */
+	supporterUntil: string | null;
+	/** True when the user has a customer of Stripe: the portal is available. */
+	portal: boolean;
 };
 
 /**
