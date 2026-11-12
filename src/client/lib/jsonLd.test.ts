@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { i18nOf } from "../i18n/messages.ts";
 import {
+	articleJsonLd,
+	breadcrumbJsonLd,
 	faqPageJsonLd,
 	homeGraph,
 	organizationJsonLd,
 	softwareApplicationJsonLd,
 	toJsonLdScript,
+	webPageJsonLd,
 	webSiteJsonLd,
 } from "./jsonLd.ts";
 
@@ -148,5 +151,78 @@ describe("toJsonLdScript", () => {
 		);
 
 		expect(JSON.parse(body).name).toBe("Avios & Flying Blue");
+	});
+});
+
+describe("breadcrumbJsonLd", () => {
+	it("gives each item with its position and its absolute address", () => {
+		const data = breadcrumbJsonLd(SITE, [
+			{ name: "Yume", path: "/" },
+			{ name: "Valute", path: "/miglia" },
+			{ name: "Avios", path: "/miglia/avios" },
+		]);
+
+		expect(data["@type"]).toBe("BreadcrumbList");
+		expect(data.itemListElement).toStrictEqual([
+			{ "@type": "ListItem", position: 1, name: "Yume", item: `${SITE}/` },
+			{
+				"@type": "ListItem",
+				position: 2,
+				name: "Valute",
+				item: `${SITE}/miglia`,
+			},
+			{
+				"@type": "ListItem",
+				position: 3,
+				name: "Avios",
+				item: `${SITE}/miglia/avios`,
+			},
+		]);
+	});
+
+	it("stops with fewer than two items", () => {
+		expect(() =>
+			breadcrumbJsonLd(SITE, [{ name: "Yume", path: "/" }]),
+		).toThrow();
+	});
+});
+
+describe("articleJsonLd", () => {
+	it("gives the title, the two dates and the publisher", () => {
+		const data = articleJsonLd(SITE, IT, {
+			path: "/guide/miglia-potenziali",
+			title: "Miglia potenziali",
+			description: "Una guida.",
+			published: "2026-11-11",
+			modified: "2026-11-12",
+		});
+
+		expect(data["@type"]).toBe("Article");
+		expect(data.headline).toBe("Miglia potenziali");
+		expect(data.datePublished).toBe("2026-11-11");
+		expect(data.dateModified).toBe("2026-11-12");
+		expect(data.inLanguage).toBe("it-IT");
+		expect(data.mainEntityOfPage).toBe(`${SITE}/guide/miglia-potenziali`);
+		expect(data.publisher).toStrictEqual({
+			"@type": "Organization",
+			name: "Yume",
+			url: SITE,
+		});
+	});
+});
+
+describe("webPageJsonLd", () => {
+	it("gives the address, the language and the date of the page", () => {
+		const data = webPageJsonLd(SITE, IT, {
+			path: "/miglia/avios",
+			title: "Avios",
+			description: "Una pagina.",
+			modified: "2026-10-06",
+		});
+
+		expect(data["@type"]).toBe("WebPage");
+		expect(data.url).toBe(`${SITE}/miglia/avios`);
+		expect(data.dateModified).toBe("2026-10-06");
+		expect(data.isPartOf).toStrictEqual({ "@type": "WebSite", url: SITE });
 	});
 });

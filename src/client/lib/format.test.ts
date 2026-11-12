@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatDate, formatEuros, formatPoints } from "./format.ts";
+import {
+	formatDate,
+	formatEuros,
+	formatHundredths,
+	formatList,
+	formatPoints,
+} from "./format.ts";
 
 const IT = "it-IT";
 
@@ -73,5 +79,42 @@ describe("formatEuros", () => {
 
 	it("writes the price in English", () => {
 		expect(formatEuros(999, "en-GB")).toBe("€9.99");
+	});
+});
+
+describe("formatHundredths", () => {
+	it("writes the two decimals with the separator of the locale", () => {
+		expect(formatHundredths(8002, IT)).toBe("80,02");
+		expect(formatHundredths(13224, IT)).toBe("132,24");
+	});
+
+	it("keeps a zero after the separator", () => {
+		expect(formatHundredths(8005, IT)).toBe("80,05");
+		expect(formatHundredths(8000, IT)).toBe("80,00");
+	});
+
+	it("writes the separator of the thousands", () => {
+		expect(formatHundredths(123456, IT)).toBe("1.234,56");
+	});
+
+	it("follows the locale", () => {
+		expect(formatHundredths(8002, "en-GB")).toBe("80.02");
+	});
+});
+
+describe("formatList", () => {
+	it("joins the items with the conjunction of the locale", () => {
+		expect(formatList(["Amex", "Revolut", "Klarna"], IT)).toBe(
+			"Amex, Revolut e Klarna",
+		);
+		expect(formatList(["Amex", "Revolut"], IT)).toBe("Amex e Revolut");
+	});
+
+	it("gives one item alone", () => {
+		expect(formatList(["Amex"], IT)).toBe("Amex");
+	});
+
+	it("gives an empty text with no item", () => {
+		expect(formatList([], IT)).toBe("");
 	});
 });

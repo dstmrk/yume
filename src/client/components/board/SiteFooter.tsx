@@ -1,5 +1,6 @@
 import { routing } from "../../../shared/locale.ts";
 import { useI18n } from "../../i18n/I18n.tsx";
+import { PATHS } from "../../lib/pages.ts";
 
 /**
  * The address of the repository. The licence is MIT, and a person can install
@@ -28,6 +29,20 @@ export function SiteFooter() {
 		<footer className="mt-10 border-board-line border-t pt-4 pb-2 text-board-muted text-xs leading-relaxed">
 			<p>{text.footerDisclaimer}</p>
 			<p className="mt-3 flex flex-wrap gap-x-4 gap-y-2">
+				{/* The calculator and the list of the currencies: each surface links
+				    the public pages of the catalogue. */}
+				<a
+					href={routing.pathFor(locale, PATHS.calculator)}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerCalculator}
+				</a>
+				<a
+					href={routing.pathFor(locale, PATHS.currencies)}
+					className="underline underline-offset-2 hover:text-board-text"
+				>
+					{text.footerCurrencies}
+				</a>
 				{/* The legal pages, in the language of the page. */}
 				<a
 					href={routing.pathFor(locale, "/privacy")}

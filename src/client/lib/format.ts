@@ -90,3 +90,32 @@ export function formatDate(iso: string, intl: string): string {
 	}
 	return day(intl).format(new Date(Date.UTC(year, month - 1, date)));
 }
+
+const decimal = cached(
+	(intl) =>
+		new Intl.NumberFormat(intl)
+			.formatToParts(1.5)
+			.find((part) => part.type === "decimal")?.value ?? ".",
+);
+
+/**
+ * Writes a quantity in hundredths with two decimals: 8002 gives 80,02 in
+ * Italian.
+ *
+ * The function divides with integers, thus it gives no error of a
+ * floating-point number. Refer to the rule 1 of the data in `CLAUDE.md`.
+ */
+export function formatHundredths(value: number, intl: string): string {
+	const whole = Math.floor(value / 100);
+	const rest = String(value % 100).padStart(2, "0");
+	return `${formatPoints(whole, intl)}${decimal(intl)}${rest}`;
+}
+
+const list = cached(
+	(intl) => new Intl.ListFormat(intl, { style: "long", type: "conjunction" }),
+);
+
+/** Joins names with the conjunction of the locale: `Amex, Revolut e Klarna`. */
+export function formatList(items: readonly string[], intl: string): string {
+	return list(intl).format(items);
+}

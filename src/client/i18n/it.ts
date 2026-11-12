@@ -94,6 +94,158 @@ export const it = {
 	homeScreenshotAlt:
 		"La dashboard di Yume: una scheda per ogni valuta, con le miglia potenziali sul tabellone.",
 
+	// The links of the public page to the pages of the catalogue, the
+	// calculator and the guides. Paragraph 5.5.5 of `docs/architecture.md`.
+	homeExploreTitle: "Rapporti, calcolatore e guide",
+	homeExploreCalculator: "Calcola le miglia dei tuoi punti, senza account",
+	homeExploreCurrencies: "Tutte le valute delle miglia",
+
+	// The pages of the catalogue: `/miglia`, `/miglia/<valuta>` and
+	// `/punti/<fonte>`. Paragraph 5.5.5 of `docs/architecture.md`.
+	//
+	// No text here holds a ratio, a minimum or a quantity of the catalogue: the
+	// page reads each value from the seed. A function receives the values that
+	// the page already wrote with the locale of the page.
+	catalogue: {
+		breadcrumb: "Percorso",
+		home: "Yume",
+		currencies: "Valute",
+		verified: "Ultima verifica dei rapporti:",
+		verifiedOn: "Verificato il",
+		exampleNote:
+			"Gli esempi sono un calcolo ai rapporti di oggi, non un saldo.",
+		routesTitle: "Rapporti di trasferimento",
+		ratio: "Rapporto",
+		minimum: "Minimo",
+		increment: "Multipli di",
+		example: (points: string) => `Calcolo con ${points} punti`,
+		points: (formatted: string, count: number) =>
+			count === 1 ? `${formatted} punto` : `${formatted} punti`,
+		ratioLine: (from: string, to: string, currency: string) =>
+			`${from} punti = ${to} ${currency}`,
+		calculatorLink: "Calcola con i tuoi punti",
+		signInLink: "Segui i tuoi saldi su Yume",
+		faqTitle: "Domande frequenti",
+		irreversibleQuestion: "Posso annullare un trasferimento di punti?",
+		irreversibleAnswer:
+			"No. Un trasferimento di punti è definitivo: i punti non tornano sulla carta. Prima trova il volo premio, poi trasferisci solo i punti che servono.",
+
+		currency: {
+			// 60 characters or fewer with the longest name of the catalogue.
+			metaTitle: (currency: string) =>
+				`Convertire punti in ${currency}: rapporti in Italia`,
+			description: (currency: string, sources: string) =>
+				`Da quali carte arriva ${currency} in Italia (${sources}): rapporto, minimo e multipli di ogni trasferimento, dalle pagine ufficiali.`,
+			title: (currency: string) =>
+				`Come convertire i tuoi punti in ${currency}`,
+			// The answer opens the page: an assistant cites the paragraph that
+			// answers.
+			lead: (currency: string, count: number, sources: string) =>
+				count === 1
+					? `In Italia ${currency} arriva da una carta sola: ${sources}. Rapporto, minimo e multipli qui sotto sono letti dalla pagina ufficiale, con la data della verifica.`
+					: `In Italia ${currency} arriva da ${count} carte: ${sources}. Rapporti, minimi e multipli qui sotto sono letti dalle pagine ufficiali, con la data della verifica.`,
+			programsTitle: "Programmi della valuta",
+			// A currency of more than one programme is one balance. Paragraph 3.1
+			// of `docs/architecture.md`.
+			programsShared: (currency: string, count: number) =>
+				`${count} programmi usano ${currency}: è un saldo solo, non ${count}. Yume calcola una riga sola per la valuta e sceglie il programma che rende di più con il tuo saldo.`,
+			programsOne: (currency: string, program: string) =>
+				`${currency} è la valuta di ${program}.`,
+			sourceQuestion: (source: string, currency: string) =>
+				`Posso trasferire i punti ${source} in ${currency}?`,
+			sourceYes: (routes: string) =>
+				`Sì, in Italia: ${routes}. Sotto il minimo il programma non accetta il trasferimento.`,
+			sourceNo: (source: string, currency: string) =>
+				`No. Fra i partner di ${source} per l'Italia non c'è ${currency}.`,
+			// One route in the answer above: the programme, the ratio and the
+			// minimum.
+			sourceRoute: (program: string, ratio: string, minimum: string) =>
+				`verso ${program}, ${ratio}, minimo ${minimum}`,
+		},
+
+		source: {
+			metaTitle: (source: string) =>
+				`Punti ${source}: in quali miglia trasferirli`,
+			description: (source: string) =>
+				`Tutti i programmi aerei che ricevono i punti ${source} in Italia, con rapporto, minimo e multipli letti dalle pagine ufficiali.`,
+			title: (source: string) => `Dove trasferire i punti ${source}`,
+			lead: (source: string, programs: number, currencies: number) =>
+				`In Italia i punti ${source} vanno in ${programs} programmi aerei, che usano ${currencies} valute diverse. Per ognuno trovi rapporto, minimo e multipli, letti dalla pagina ufficiale.`,
+			unreachableTitle: "Valute che non raggiungi",
+			unreachable: (source: string) =>
+				`Per l'Italia non c'è una regola di trasferimento da ${source} verso queste valute:`,
+			currencyLink: (currency: string) =>
+				`Tutte le carte che danno ${currency}`,
+			countQuestion: (source: string) =>
+				`In quanti programmi aerei posso trasferire i punti ${source}?`,
+			countAnswer: (programs: number, currencies: string) =>
+				`In ${programs} programmi, con queste valute: ${currencies}.`,
+			minimumQuestion: (source: string) =>
+				`Qual è il minimo per trasferire i punti ${source}?`,
+			minimumRange: (low: string, high: string) =>
+				`Dipende dal programma: da ${low} a ${high}. Sopra il minimo trasferisci solo multipli del blocco del programma.`,
+			minimumSame: (minimum: string) => `${minimum} per ogni programma.`,
+		},
+
+		hub: {
+			metaTitle: "Miglia dai punti carta: tutte le valute in Italia",
+			description:
+				"Le valute delle miglia che ricevono punti da Amex, Revolut e Klarna in Italia, e quelle che non ne ricevono. Una pagina per valuta.",
+			title: "Le valute delle miglia, una per una",
+			lead: (reachable: number, unreachable: number) =>
+				`Yume segue ${reachable} valute aeree che ricevono punti da Amex, Revolut o Klarna in Italia, e ${unreachable} che non ne ricevono. Ogni valuta ha la sua pagina con i rapporti ufficiali.`,
+			reachableTitle: "Valute che ricevono punti",
+			sourcesTitle: "Le carte",
+			unreachableTitle: "Valute che nessuna carta raggiunge",
+			unreachable:
+				"Per queste valute Yume segue il saldo, ma in Italia nessuna carta del catalogo ci trasferisce punti:",
+			from: (sources: string) => `da ${sources}`,
+		},
+	},
+
+	// The page `/calcolatore`. Paragraph 5.5.6 of `docs/architecture.md`.
+	calculator: {
+		metaTitle: "Calcolatore miglia: punti Amex, Revolut e Klarna",
+		description:
+			"Scrivi i tuoi punti Amex, Revolut e Klarna e vedi quante miglia valgono in ogni valuta, ai rapporti ufficiali per l'Italia. Senza account.",
+		title: "Calcola le miglia dei tuoi punti",
+		lead: "Scrivi i punti che hai su ogni carta: il calcolatore mostra il massimo per ogni valuta, ai rapporti ufficiali di oggi per l'Italia. Non serve un account, e i numeri non lasciano il tuo browser.",
+		formTitle: "I tuoi punti",
+		pointsError: "Scrivi i punti in numeri.",
+		empty: "Scrivi un saldo per vedere le miglia potenziali.",
+		none: "Con questi punti nessun trasferimento raggiunge il minimo.",
+		// The rows are maxima of different currencies. Their sum is a value that
+		// no person can obtain.
+		noSum: "Ogni riga è un massimo: gli stessi punti vanno in una valuta sola.",
+		from: (source: string, points: string) => `da ${source} ${points}`,
+		ratesLink: "Rapporti",
+		howTitle: "Come calcola",
+		how: [
+			"Ogni carta conta da sola: sotto il minimo di un programma il trasferimento non c'è, e sopra il minimo passano solo i multipli del blocco.",
+			"Se una valuta ha più programmi, per esempio gli Avios, il calcolatore sceglie il programma che rende di più con i tuoi punti.",
+			"Un programma non accredita frazioni di miglio: il risultato è arrotondato per difetto.",
+		],
+		faq: [
+			{
+				question: "Il calcolatore salva i miei punti?",
+				answer:
+					"No. Il calcolo avviene nel browser e la pagina non invia i numeri a nessun server. Per seguire i saldi nel tempo serve un account Yume.",
+			},
+			{
+				question: "Perché non c'è un totale delle miglia?",
+				answer:
+					"Perché gli stessi punti possono andare in una valuta sola. Ogni riga è il massimo di quella valuta: se trasferisci tutto in una, le altre scendono a zero.",
+			},
+			{
+				question: "I rapporti sono aggiornati?",
+				answer:
+					"Il calcolatore usa le regole di oggi del catalogo di Yume: ogni rapporto è letto dalla pagina ufficiale per l'Italia, con la data della verifica.",
+			},
+		],
+		signIn:
+			"Vuoi seguire i saldi nel tempo? Accedi con Google: il primo accesso crea l'account.",
+	},
+
 	// The footer of each surface. Yume names American Express, Revolut, Klarna
 	// and each airline programme of the catalogue, therefore it must say that it
 	// belongs to none of them. The text does not say "affiliato": an affiliate
@@ -109,6 +261,8 @@ export const it = {
 	// `docs/architecture.md`.
 	footerPublisher: "© 2026 Annadermolab — P.IVA 11836750015",
 	footerTos: "Termini",
+	footerCalculator: "Calcolatore",
+	footerCurrencies: "Valute",
 
 	potentialTitle: "Miglia potenziali",
 	potentialWarning:
@@ -245,6 +399,196 @@ export const it = {
 	tierSupporter: "Supporter",
 	tierUnlimited: "Unlimited",
 
+	// The guides: `/guide/<slug>`. Paragraph 5.5.7 of `docs/architecture.md`.
+	//
+	// A guide holds only facts of the catalogue and of the calculation. The
+	// session of the harness cannot read the official pages, thus a guide gives
+	// no procedure of a programme and no time of the credit. No guide holds a
+	// ratio: the table of the comparison reads the seed.
+	//
+	// `modified` moves only when the text changes. A date that moves with no
+	// change is a false signal of freshness.
+	guides: {
+		updated: "Aggiornata il",
+		relatedTitle: "Altre guide",
+		// The answer of the table of the comparison. The page counts the
+		// programmes of each source in the seed.
+		matrixLead: (leader: string, programs: number, others: string) =>
+			`${leader} raggiunge più programmi aerei: ${programs}. Seguono ${others}.`,
+		matrixOther: (source: string, programs: number) =>
+			`${source} con ${programs}`,
+		matrixTitle: "Chi raggiunge cosa",
+		matrixCurrency: "Valuta",
+		matrixNone: "—",
+		items: [
+			{
+				slug: "trasferire-punti-in-miglia",
+				metaTitle: "Trasferire punti in miglia: rapporto, minimo, multipli",
+				description:
+					"Come funziona il trasferimento dei punti della carta in miglia aeree: il rapporto, il minimo, i multipli e l'arrotondamento. Il trasferimento è definitivo.",
+				title: "Trasferire i punti della carta in miglia: come funziona",
+				lead: "Un trasferimento converte i punti della carta nella valuta di un programma aereo a un rapporto fisso. Tre numeri decidono quante miglia ricevi: il rapporto, il minimo e i multipli. Il trasferimento è definitivo, quindi si fa dopo aver trovato il volo premio.",
+				published: "2026-11-11",
+				modified: "2026-11-11",
+				matrix: false,
+				sections: [
+					{
+						title: "Il rapporto",
+						paragraphs: [
+							"Il rapporto dice quanti punti della carta servono per un certo numero di miglia. Si scrive con due numeri: 5 : 4 vuol dire 4 miglia ogni 5 punti, 1 : 1 vuol dire un miglio per punto.",
+							"Lo stesso programma della carta ha rapporti diversi verso partner diversi, e due carte hanno rapporti diversi verso la stessa compagnia. Per questo Yume legge ogni rapporto dalla pagina ufficiale, regola per regola.",
+						],
+						items: [],
+					},
+					{
+						title: "Il minimo e i multipli",
+						paragraphs: [
+							"Sotto il minimo il programma non accetta il trasferimento. Sopra il minimo trasferisci solo multipli del blocco del programma, e i punti che avanzano restano sulla carta.",
+							"Un esempio con numeri inventati: con blocchi da 400 punti e un saldo di 1.000 punti ne trasferisci 800, e 200 restano dove sono. Lo stesso saldo verso un programma con blocchi da 500 passa tutto.",
+						],
+						items: [],
+					},
+					{
+						title: "L'arrotondamento",
+						paragraphs: [
+							"Un programma non accredita frazioni di miglio. Yume arrotonda sempre per difetto, così il valore calcolato non supera mai quello che riceveresti.",
+						],
+						items: [],
+					},
+					{
+						title: "Una valuta, più programmi",
+						paragraphs: [
+							"Alcune valute hanno più programmi: sei programmi usano gli Avios, per esempio. È un saldo solo, ma ogni programma ha il suo rapporto, il suo minimo e i suoi multipli. Con lo stesso saldo un programma della valuta può rendere più di un altro.",
+						],
+						items: [],
+					},
+					{
+						title: "Prima il volo, poi i punti",
+						paragraphs: [
+							"Un trasferimento non si annulla. L'ordine che evita di bloccare punti in una valuta che non ti serve è questo:",
+						],
+						items: [
+							"Cerca il volo premio e controlla che ci sia posto.",
+							"Controlla rapporto, minimo e multipli verso quel programma.",
+							"Trasferisci solo i punti che servono, dall'app della carta o dal sito del programma.",
+						],
+					},
+				],
+				faq: [
+					{
+						question: "Posso annullare un trasferimento di punti?",
+						answer:
+							"No. Un trasferimento di punti è definitivo: i punti non tornano sulla carta. Prima trova il volo premio, poi trasferisci solo i punti che servono.",
+					},
+					{
+						question: "Perché ricevo meno miglia del previsto?",
+						answer:
+							"Per i multipli e per l'arrotondamento. Passano solo multipli del blocco del programma, e un programma non accredita frazioni di miglio.",
+					},
+					{
+						question: "Il rapporto è lo stesso per tutti i programmi?",
+						answer:
+							"No. Ogni coppia di carta e programma ha la sua regola, anche dentro la stessa valuta. Le pagine delle valute di Yume danno ogni rapporto con la sua data di verifica.",
+					},
+				],
+			},
+			{
+				slug: "amex-revolut-klarna-miglia",
+				metaTitle: "Amex, Revolut o Klarna: quali compagnie aeree raggiungi",
+				description:
+					"Quali valute delle miglia ricevono punti da Amex Membership Rewards, Revolut RevPoints e Klarna Cashback in Italia, carta per carta.",
+				title:
+					"Amex, Revolut o Klarna: quale carta raggiunge più compagnie aeree",
+				lead: "Le tre carte arrivano a valute aeree diverse, e solo alcune valute ricevono punti da tutte e tre. La tabella qui sotto dà, per ogni valuta, le carte che ci trasferiscono punti in Italia.",
+				published: "2026-11-11",
+				modified: "2026-11-11",
+				matrix: true,
+				sections: [
+					{
+						title: "Cosa la tabella non dice",
+						paragraphs: [
+							"La tabella conta i partner, non dice quale carta conviene. Quanti punti guadagni per ogni euro speso dipende dalla carta e dal piano, e Yume non lo calcola. Un rapporto alto con pochi punti guadagnati può rendere meno di un rapporto basso con molti punti.",
+							"Conta anche dove vuoi volare: una carta con meno partner che però raggiunge la tua compagnia vale più di una carta con molti partner che non la raggiunge.",
+						],
+						items: [],
+					},
+					{
+						title: "Più carte, una valuta",
+						paragraphs: [
+							"Se hai più carte, i punti di ognuna possono finire nella stessa valuta. Il calcolatore di Yume somma le carte dentro una valuta e mostra il massimo di ogni valuta, senza sommare valute diverse.",
+						],
+						items: [],
+					},
+				],
+				faq: [
+					{
+						question: "Quale carta conviene per le miglia?",
+						answer:
+							"Dipende da quanti punti guadagni con la tua spesa e da dove vuoi volare. Yume dà i partner e i rapporti di ogni carta, non il rendimento della spesa.",
+					},
+					{
+						question: "Posso unire i punti di due carte in una valuta?",
+						answer:
+							"Sì, se tutte e due trasferiscono in quella valuta. Ogni carta trasferisce con il suo rapporto e il suo minimo, poi le miglia arrivano nello stesso saldo.",
+					},
+				],
+			},
+			{
+				slug: "miglia-potenziali",
+				metaTitle: "Miglia potenziali: cosa sono e perché non si sommano",
+				description:
+					"Le miglia potenziali sono il massimo che otterresti trasferendo tutti i punti in una valuta, ai rapporti di oggi. Perché non si sommano fra valute.",
+				title: "Miglia potenziali: cosa sono e perché non si sommano",
+				lead: "Le miglia potenziali di una valuta sono il massimo che otterresti se trasferissi in quella valuta tutti i punti delle tue carte, ai rapporti di oggi. Non sono miglia che possiedi, e non si sommano fra valute: gli stessi punti vanno in una direzione sola.",
+				published: "2026-11-11",
+				modified: "2026-11-11",
+				matrix: false,
+				sections: [
+					{
+						title: "Una riga per valuta, non per programma",
+						paragraphs: [
+							"Sei programmi usano gli Avios, ed è un saldo solo. Uno strumento che calcola programma per programma conta gli stessi punti sei volte. Yume calcola una riga per valuta, e dentro la valuta sceglie il programma che rende di più con il tuo saldo.",
+						],
+						items: [],
+					},
+					{
+						title: "Perché le righe non si sommano",
+						paragraphs: [
+							"Ogni riga suppone che tutti i punti vadano in quella valuta. Se trasferisci tutti i punti in Avios, la riga Flying Blue torna al solo saldo Flying Blue che hai già. La somma delle righe è un numero che nessuno può ottenere: quello che conta è la riga della valuta che ti serve.",
+						],
+						items: [],
+					},
+					{
+						title: "Cosa cambia il numero",
+						paragraphs: [
+							"Il valore cambia quando cambia un saldo o quando cambia una regola. Ogni regola ha una data di inizio e una di fine: quando un programma cambia il rapporto, la regola vecchia resta come storico e il calcolo usa quella valida oggi.",
+						],
+						items: [],
+					},
+					{
+						title: "Cosa il numero non sa",
+						paragraphs: [
+							"Le miglia potenziali non dicono se c'è posto sul volo premio, né quante miglia costa. Dicono solo quante miglia puoi avere in una valuta con i punti di oggi.",
+						],
+						items: [],
+					},
+				],
+				faq: [
+					{
+						question: "Le miglia potenziali sono un saldo?",
+						answer:
+							"No. Sono un calcolo: il massimo che otterresti trasferendo tutti i punti in una valuta, ai rapporti di oggi. Il saldo è quello che hai già nel programma.",
+					},
+					{
+						question: "Posso sommare le miglia potenziali di valute diverse?",
+						answer:
+							"No. Gli stessi punti possono andare in una valuta sola, quindi la somma è un numero che non otterrai mai.",
+					},
+				],
+			},
+		],
+	},
+
 	// The page `/consent`: the authorisation of an assistant, for example
 	// Claude, on the MCP server. Paragraph 4.7.2 of `docs/architecture.md`.
 	consent: {
@@ -300,6 +644,8 @@ export const it = {
 		access:
 			"Per accedere serve un account Google. Il codice è open source con licenza MIT.",
 		warnings: "Avvertenze",
+		pages: "Pagine",
+		full: "Testo completo delle pagine del catalogo e delle guide",
 	},
 
 	// The page `/privacy`. The structure follows the policy of ScontrinoZero:
