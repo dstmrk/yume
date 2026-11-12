@@ -147,3 +147,73 @@ export function toJsonLdScript(graph: readonly JsonLdItem[]): string {
 		})
 		.join("");
 }
+
+/** One item of the path of a page: its name and its path with the prefix. */
+export type Crumb = { readonly name: string; readonly path: string };
+
+/**
+ * The path from the public page to a page of the catalogue or a guide.
+ *
+ * A search engine shows that path in place of the address. A list of one item
+ * is the public page alone, thus the function stops: that page holds no path.
+ */
+export function breadcrumbJsonLd(site: string, crumbs: readonly Crumb[]) {
+	if (crumbs.length < 2) {
+		throw new Error("breadcrumbJsonLd needs two items or more.");
+	}
+	return {
+		"@context": CONTEXT,
+		"@type": "BreadcrumbList",
+		itemListElement: crumbs.map((crumb, index) => ({
+			"@type": "ListItem" as const,
+			position: index + 1,
+			name: crumb.name,
+			item: `${site}${crumb.path}`,
+		})),
+	} as const;
+}
+
+/** The values of a page for its structured data. */
+export type PageFacts = {
+	readonly path: string;
+	readonly title: string;
+	readonly description: string;
+	readonly modified: string;
+};
+
+/**
+ * A page of the catalogue. `dateModified` is the latest examination of an
+ * official page of its rules: the date moves only with a change of a rule.
+ */
+export function webPageJsonLd(site: string, i18n: I18n, page: PageFacts) {
+	return {
+		"@context": CONTEXT,
+		"@type": "WebPage",
+		name: page.title,
+		description: page.description,
+		url: `${site}${page.path}`,
+		inLanguage: i18n.intl,
+		dateModified: page.modified,
+		isPartOf: { "@type": "WebSite" as const, url: site },
+	} as const;
+}
+
+/** A guide, with the date of the first version and of the last change. */
+export function articleJsonLd(
+	site: string,
+	i18n: I18n,
+	page: PageFacts & { readonly published: string },
+) {
+	return {
+		"@context": CONTEXT,
+		"@type": "Article",
+		headline: page.title,
+		description: page.description,
+		inLanguage: i18n.intl,
+		datePublished: page.published,
+		dateModified: page.modified,
+		mainEntityOfPage: `${site}${page.path}`,
+		author: { "@type": "Organization" as const, name: "Yume", url: site },
+		publisher: { "@type": "Organization" as const, name: "Yume", url: site },
+	} as const;
+}

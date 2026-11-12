@@ -1397,7 +1397,9 @@ The client holds nine routes: `/` for the public page, `/dashboard` for the dash
 `/login` for the access, `/consent` for the authorisation of an assistant (paragraph
 4.7.2), `/admin` for the administrator (paragraph 4.8), `/privacy` for the policy of the
 personal data, `/tos` for the terms of the service, `/connector` for the documentation
-of the MCP server and `/support` for the contact (paragraph 4.7.4). The two legal pages are public: Google asks for their
+of the MCP server and `/support` for the contact (paragraph 4.7.4). Five more routes hold
+the public pages of the catalogue, the calculator and the guides: paragraphs 5.5.5 to
+5.5.7 give them. The two legal pages are public: Google asks for their
 addresses before it publishes the sign-in for each account. `LegalPage` shows the two
 from the dictionary, and `robots.txt` does not block them. The build writes a static
 page for each one, with its own title and canonical address. The check of Google reads
@@ -1489,9 +1491,15 @@ page in the results of a search.
 
 `public/robots.txt` blocks `/api/`, `/dashboard` and `/login`. The dashboard needs a
 session, thus a crawler receives the same HTML with no data. The page of the access holds
-one button and no content for a search. The file gives no `Sitemap`: the site holds one
-public page, and a search engine finds one page with no sitemap. Add that line with the
-first group of pages of the catalogue.
+one button and no content for a search. The file gives the absolute address of
+`sitemap.xml`. The pre-render writes that file from `publicPaths` of `lib/pages.ts`, thus
+the sitemap and the static pages hold one list. A page of the catalogue gives the latest
+`validFrom` of its rules as `lastmod`, and a guide gives its date `modified`. The other
+pages give no date: a date that moves at each build is a false signal of freshness.
+
+Each static page with content holds `<meta name="robots">` with `max-snippet:-1`.
+Google gives no option for its answers of AI: the directives of the snippet control the
+length of the text that those answers cite. The shell holds `noindex` and not this tag.
 
 **The order of the public page is the product, then the detail.** The masthead gives the
 name and the link to the button of the access. Then the `h1` says what Yume calculates, the board of
@@ -1519,8 +1527,8 @@ blocks held before: the six programmes of Avios, the quantity of the programmes 
 catalogue, the source of each ratio and the limit of the sum of two currencies.
 
 That quantity of text is a decision of this paragraph, and it is not a decision of the
-sale. The site holds one public page, thus that page carries each answer alone. The
-pages of the catalogue come later, and they then take that work.
+sale. The pages of the catalogue of paragraph 5.5.5 give the ratios. The public page
+keeps the answers about the product, and it links those pages.
 
 The page names the six programmes of Avios and it gives the quantity of the programmes of
 the catalogue. Those values come from `src/server/db/seed/catalogue.ts`. The page gives no
@@ -1546,8 +1554,11 @@ no person wrote.
 (https://llmstxt.org). `src/client/lib/llms.ts` reads `i18n/it.ts`, thus the file and the
 page hold the same text and no person writes that text two times. The server supplies
 `dist/` as static files, therefore that file needs no route of Hono and no path in
-`CLIENT_PATHS`. The format also gives `/llms-full.txt` for a site with many pages: add
-that file with the first group of pages of the catalogue.
+`CLIENT_PATHS`. `llms.txt` also gives a link to each page of content. `/llms-full.txt` holds the text of
+each page of the catalogue and of each guide, from the same functions as the pages.
+
+Google Search ignores the two files, and few assistants read them. They cost nothing,
+thus they stay. Do not count them as a method to receive citations.
 
 The development server of Vite writes no such file. The pre-render is a step of the
 build, thus the structured data and `llms.txt` exist in the container only. Read the
@@ -1632,6 +1643,85 @@ the programmes there, with a real value.
 The `main` holds the page and the foot is outside it: the foot belongs to the site and not
 to the page. The column holds the full height of the screen and the `main` grows, thus the
 foot stays at the end of a page that is shorter than the screen.
+
+### 5.5.5 The pages of the catalogue
+
+Status: **accepted**. Date: 2026-11-11.
+
+A person asks a search engine and an assistant a narrow question: "how do I convert my
+Amex points into Avios", "where can I transfer RevPoints". The public page answers no such
+question, because it gives no ratio. The pages of the catalogue give those answers.
+
+| Path | Page |
+|---|---|
+| `/miglia` | The list of the airline currencies, of the sources and of the currencies that no source reaches. |
+| `/miglia/<currency>` | One airline currency that a source reaches. The `id` of the currency is the last part. |
+| `/punti/<source>` | One source. `SOURCE_SLUGS` of `lib/catalogue.ts` gives the last part. |
+
+**The seed is the only source of a value.** `lib/seed.ts` imports the catalogue of
+`src/server/db/seed/catalogue.ts` in the client. The container writes that seed in the
+database at each start, thus the pages and the database hold the same rules. The build
+writes the pages with no database. No text of `i18n/it.ts` holds a ratio, a minimum or a
+quantity of the catalogue: a function of the dictionary receives each value from the
+page.
+
+`lib/catalogue.ts` gives the routes of today, by currency and by source. `ratioOf` gives
+a ratio in reduced integers, as `5 : 4`. A large reduced ratio says nothing to a reader,
+thus that ratio is for 100 points, in hundredths, as Klarna writes it. The function uses
+integers only.
+
+`lib/content.ts` gives the title, the answer and the questions of each page. The page and
+its structured data read the same function. Each page of a currency holds one question
+for each source, also for a source that does not reach the currency: "no" is an answer.
+
+A page gives a calculation with 10 000 points for each route. The page says that the
+result is a calculation and not a balance. The page shows the balance of no person, thus
+it gives no warning of the transfer in the text of the route. The question of the
+transfer at the end says that a transfer is permanent.
+
+**A page exists for a currency with a rule today.** A currency that no source reaches gets
+no page: the page holds no route, and a page with no content is a doorway page for Google.
+The list `/miglia` names those currencies. Do not add a page that changes only a name in
+the same text.
+
+The router holds one route with a parameter for each kind. The build writes one static
+file for each value, and the server gives that file before `CLIENT_PATHS`. An other value
+gives the status 404 from the server and `NotFoundPage` from the component.
+`lib/pages.test.ts` refuses a path of the build that the router does not hold.
+
+Each page holds the masthead, the path, an `h1` with the question of the person, the
+answer and the date of the latest examination. Its title has no name of the application:
+a search engine cuts a title of more than 60 characters. A test refuses a longer title.
+The public page links each page of a source, the list of the currencies, the calculator
+and each guide. The foot links the calculator and the list.
+
+### 5.5.6 The calculator
+
+Status: **accepted**. Date: 2026-11-11.
+
+`/calcolatore` gives the potential miles of the points that a visitor writes, with no
+account. `calculatorRows` of `lib/calculator.ts` calls `potentialMiles` with the rules of
+the seed. The page makes no request to the server and keeps no number.
+
+The page obeys the rules of the dashboard. It shows a real value of the person, thus it
+gives the warning of the transfer. It shows no sum of the currencies. Each value is a
+`SplitFlapNumber`. A field reads the text with `parsePoints`, and an empty field is 0.
+The calculator holds no balance of an airline programme: it is a calculation of the
+sources only.
+
+### 5.5.7 The guides
+
+Status: **accepted**. Date: 2026-11-11.
+
+`/guide/<slug>` gives a guide of the dictionary: `guides.items` of `i18n/it.ts`. A guide
+holds only facts of the catalogue and of the calculation. The session of the harness
+cannot read the official pages, thus a guide gives no procedure of a programme and no
+time of the credit. A guide holds no ratio. The guide with `matrix` holds the table of
+the comparison of the sources, from the seed.
+
+`modified` moves only when the text of the guide changes. The page shows that date, and
+`Article` and the sitemap give it. A date that moves with no change is a false signal of
+freshness, and Google names that signal as a sign of content with no help.
 
 ### 5.6 The movement of the flaps
 

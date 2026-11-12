@@ -57,9 +57,12 @@ describe("isClientPath", () => {
 describe("the paths of the router", () => {
 	it("gives the same paths as CLIENT_PATHS", () => {
 		const source = readFileSync("src/client/router.tsx", "utf8");
-		const paths = [...source.matchAll(/\bpath: "([^"]+)"/g)].map(
-			(match) => match[1],
-		);
+		// A path with a parameter is a page of the catalogue or a guide. The
+		// build writes one static file for each value, and the server gives
+		// that file before this list. `lib/pages.test.ts` examines those paths.
+		const paths = [...source.matchAll(/\bpath: "([^"]+)"/g)]
+			.map((match) => match[1])
+			.filter((path) => !path?.includes("$"));
 
 		expect(paths.toSorted()).toStrictEqual([...CLIENT_PATHS].toSorted());
 	});
@@ -149,7 +152,15 @@ describe("robots.txt", () => {
 	});
 
 	/** The pages with content for each person, also with no session. */
-	const PUBLIC = ["/", "/connector", "/privacy", "/support", "/tos"] as const;
+	const PUBLIC = [
+		"/",
+		"/calcolatore",
+		"/connector",
+		"/miglia",
+		"/privacy",
+		"/support",
+		"/tos",
+	] as const;
 
 	for (const path of PUBLIC) {
 		it(`does not block ${path}`, () => {

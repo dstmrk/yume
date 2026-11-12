@@ -1,12 +1,21 @@
 import type { CSSProperties, ReactNode } from "react";
+import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { routing } from "../shared/locale.ts";
 import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
+import { TextLink } from "./components/board/TextLink.tsx";
 import { GoogleButton } from "./components/GoogleButton.tsx";
 import { buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
+import { todayIso } from "./lib/balance.ts";
+import { SOURCE_SLUGS, sourcePages } from "./lib/catalogue.ts";
 import { cn } from "./lib/cn.ts";
+import { pageSourceLabel } from "./lib/content.ts";
 import { catalogueLogos } from "./lib/logos.ts";
+import { PATHS } from "./lib/pages.ts";
+import { SEED } from "./lib/seed.ts";
+import { SIGN_IN_ANCHOR } from "./PublicPage.tsx";
 
 /**
  * The value of the board of the example.
@@ -42,8 +51,11 @@ const SCREENSHOT = {
 	height: 1613,
 };
 
-/** The anchor of the button of Google, for the link of the masthead. */
-const SIGN_IN_ID = "accedi";
+/**
+ * The anchor of the button of Google, for the link of the masthead and for the
+ * links of the other public pages.
+ */
+const SIGN_IN_ID = SIGN_IN_ANCHOR;
 
 /**
  * The public page of the application. A visitor with no session reads it.
@@ -88,7 +100,7 @@ const SIGN_IN_ID = "accedi";
  * the router.
  */
 export function HomePage() {
-	const { t: text } = useI18n();
+	const { t: text, locale } = useI18n();
 	return (
 		<div className="flex flex-col gap-10">
 			{/* The masthead. The name is at the left and the access is at the right,
@@ -227,8 +239,50 @@ export function HomePage() {
 				</section>
 			</Rise>
 
+			{/* The links to the pages of the catalogue, the calculator and the
+			    guides. A crawler finds each page from the public page, and a
+			    visitor who wants a ratio finds it before the access. Paragraph
+			    5.5.5 of `docs/architecture.md`. */}
+			<Rise index={9}>
+				<section>
+					<h2 className="font-board text-[11px] text-board-muted uppercase tracking-widest">
+						{text.homeExploreTitle}
+					</h2>
+					<ul className="mt-4 flex flex-col gap-2 text-sm">
+						<li>
+							<TextLink href={routing.pathFor(locale, PATHS.calculator)}>
+								{text.homeExploreCalculator}
+							</TextLink>
+						</li>
+						{homeSources().map((source) => (
+							<li key={source.slug}>
+								<TextLink
+									href={routing.pathFor(locale, PATHS.source(source.slug))}
+								>
+									{text.catalogue.source.title(pageSourceLabel(source))}
+								</TextLink>
+							</li>
+						))}
+						<li>
+							<TextLink href={routing.pathFor(locale, PATHS.currencies)}>
+								{text.homeExploreCurrencies}
+							</TextLink>
+						</li>
+						{text.guides.items.map((guide) => (
+							<li key={guide.slug}>
+								<TextLink
+									href={routing.pathFor(locale, PATHS.guide(guide.slug))}
+								>
+									{guide.title}
+								</TextLink>
+							</li>
+						))}
+					</ul>
+				</section>
+			</Rise>
+
 			<Rise
-				index={9}
+				index={10}
 				id={SIGN_IN_ID}
 				className="flex w-full flex-col gap-2 text-center md:mx-auto md:max-w-xs"
 			>
@@ -240,6 +294,11 @@ export function HomePage() {
 			</Rise>
 		</div>
 	);
+}
+
+/** The sources of the catalogue, with the rules of today. */
+function homeSources() {
+	return sourcePages(SEED, DEFAULT_COUNTRY, todayIso(new Date()), SOURCE_SLUGS);
 }
 
 /**

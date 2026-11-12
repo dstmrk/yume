@@ -154,8 +154,20 @@ export function localizeHead(template: string, head: Head): string {
 				`\t\t<link rel="alternate" hreflang="${attribute(item.hreflang)}" href="${attribute(item.href)}" />\n`,
 		)
 		.join("");
-	return insertBeforeHeadEnd(html, links);
+	return insertBeforeHeadEnd(html, `${links}${ROBOTS_PREVIEW}`);
 }
+
+/**
+ * The directives of the preview of a page with content.
+ *
+ * Google gives no option for its answers of AI. The length of the text that
+ * those answers cite follows the directives of the snippet. This tag asks for
+ * no limit, thus Google does not cut the answer at the start of a page. The
+ * shell holds `noindex` and not this tag. Paragraph 5.5.3 of
+ * `docs/architecture.md`.
+ */
+export const ROBOTS_PREVIEW =
+	'\t\t<meta name="robots" content="max-snippet:-1, max-image-preview:large, max-video-preview:-1" />\n';
 
 /**
  * Gives the template with the language, the title, the description and Open
