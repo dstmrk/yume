@@ -4,8 +4,9 @@ This document gives the data for the portal of OpenAI. ChatGPT and Codex share t
 directory. Paragraph 4.7.4 of `docs/architecture.md` gives the decisions. This document
 gives the values of the form.
 
-The status of each item is on the day of this document, 2026-11-11. No item is submitted.
-No review occurred. No recording exists.
+The status of each item is on the day of this document, 2026-11-12. No item is submitted.
+No review occurred. No recording exists. Section 8 separates the work that is complete
+from the steps that need a person.
 
 ## 1. The configuration of the MCP server
 
@@ -23,6 +24,33 @@ No review occurred. No recording exists.
 | Metadata of the authorisation server | `https://yumemiles.com/.well-known/oauth-authorization-server/api/auth` |
 
 Do not change the endpoint. The directory of Anthropic reads the same URL.
+
+### 1.1 The access to the MCP server
+
+This section gives the product at the launch. Paragraphs 4.6 and 4.6.1 of
+`docs/architecture.md` give the decisions.
+
+| Level | Source | MCP server |
+|---|---|---|
+| Free account | Each registered user | Not available |
+| Supporter account | An annual subscription of 9,99 euros, with an automatic renewal | Available |
+| Unlimited account | The administrator gives it by hand on `/admin`. No person can buy it. | Available |
+
+- The free account keeps Amex, Revolut and 2 airline programmes. The other sources of
+  the catalogue, today Klarna, the expiry lots and the MCP server need a supporter
+  account or an unlimited account.
+- The person buys the supporter account outside ChatGPT and Codex. The dashboard of
+  `yumemiles.com` opens Stripe Checkout. The customer portal of Stripe gives the change
+  of the card, the invoices and the end of the renewal.
+- ChatGPT and Codex give no purchase, no checkout and no upgrade. No tool, no
+  description and no error gives a price, a plan, a URL of a payment or a request to buy.
+- The MCP server needs an existing supporter account or an unlimited account. For a free
+  account, each tool gives an error with `isError: true` and this text: "The MCP server
+  of Yume needs a supporter account. This account is a free account."
+
+On 2026-11-12 the official instance has no active payment and no active
+`FREE_ACCOUNT_LIMITS`. Thus each registered user can use each function today. That state
+is temporary. This document gives the product of the launch, not that state.
 
 ## 2. The justification of each hint
 
@@ -80,10 +108,14 @@ Do these steps on the official instance:
 
 2. Copy the password that the script shows. The script shows it one time.
 3. Sign in as the administrator and open `/admin`.
-4. Give the unlimited account to the address of step 1.
-5. Sign in with the address and the password of step 1. Use the link under the button of
+4. Give the unlimited account to the address of step 1: write the address in the field
+   of the search, then turn on the switch in the column "Unlimited".
+5. Examine the level: the column "Piano" of that row must show "Unlimited". Do this
+   step before each test of the MCP server. Without the unlimited account, each tool
+   gives the error of section 1.1 after the activation of the limits.
+6. Sign in with the address and the password of step 1. Use the link under the button of
    Google on `/login`.
-6. On the dashboard, add these four accounts with these balances:
+7. On the dashboard, add these four accounts with these balances:
 
    | Programme | Balance | Date |
    |---|---|---|
@@ -92,20 +124,21 @@ Do these steps on the official instance:
    | Iberia | 15.000 | 2026-11-10 |
    | Flying Blue | 8.000 | 2026-11-10 |
 
-7. Write the address and the password in the form of the portal only.
+8. Write the address and the password in the form of the portal only.
 
 Do not write the address or the password in the repository, in a pull request or in a
 public page. The script writes no account of a person: it refuses the address of a user
 of Google.
 
 Before each new review, run the script again. Then remove the balances that the earlier
-reviewer added on the dashboard, and add the balances of step 6 again.
+reviewer added on the dashboard, and add the balances of step 7 again.
 
 ## 4. The test cases
 
-The portal asks for five positive cases and three negative cases. The values of the
-results come from `potentialOf` of `src/server/operations.ts` with the catalogue of
-2026-11-11 and the balances of step 6. A new rule of the catalogue changes them:
+The portal asks for five positive cases and three negative cases. Each case uses the
+unlimited account of section 3. The values of the results come from `potentialOf` of `src/server/operations.ts` with the catalogue of
+2026-11-12 and the balances of step 7. The calculation of 2026-11-12 gives the values of
+this section. A new rule of the catalogue changes them:
 calculate them again before the submission.
 
 ### Positive case 1: the balances
@@ -115,7 +148,7 @@ calculate them again before the submission.
 - **Result:** four accounts. Each account has `accountId`, `programId`, `programName`,
   `currencyId`, `points`, `observedAt` and `lots`. The balances are Amex 120000, Revolut
   30000, Iberia 15000 and Flying Blue 8000, each at 2026-11-10, with an empty `lots`.
-- **Fixture:** step 6 of section 3.
+- **Fixture:** step 7 of section 3.
 
 ### Positive case 2: the potential miles
 
@@ -141,7 +174,7 @@ calculate them again before the submission.
 - **Behaviour:** the assistant shows a value for each currency, and it says that the
   value is a calculation and that a transfer is permanent. That text is the field
   `notice`.
-- **Fixture:** step 6 of section 3.
+- **Fixture:** step 7 of section 3.
 
 ### Positive case 3: the catalogue
 
@@ -170,7 +203,7 @@ calculate them again before the submission.
   `destructiveHint: true`.
 - **Result:** `snapshotId`, `accountId`, `points` 16500, `observedAt` and an empty
   `lots`. The dashboard then shows 16.500 for Iberia.
-- **Fixture:** step 6 of section 3.
+- **Fixture:** step 7 of section 3.
 
 ### Positive case 5: a new balance and the potential miles
 
@@ -181,7 +214,7 @@ calculate them again before the submission.
   `get_potential`.
 - **Result:** the entry `flying-blue` of `get_potential` has `current` 9200,
   `fromTransfers` 110000 and `total` 119200.
-- **Fixture:** step 6 of section 3, with no change of case 4 to Flying Blue.
+- **Fixture:** step 7 of section 3, with no change of case 4 to Flying Blue.
 
 ### Negative case 1: a transfer of points
 
@@ -200,7 +233,7 @@ calculate them again before the submission.
   writes, and it does not say that a removal occurred.
 - **Reason:** the server gives no tool that removes data. Paragraph 4.7.3.
 
-### Negative case 3: the account of an other person
+### Negative case 3: an unknown account id
 
 - **Prompt:** "Add 10,000 points to the Yume account with id
   00000000-0000-0000-0000-000000000000."
@@ -208,9 +241,14 @@ calculate them again before the submission.
   with `isError: true` and this text: "No account of the user has the id
   00000000-0000-0000-0000-000000000000. list_accounts gives the ids of the accounts."
   The server writes nothing. The assistant does not say that the balance changed.
-- **Reason:** each tool reads the user from the token. An id of an account of an other
-  user gives the same error as an id that does not exist. Thus the error gives no data
-  of an other user. `src/server/mcp.test.ts` holds the test.
+- **Reason:** no account has that id. This case proves the refusal of an unknown id
+  only. It does not prove the isolation of the accounts: the reviewer knows no id of an
+  account of an other user.
+- **The isolation of the accounts:** each tool reads the user from the token.
+  `recordSnapshot` of `src/server/operations.ts` examines the account first, thus an
+  account of an other user gives the same error as an unknown id. Two tests of
+  `src/server/mcp.test.ts` hold a second user: "gives no account of an other user" and
+  "refuses an account of an other user and writes nothing".
 
 ## 5. The starter prompts
 
@@ -225,7 +263,7 @@ Each prompt has a maximum of 128 characters.
 The portal asks for a URL of a video. A reviewer must be able to open it. Record the
 video with the account of section 3 in ChatGPT:
 
-1. Show the dashboard of Yume with the four balances of step 6.
+1. Show the dashboard of Yume with the four balances of step 7.
 2. In ChatGPT, add the app with the URL of section 1.
 3. Show the page `/login` of Yume, the sign-in with the password and the page `/consent`.
    Show the host of the redirect on that page.
@@ -238,7 +276,7 @@ video with the account of section 3 in ChatGPT:
 
 ## 7. The listing
 
-| Field | Value | Status on 2026-11-11 |
+| Field | Value | Status on 2026-11-12 |
 |---|---|---|
 | Name | YumeMiles | |
 | Category | Travel | |
@@ -246,8 +284,11 @@ video with the account of section 3 in ChatGPT:
 | MCP endpoint | `https://yumemiles.com/mcp` | Status 401 with no token, as expected |
 | Privacy policy | `https://yumemiles.com/privacy` | Status 200 |
 | Terms of service | `https://yumemiles.com/tos` | Status 200 |
-| Support | `https://yumemiles.com/support` | Status 404: the page needs a release that contains it |
-| Product availability | Free account, and the supporter account for 9,99 euros each year. The payment is on the site only, with Stripe: paragraph 4.6.1. | |
+| Support | `https://yumemiles.com/support` | Status 200. The address of the contact is not in the HTML: refer to section 9. |
+| Connector documentation | `https://yumemiles.com/connector` | Status 200 |
+| Verification of the domain | `https://yumemiles.com/.well-known/openai-apps-challenge` | Status 404 `text/plain`: `OPENAI_APPS_CHALLENGE_TOKEN` has no value. With a value, the route gives the exact token as plain text, with no space around it. |
+| Product availability | A free account, and an optional supporter account for 9,99 euros each year. The person buys and manages it outside ChatGPT and Codex, from `yumemiles.com` with Stripe Checkout and the customer portal of Stripe. | |
+| Access to the MCP server | An existing supporter account or an unlimited account. The administrator gives the unlimited account: it is not a plan. | |
 | Payments or purchases | None in ChatGPT and in Codex | |
 | Icon | `src/client/public/icon.svg` | |
 
@@ -255,11 +296,24 @@ The publisher in `/tos` and `/privacy` is the owner of the instance. The identit
 portal must be the identity of the account of the developer at OpenAI. The author must
 confirm that the two identities agree.
 
-## 8. The manual steps
+## 8. The work and the manual steps
 
-These steps need a person. No session of the harness can do them.
+### 8.1 The work that is complete
 
-1. Make a release with the page `/support` and the route of the verification.
+- The release v0.7.0 holds the page `/support`, the route of the verification, the
+  hints, `_meta.securitySchemes` and the output schemas of the tools.
+- The tests of the repository examine the challenge of the domain, the hints, the
+  schemes, the output schemas, the error of a free account and the isolation of the
+  accounts.
+- The production URLs of section 7 give the status of that table on 2026-11-12.
+
+### 8.2 The steps that need a person
+
+No session of the harness can do these steps.
+
+1. In the dashboard of Cloudflare, turn off Email Address Obfuscation for
+   `yumemiles.com`. Then examine the raw HTML of `/support`, `/privacy` and `/tos` with
+   `curl`: it must hold `privacy@yumemiles.com` and no `/cdn-cgi/l/email-protection`.
 2. Make the account of section 3.
 3. In the portal, start the submission. Copy the token of the verification.
 4. Write the token in `OPENAI_APPS_CHALLENGE_TOKEN` in `.env`. Then run
@@ -272,6 +326,10 @@ These steps need a person. No session of the harness can do them.
    one time.
 8. Record the video of section 6.
 9. Write the data of sections 1, 2, 4, 5 and 7 in the portal. Then submit.
+10. Activate the payment and `FREE_ACCOUNT_LIMITS` on the official instance before the
+    publication of the listing. Without the payment, the listing names an MCP server for
+    supporters, and no person can become a supporter. The review can start before this
+    step: the unlimited account gives the same result with and without the limits.
 
 ## 9. The open items
 
@@ -284,5 +342,13 @@ These steps need a person. No session of the harness can do them.
 - **The supporter account.** The directory of OpenAI refuses a text that promotes an
   upgrade. The error of a free account names the supporter account, with no price and
   no URL. Do not add a URL of a payment to that error.
+- **The address of the contact.** On 2026-11-12, Cloudflare Email Address Obfuscation
+  changes `privacy@yumemiles.com` on `/support`, `/privacy` and `/tos` into a link to
+  `/cdn-cgi/l/email-protection`. Only JavaScript reads it. A browser shows the address,
+  but a client with no JavaScript reads a support page with no contact. Step 1 of section
+  8.2 removes the defect. The defect is open until a person examines the raw HTML.
+- **The text of the sale.** On 2026-11-12 the tools, their descriptions and their
+  errors hold no price, no plan, no URL of a payment and no request to buy. The two
+  errors name the supporter account only. Keep that rule with each change of a tool.
 - **The addresses of the servers of OpenAI.** Paragraph 4.7.2 gives the range of
-  Anthropic. Read the range of OpenAI in its documentation before step 6 of section 8.
+  Anthropic. Read the range of OpenAI in its documentation before step 6 of section 8.2.
