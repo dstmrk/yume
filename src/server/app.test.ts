@@ -19,7 +19,7 @@ import {
 	favoriteCurrencies,
 	listConnections,
 } from "./db/queries.ts";
-import { user } from "./db/schema.ts";
+import { account, user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
@@ -1068,6 +1068,131 @@ describe("GET /api/potential", () => {
 		const body = await getJson<{ potential: PotentialRow[] }>("/api/potential");
 		expect(body.potential.every((row) => row.total === 0)).toBe(true);
 	});
+
+	// The dashboard asks for the country before it reads the potential.
+	it("gives the status 409 to a user with no country", async () => {
+		db.update(user).set({ country: null }).where(eq(user.id, userId)).run();
+		const response = await app.request("/api/potential", {
+			headers: { cookie },
+		});
+		expect(response.status).toBe(409);
+		expect(await response.json()).toEqual({ error: "country_required" });
+	});
+});
+
+describe("DELETE /api/me", () => {
+	it("removes the user and the session", async () => {
+		const account = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 1900,
+			observedAt: "2026-11-10",
+		});
+
+		expect((await remove("/api/me")).status).toBe(204);
+
+		expect(db.select().from(user).where(eq(user.id, userId)).all()).toEqual([]);
+		expect(countAccounts(db, userId)).toBe(0);
+		// The session goes with the user: the next request has no session.
+		const after = await app.request("/api/me", { headers: { cookie } });
+		expect(after.status).toBe(401);
+	});
+
+	it("keeps the other user", async () => {
+		await remove("/api/me");
+		expect(
+			db.select().from(user).where(eq(user.id, OTHER_USER)).all(),
+		).toHaveLength(1);
+	});
+
+	it("refuses the account of the reviewers with the status 403", async () => {
+		db.insert(account)
+			.values({
+				id: "credential-1",
+				accountId: userId,
+				providerId: "credential",
+				userId,
+				password: "hash",
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.run();
+
+		const response = await remove("/api/me");
+
+		expect(response.status).toBe(403);
+		expect(await response.json()).toEqual({ error: "reviewer_account" });
+		expect(
+			db.select().from(user).where(eq(user.id, userId)).all(),
+		).toHaveLength(1);
+	});
+
+	// A form of an other origin cannot remove an account.
+	it("refuses a request of an other origin", async () => {
+		const response = await app.request("/api/me", {
+			method: "DELETE",
+			headers: { cookie, origin: "https://evil.example" },
+		});
+		expect(response.status).toBe(403);
+		expect(
+			db.select().from(user).where(eq(user.id, userId)).all(),
+		).toHaveLength(1);
+	});
+});
+
+describe("PUT /api/me/country", () => {
+	function put(body: unknown) {
+		return app.request("/api/me/country", {
+			method: "PUT",
+			headers: { "content-type": "application/json", ...sameOrigin() },
+			body: JSON.stringify(body),
+		});
+	}
+
+	beforeEach(() => {
+		db.update(user).set({ country: null }).where(eq(user.id, userId)).run();
+	});
+
+	it("writes the country of a user with no country", async () => {
+		expect((await put({ country: "IT" })).status).toBe(204);
+		const me = await getJson<{ country: string | null }>("/api/me");
+		expect(me.country).toBe("IT");
+	});
+
+	it("gives null in GET /api/me before the choice", async () => {
+		const me = await getJson<{ country: string | null }>("/api/me");
+		expect(me.country).toBeNull();
+	});
+
+	// A second tap gives the same state, thus no error.
+	it("accepts the same country two times", async () => {
+		await put({ country: "IT" });
+		expect((await put({ country: "IT" })).status).toBe(204);
+	});
+
+	// The country does not change. Paragraph 3.3.2 of docs/architecture.md.
+	it("refuses an other country with the status 409", async () => {
+		db.update(user).set({ country: "ES" }).where(eq(user.id, userId)).run();
+		const response = await put({ country: "IT" });
+		expect(response.status).toBe(409);
+		expect(await response.json()).toEqual({ error: "country_fixed" });
+	});
+
+	it("refuses a country that is not in the catalogue", async () => {
+		expect((await put({ country: "FR" })).status).toBe(400);
+		expect((await put({ country: "it" })).status).toBe(400);
+		expect((await put({})).status).toBe(400);
+		expect((await put({ country: "IT", other: 1 })).status).toBe(400);
+	});
+
+	it("refuses a request with no session", async () => {
+		const response = await app.request("/api/me/country", {
+			method: "PUT",
+			headers: { "content-type": "application/json", origin: BASE_URL },
+			body: JSON.stringify({ country: "IT" }),
+		});
+		expect(response.status).toBe(401);
+	});
 });
 
 describe("the routes of the favourites", () => {
@@ -1287,6 +1412,7 @@ describe("the limits of the free account", () => {
 			limits: true,
 			tier: "free",
 			billing: null,
+			country: "IT",
 		});
 
 		db.update(user).set({ unlimited: true }).where(eq(user.id, userId)).run();
@@ -1350,6 +1476,7 @@ describe("the routes of the administrator", () => {
 				limits: false,
 				tier: "free",
 				billing: null,
+				country: "IT",
 			});
 		});
 
@@ -1361,6 +1488,7 @@ describe("the routes of the administrator", () => {
 				limits: false,
 				tier: "free",
 				billing: null,
+				country: "IT",
 			});
 		});
 	});

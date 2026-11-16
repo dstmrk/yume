@@ -20,6 +20,7 @@ function me(
 		admin: false,
 		limits: true,
 		tier,
+		country: "IT",
 		billing:
 			billing === null
 				? null

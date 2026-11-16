@@ -525,6 +525,44 @@ describe("get_catalogue", () => {
 	});
 });
 
+// A user selects the country on the dashboard after the first sign-in. An
+// assistant can connect before that choice.
+describe("a user with no country", () => {
+	it("gives an error that names the choice on the dashboard", async () => {
+		db.update(user).set({ country: null }).where(eq(user.id, userId)).run();
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+		for (const name of ["get_potential", "get_catalogue"]) {
+			const result = await client.callTool({ name, arguments: {} });
+			expect(result.isError, name).toBe(true);
+			expect(JSON.stringify(result.content), name).toMatch(/country/i);
+			expect(JSON.stringify(result.content), name).toMatch(/dashboard/i);
+		}
+	});
+
+	it("reads the rules of the country of the user", async () => {
+		const base = db.select().from(transferRule).limit(1).get();
+		if (base === undefined) throw new Error("no rule");
+		db.insert(transferRule)
+			.values({
+				...base,
+				country: "ES",
+				validFrom: "2020-01-01",
+				validTo: null,
+			})
+			.run();
+		db.update(user).set({ country: "ES" }).where(eq(user.id, userId)).run();
+		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
+
+		const body = (await call(client, "get_catalogue")) as {
+			country: string;
+			transferRules: { country: string }[];
+		};
+		expect(body.country).toBe("ES");
+		expect(body.transferRules).toHaveLength(1);
+		expect(body.transferRules[0]?.country).toBe("ES");
+	});
+});
+
 describe("add_snapshot", () => {
 	const TODAY = new Date().toISOString().slice(0, 10);
 

@@ -11,13 +11,16 @@ import {
 	type BillingRedirectResponse,
 	billingRequestSchema,
 	type CatalogueResponse,
+	COUNTRY_FIXED,
 	type ConnectionsResponse,
 	createAccountSchema,
 	type FavoritesResponse,
 	type MeResponse,
 	NO_CUSTOMER,
 	type PotentialResponse,
+	REVIEWER_ACCOUNT,
 	SUPPORTER_REQUIRED,
+	setCountrySchema,
 	setUnlimitedSchema,
 	TOO_MANY_ACCOUNTS,
 } from "../shared/api.ts";
@@ -43,6 +46,7 @@ import {
 	allCurrencies,
 	allPrograms,
 	countAccounts,
+	countryOf,
 	createAccount,
 	currentBalances,
 	deleteAccount,
@@ -53,6 +57,7 @@ import {
 	listUsers,
 	removeFavorite,
 	revokeConnection,
+	setCountry,
 	setUnlimited,
 } from "./db/queries.ts";
 import { createMcpHandler } from "./mcp.ts";
@@ -63,6 +68,7 @@ import {
 	recordSnapshot,
 	today,
 } from "./operations.ts";
+import { removeUser } from "./removal.ts";
 import type { Billing } from "./stripe.ts";
 
 /**
@@ -481,11 +487,11 @@ export function createApp(
 	 * of two currencies: the user cannot send the same points to two currencies.
 	 */
 	app.get("/api/potential", (c) => {
-		const body: PotentialResponse = potentialOf(
-			db,
-			c.get("userId"),
-			today(new Date()),
-		);
+		const result = potentialOf(db, c.get("userId"), today(new Date()));
+		if (!result.ok) {
+			return c.json({ error: result.error }, 409);
+		}
+		const body: PotentialResponse = result.value;
 		return c.json(body);
 	});
 
@@ -499,8 +505,43 @@ export function createApp(
 			...entitlementOf(db, c.get("userId"), limits, new Date()),
 			billing:
 				billing === undefined ? null : billingStateOf(db, c.get("userId")),
+			country: countryOf(db, c.get("userId")),
 		};
 		return c.json(body);
+	});
+
+	/**
+	 * Removes the user and each row of the user. Paragraph 4.9 of
+	 * `docs/architecture.md` gives the decisions.
+	 */
+	app.delete("/api/me", async (c) => {
+		const result = await removeUser(db, billing, c.get("userId"));
+		if (result.ok) {
+			return c.body(null, 204);
+		}
+		return result.error === REVIEWER_ACCOUNT
+			? c.json({ error: result.error }, 403)
+			: c.json({ error: result.error }, 503);
+	});
+
+	/**
+	 * Writes the country of the user, after the first sign-in.
+	 *
+	 * The method is `PUT`: the same country two times gives the same state. An
+	 * other country gives the status 409, because the country does not change.
+	 * Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
+	 */
+	app.put("/api/me/country", async (c) => {
+		const body = setCountrySchema.safeParse(
+			await c.req.json().catch(() => null),
+		);
+		if (!body.success) {
+			return c.json({ error: "invalid_body" }, 400);
+		}
+		if (!setCountry(db, c.get("userId"), body.data.country)) {
+			return c.json({ error: COUNTRY_FIXED }, 409);
+		}
+		return c.body(null, 204);
 	});
 
 	if (billing !== undefined) {

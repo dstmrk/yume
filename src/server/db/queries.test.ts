@@ -10,6 +10,7 @@ import {
 	allPrograms,
 	allTransferRules,
 	countAccounts,
+	countryOf,
 	createAccount,
 	currentBalances,
 	deleteAccount,
@@ -22,6 +23,7 @@ import {
 	listUsers,
 	removeFavorite,
 	revokeConnection,
+	setCountry,
 	setUnlimited,
 	tierSourceOf,
 } from "./queries.ts";
@@ -1174,5 +1176,31 @@ describe("the connections of the MCP server", () => {
 		expect(hasConnection(db, OTHER_USER, CLAUDE)).toBe(false);
 		revokeConnection(db, USER, CLAUDE);
 		expect(hasConnection(db, USER, CLAUDE)).toBe(false);
+	});
+});
+
+describe("setCountry", () => {
+	it("writes the country of a user with no country", () => {
+		insertUser(db, "new-user", null);
+		expect(countryOf(db, "new-user")).toBeNull();
+		expect(setCountry(db, "new-user", "IT")).toBe(true);
+		expect(countryOf(db, "new-user")).toBe("IT");
+	});
+
+	// The same value two times is a success: two taps give one state.
+	it("gives true for the country that the user already has", () => {
+		expect(setCountry(db, USER, "IT")).toBe(true);
+	});
+
+	// The country does not change. Paragraph 3.3.2 of docs/architecture.md.
+	it("does not change a country", () => {
+		db.update(user).set({ country: "ES" }).where(eq(user.id, USER)).run();
+		expect(setCountry(db, USER, "IT")).toBe(false);
+		expect(countryOf(db, USER)).toBe("ES");
+	});
+
+	it("gives false for a user that does not exist", () => {
+		expect(setCountry(db, "nobody", "IT")).toBe(false);
+		expect(countryOf(db, "nobody")).toBeNull();
 	});
 });

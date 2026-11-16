@@ -121,10 +121,14 @@ this country. The application holds no rule that is valid in each country.
 when the ratio is equal to the ratio of an other country. Read the official page
 of that country.
 
-The catalogue holds the rules of Italy only. The server gives the constant
-`DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the calculation, because no
-surface selects a country. Paragraph 3.3.2 of `docs/architecture.md` gives the
-rule for a second country.
+**Read the country of the user.** `potentialOf` of `src/server/operations.ts`
+reads `user.country`. A user with no country gets `country_required`, not the
+rules of a default country. A public page has no user: it reads
+`DEFAULT_COUNTRY` of `src/shared/catalogue.ts`.
+
+**Add the country to `COUNTRIES` with its rules.** A user can select each
+country of that list. A test of the seed compares the list with the countries
+of the rules. Paragraph 3.3.2 of `docs/architecture.md` gives the rules.
 
 ### To change a ratio
 

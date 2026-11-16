@@ -53,6 +53,12 @@ export const user = sqliteTable("user", {
 	supporterUntil: integer("supporter_until", { mode: "timestamp" }),
 	/** The administrator writes this flag by hand. Paragraph 4.6. */
 	unlimited: integer("unlimited", { mode: "boolean" }).notNull().default(false),
+	/**
+	 * The country of the transfer rules of the user, a value of `COUNTRIES`.
+	 * The first sign-in writes no country: the dashboard then asks for it, and
+	 * `setCountry` writes it one time. Paragraph 3.3.2.
+	 */
+	country: text("country"),
 });
 
 /** A session of a user. Better Auth controls this table. */

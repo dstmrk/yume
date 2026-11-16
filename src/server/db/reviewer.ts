@@ -69,6 +69,9 @@ export async function writeReviewer(
 					emailVerified: false,
 					createdAt: now,
 					updatedAt: now,
+					// The test cases of the two directories read the rules of
+					// Italy: refer to `docs/openai-submission.md`.
+					country: "IT",
 				})
 				.run();
 			tx.insert(account)

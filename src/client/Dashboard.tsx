@@ -13,7 +13,9 @@ import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
 import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
+import { Confirm } from "./components/Confirm.tsx";
 import { ConnectedAssistants } from "./components/ConnectedAssistants.tsx";
+import { CountryStep } from "./components/CountryStep.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { SupporterPanel } from "./components/SupporterPanel.tsx";
@@ -21,6 +23,7 @@ import { Button, buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
 import {
+	deleteUser,
 	fetchAccounts,
 	fetchCatalogue,
 	fetchFavorites,
@@ -39,8 +42,41 @@ import { byValueDesc } from "./lib/sort.ts";
 /**
  * The dashboard. `returned` is true after the return from Stripe Checkout:
  * the section of the supporter account then waits for the webhook.
+ *
+ * A user with no country selects it first: the potential miles need the rules
+ * of a country. Paragraph 3.3.2 of `docs/architecture.md`.
  */
 export function Dashboard(props: { returned: boolean }) {
+	const { t: text } = useI18n();
+	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+
+	if (me.isPending || me.isError) {
+		return (
+			<>
+				<AppTitle />
+				<p className="text-board-muted text-sm">
+					{me.isPending ? text.loading : text.loadError}
+				</p>
+			</>
+		);
+	}
+
+	if (me.data.country === null) {
+		return (
+			<div className="flex flex-col gap-6">
+				<AppTitle />
+				<CountryStep />
+				<SignOutButton />
+				<DeleteUserButton />
+			</div>
+		);
+	}
+
+	return <Board returned={props.returned} />;
+}
+
+/** The surfaces of the dashboard, for a user with a country. */
+function Board(props: { returned: boolean }) {
 	const { t: text, intl } = useI18n();
 	const [expanded, setExpanded] = useState(false);
 	const queryClient = useQueryClient();
@@ -164,6 +200,7 @@ export function Dashboard(props: { returned: boolean }) {
 				/>
 				<AdminLink />
 				<SignOutButton />
+				<DeleteUserButton />
 			</div>
 		);
 	}
@@ -275,6 +312,7 @@ export function Dashboard(props: { returned: boolean }) {
 			/>
 			<AdminLink />
 			<SignOutButton />
+			<DeleteUserButton />
 		</div>
 	);
 }
@@ -295,6 +333,30 @@ function AdminLink() {
 		<Link to="/admin" className={buttonVariants({ variant: "outline" })}>
 			{text.adminLink}
 		</Link>
+	);
+}
+
+/**
+ * The removal of the account of the user, with a question first.
+ *
+ * After the removal the session does not exist. The cache goes away, and the
+ * router sends the user to `/login`, as after the sign-out.
+ */
+function DeleteUserButton() {
+	const { t: text } = useI18n();
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	return (
+		<Confirm
+			label={text.deleteUser}
+			question={text.deleteUserQuestion}
+			action={async () => {
+				await deleteUser();
+				queryClient.clear();
+				await router.invalidate();
+			}}
+			queryKeys={[]}
+		/>
 	);
 }
 

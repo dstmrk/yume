@@ -1,6 +1,6 @@
 ---
 name: stripe-billing
-description: Use this skill for the payment of the supporter account with Stripe. Use it for src/server/billing.ts, src/server/stripe.ts, src/server/stripe-fixtures.ts, src/client/components/SupporterPanel.tsx and src/client/lib/supporter.ts. Use it for the tables stripe_customer and stripe_event, and for the column supporter_until of the table user. Use it for the routes /api/billing/checkout, /api/billing/portal and /api/stripe/webhook, and for the field billing of GET /api/me. Use it for the variables STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET and STRIPE_PRICE_SUPPORTER, for STRIPE_API_VERSION, and for a new version of the package stripe. Use it when you add or change an event of the webhook, when you change the price, when you write a test of a payment, or when you configure Stripe for the official instance.
+description: Use this skill for the payment of the supporter account with Stripe. Use it for src/server/billing.ts, src/server/stripe.ts, src/server/stripe-fixtures.ts, src/client/components/SupporterPanel.tsx and src/client/lib/supporter.ts. Use it for the tables stripe_customer and stripe_event, and for the column supporter_until of the table user. Use it for the routes /api/billing/checkout, /api/billing/portal, /api/stripe/webhook and DELETE /api/me, and for src/server/removal.ts, and for the field billing of GET /api/me. Use it for the variables STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET and STRIPE_PRICE_SUPPORTER, for STRIPE_API_VERSION, and for a new version of the package stripe. Use it when you add or change an event of the webhook, when you change the price, when you write a test of a payment, or when you configure Stripe for the official instance.
 ---
 
 # stripe-billing — the payment of the supporter account
@@ -68,6 +68,13 @@ event in `stripe_event` stops a duplicate. These rules stop an old state:
   nothing. Only `checkout.session.completed` replaces the subscription.
 - **An unknown customer gets the status 200.** A failure makes Stripe send the event
   again for 3 days, and a shared account sends the events of other applications.
+
+## 3.1 The removal of a user
+
+`removeUser` of `src/server/removal.ts` calls `deleteCustomer` before it removes the
+user. Stripe cancels each subscription of a removed customer immediately. Do not remove
+the user first: Stripe then charges the card of a user that does not exist. Paragraph
+4.9 of `docs/architecture.md` gives the rules.
 
 ## 4. The transaction
 

@@ -445,3 +445,40 @@ describe("POST /api/stripe/webhook", () => {
 		);
 	});
 });
+
+describe("DELETE /api/me with the payment", () => {
+	it("removes the customer in Stripe, then the user", async () => {
+		insertCustomer("active");
+		const { app, calls } = appWith(() => ({
+			body: { id: "cus_1", object: "customer", deleted: true },
+		}));
+
+		const response = await app.request("/api/me", {
+			method: "DELETE",
+			headers: { cookie, origin: BASE_URL },
+		});
+
+		expect(response.status).toBe(204);
+		expect(calls.map((call) => [call.method, call.path])).toEqual([
+			["DELETE", "/v1/customers/cus_1"],
+		]);
+		expect(db.select().from(user).where(eq(user.id, userId)).all()).toEqual([]);
+	});
+
+	it("gives the status 503 and removes nothing when Stripe does not answer", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		insertCustomer("active");
+		const { app } = appWith(() => STRIPE_ERROR);
+
+		const response = await app.request("/api/me", {
+			method: "DELETE",
+			headers: { cookie, origin: BASE_URL },
+		});
+
+		expect(response.status).toBe(503);
+		expect(await response.json()).toEqual({ error: "payment_unavailable" });
+		expect(
+			db.select().from(user).where(eq(user.id, userId)).all(),
+		).toHaveLength(1);
+	});
+});

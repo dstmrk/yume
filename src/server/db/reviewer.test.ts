@@ -58,6 +58,14 @@ describe("writeReviewer", () => {
 		expect(row?.supporterUntil).toBeNull();
 	});
 
+	// The test cases of the directories read the rules of Italy. The reviewer
+	// then finds no question of the country on the dashboard.
+	it("makes a user of the country IT", async () => {
+		await writeReviewer(db, EMAIL, PASSWORD);
+
+		expect(db.select().from(user).all()[0]?.country).toBe("IT");
+	});
+
 	// Better Auth writes the address in lower case at the sign-in.
 	it("writes the address in lower case with no spaces", async () => {
 		await writeReviewer(db, "  Reviewer@Example.COM ", PASSWORD);

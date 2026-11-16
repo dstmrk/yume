@@ -190,7 +190,8 @@ calculate them again before the submission.
   | `revolut` | 1 for 1 | 1 | 1 |
   | `klarna` | 8002 for 10000 | 100 | 100 |
 
-- **Fixture:** none. The catalogue is the same for each user.
+- **Fixture:** none. The script of section 3 gives the country `IT` to the account of
+  the reviewers, thus the tool reads the rules of Italy.
 
 ### Positive case 4: a new balance
 

@@ -7,7 +7,12 @@
  */
 
 import { z } from "zod";
-import type { Currency, Program } from "./catalogue.ts";
+import {
+	COUNTRIES,
+	type Country,
+	type Currency,
+	type Program,
+} from "./catalogue.ts";
 import { LOCALES } from "./locale.ts";
 import type { PotentialMiles } from "./potential.ts";
 import type { AccountTier } from "./tier.ts";
@@ -127,6 +132,24 @@ export const TOO_MANY_ACCOUNTS = "too_many_accounts";
 export const SUPPORTER_REQUIRED = "supporter_required";
 
 /**
+ * The error of a request that needs the country of the user, before the user
+ * selects it. The dashboard then asks for the country. Paragraph 3.3.2 of
+ * `docs/architecture.md` gives the rule.
+ */
+export const COUNTRY_REQUIRED = "country_required";
+
+/** The error of a request that changes the country of the user. */
+export const COUNTRY_FIXED = "country_fixed";
+
+/**
+ * The body of `PUT /api/me/country`. The list holds the countries of the
+ * catalogue only.
+ */
+export const setCountrySchema = z.strictObject({ country: z.enum(COUNTRIES) });
+
+export type SetCountryInput = z.infer<typeof setCountrySchema>;
+
+/**
  * The body of `PUT /api/admin/users/:id/unlimited`.
  *
  * The schema is strict: the administrator writes the flag only. The payment
@@ -163,6 +186,12 @@ export const NO_CUSTOMER = "no_customer";
  * with the status 503. The user can try again.
  */
 export const PAYMENT_UNAVAILABLE = "payment_unavailable";
+
+/**
+ * The error of the removal of the account of the reviewers. Paragraph 4.1.1
+ * of `docs/architecture.md`: the administrator removes it with the script.
+ */
+export const REVIEWER_ACCOUNT = "reviewer_account";
 
 export type BillingRequest = z.infer<typeof billingRequestSchema>;
 
@@ -238,6 +267,8 @@ export type MeResponse = {
 	tier: AccountTier;
 	/** The state of the payment, or null on an instance with no payment. */
 	billing: BillingState | null;
+	/** The country of the transfer rules, or null before the choice. */
+	country: Country | null;
 };
 
 /**

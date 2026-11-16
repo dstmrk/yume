@@ -16,7 +16,7 @@
 
 import { createHash } from "node:crypto";
 import { eq } from "drizzle-orm";
-import type Stripe from "stripe";
+import Stripe from "stripe";
 import {
 	ALREADY_SUBSCRIBED,
 	type BillingState,
@@ -416,6 +416,43 @@ export async function startPortal(
 		return { ok: true, url: session.url };
 	} catch (error) {
 		console.error("The portal of Stripe failed.", error);
+		return { ok: false, error: PAYMENT_UNAVAILABLE };
+	}
+}
+
+/** The result of `deleteCustomer`. */
+export type DeleteCustomerResult =
+	| { ok: true }
+	| { ok: false; error: typeof PAYMENT_UNAVAILABLE };
+
+/**
+ * Removes the customer of the user in Stripe, before the removal of the user.
+ *
+ * Stripe then cancels each active subscription of the customer immediately,
+ * with no refund. Without this request Stripe charges the card of a user that
+ * does not exist. A customer that Stripe no longer holds is a success: a first
+ * removal can stop after the request. Paragraph 4.9 of `docs/architecture.md`
+ * gives the decision.
+ */
+export async function deleteCustomer(
+	db: Db,
+	billing: Billing | undefined,
+	userId: string,
+): Promise<DeleteCustomerResult> {
+	const row = findCustomer(db, userId);
+	if (row === undefined) return { ok: true };
+	if (billing === undefined) return { ok: false, error: PAYMENT_UNAVAILABLE };
+	try {
+		await billing.stripe.customers.del(row.customerId);
+		return { ok: true };
+	} catch (error) {
+		if (
+			error instanceof Stripe.errors.StripeError &&
+			error.code === "resource_missing"
+		) {
+			return { ok: true };
+		}
+		console.error("The removal of the customer of Stripe failed.", error);
 		return { ok: false, error: PAYMENT_UNAVAILABLE };
 	}
 }
