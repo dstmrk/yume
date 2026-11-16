@@ -188,7 +188,7 @@ calculate them again before the submission.
   |---|---|---|---|
   | `amex-mr` | 4 for 5 | 500 | 500 |
   | `revolut` | 1 for 1 | 1 | 1 |
-  | `klarna` | 8002 for 10000 | 100 | 100 |
+  | `klarna` | 7817 for 10000 | 100 | 100 |
 
 - **Fixture:** none. The script of section 3 gives the country `IT` to the account of
   the reviewers, thus the tool reads the rules of Italy.
