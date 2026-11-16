@@ -37,12 +37,18 @@ export const CLIENT_PATHS = [
  * The function removes one slash at the end, because `/login/` and `/login` are
  * one page for the router. It keeps the case: two addresses that hold a
  * different case are two addresses for a search engine.
+ *
+ * `localPath` writes each path of the list with the words of a language:
+ * refer to `localeRouting` of `locale.ts`.
  */
-export function isClientPath(path: string): boolean {
+export function isClientPath(
+	path: string,
+	localPath: (path: string) => string = (same) => same,
+): boolean {
 	const trimmed =
 		path.length > 1 && path.endsWith("/") ? path.slice(0, -1) : path;
 
-	return CLIENT_PATHS.some((clientPath) => clientPath === trimmed);
+	return CLIENT_PATHS.some((clientPath) => localPath(clientPath) === trimmed);
 }
 
 /**
@@ -63,10 +69,16 @@ export function pageOfPath(
 	languages: LocaleOfPath<string> = routing,
 ): { locale: string; found: boolean } {
 	const { locale, path: rest } = languages.localeOfPath(path);
-	return { locale, found: isClientPath(rest) };
+	return {
+		locale,
+		found: isClientPath(rest, (clientPath) =>
+			languages.localPath(locale, clientPath),
+		),
+	};
 }
 
 /** The part of `localeRouting` that this file reads. */
 type LocaleOfPath<L extends string> = {
 	localeOfPath(path: string): { locale: L; path: string };
+	localPath(locale: L, path: string): string;
 };

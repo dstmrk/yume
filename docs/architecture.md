@@ -2083,6 +2083,24 @@ The path `/it/login` is not a second address of `/login`. The base language has 
 prefix, thus that path gives the status 404. Two addresses for one page divide the
 results of a search engine.
 
+**A public path holds the words of its language.** Status: **accepted**. Date:
+2026-11-16. The code writes the Italian path, for example `/miglia/avios`. A language
+gives its own word to the segments `calcolatore`, `miglia` and `punti` in
+`SEGMENT_WORDS` of `src/shared/locale.ts`. Spanish then writes `/es/millas/avios`.
+
+- The Italian paths do not change. The search engines already hold them, and a change
+  needs a redirect for each address.
+- A person searches with the words of the language, and the result shows the address.
+- The other paths stay the same in each language: the legal pages, `/guide/` and the
+  private pages. A guide has the slug of its language in the dictionary.
+- `routing.pathFor` writes the prefix and the words. Each link, each file of the
+  pre-render, the sitemap and the links `hreflang` use it.
+- The Italian word under a prefix is no page: `/es/calcolatore` gives the status 404,
+  from the server and from the router. `codePath` gives null for it.
+- The router holds the paths of the code. The option `rewrite` of TanStack Router
+  translates the address: `pathRewrite` of `src/client/lib/rewrite.ts`. Thus the routes
+  keep their types.
+
 `src/shared/locale.ts` holds the list `LOCALES`, the base language and the tags of each
 language: the attribute `lang`, the locale of `Intl` and the value of `og:locale`. The
 function `localeRouting` gives `localeOfPath` and `pathFor` for a list of languages. The

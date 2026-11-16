@@ -89,11 +89,15 @@ Before you add a page, ask the user. Rule 9 of `CLAUDE.md` applies.
 1. Add the text to `i18n/it.ts`.
 2. Add the route to `router.tsx`. A path with no parameter goes also in `CLIENT_PATHS`
    and in the list `PUBLIC` of `src/shared/routes.test.ts`.
-3. Add the page to `PAGES` of `prerender.tsx`, with its structured data.
+3. Add the page to `pagesOf` of `prerender.tsx`, with its structured data. A page with
+   an other path in each language, for example a guide, gives `pathIn`.
 4. Add the path to `publicPaths` of `lib/pages.ts`. The sitemap and the links of
    `llms.txt` then hold it.
-5. Link the page from the public page or from a page that links it already.
-6. Run `npm run build`, then read the file in `dist/`. Examine the title, the canonical
+5. Write each link with `routing.pathFor`, never with a fixed path: that function
+   writes the prefix and the words of the language (`SEGMENT_WORDS`). A new first
+   segment of a public path goes in `SEGMENTS` of `src/shared/locale.ts`.
+6. Link the page from the public page or from a page that links it already.
+7. Run `npm run build`, then read the file in `dist/`. Examine the title, the canonical
    address, the robots tag and each script `application/ld+json`.
 
 ## 9. Examine the instance, not the repository

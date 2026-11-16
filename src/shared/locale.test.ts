@@ -103,7 +103,108 @@ describe("pathFor", () => {
 	});
 });
 
+// A second language with its own words in the path. The Italian path is the
+// path in the code: the routing writes the word of the language.
+const local = localeRouting(["it", "en"], "it", {
+	en: { calcolatore: "calculator", miglia: "miles" },
+});
+
+describe("localPath", () => {
+	it("writes the word of the language for the first segment", () => {
+		expect(local.localPath("en", "/calcolatore")).toBe("/calculator");
+		expect(local.localPath("en", "/miglia")).toBe("/miles");
+		expect(local.localPath("en", "/miglia/avios")).toBe("/miles/avios");
+	});
+
+	it("keeps a segment with no word of the language", () => {
+		expect(local.localPath("en", "/punti/amex")).toBe("/punti/amex");
+		expect(local.localPath("en", "/login")).toBe("/login");
+		expect(local.localPath("en", "/")).toBe("/");
+	});
+
+	// Only a full segment changes: `/miglia-extra` is not `/miglia`.
+	it("changes only a full segment", () => {
+		expect(local.localPath("en", "/miglia-extra")).toBe("/miglia-extra");
+		expect(local.localPath("en", "/x/miglia")).toBe("/x/miglia");
+	});
+
+	it("keeps the path of the base language", () => {
+		expect(local.localPath("it", "/calcolatore")).toBe("/calcolatore");
+	});
+
+	it("gives the word to pathFor, after the prefix", () => {
+		expect(local.pathFor("en", "/miglia/avios")).toBe("/en/miles/avios");
+		expect(local.pathFor("it", "/miglia/avios")).toBe("/miglia/avios");
+	});
+
+	// `localeOfPath` gives the path of the language. The server and the router
+	// compare it with `localPath`, thus `/en/calcolatore` is no page.
+	it("gives the path of the language from localeOfPath", () => {
+		expect(local.localeOfPath("/en/miles/avios")).toEqual({
+			locale: "en",
+			path: "/miles/avios",
+		});
+	});
+});
+
+describe("codePath", () => {
+	it("gives the path of the code for the word of the language", () => {
+		expect(local.codePath("en", "/calculator")).toBe("/calcolatore");
+		expect(local.codePath("en", "/miles/avios")).toBe("/miglia/avios");
+	});
+
+	it("keeps a path with no word of the language", () => {
+		expect(local.codePath("en", "/login")).toBe("/login");
+		expect(local.codePath("en", "/punti/amex")).toBe("/punti/amex");
+		expect(local.codePath("en", "/")).toBe("/");
+		expect(local.codePath("it", "/calcolatore")).toBe("/calcolatore");
+	});
+
+	// `/en/calcolatore` is the Italian word under the prefix of English: no
+	// page. A second address of one page divides the results of a search.
+	it("gives null to a segment that the language writes with its own word", () => {
+		expect(local.codePath("en", "/calcolatore")).toBeNull();
+		expect(local.codePath("en", "/miglia/avios")).toBeNull();
+	});
+
+	it("reverses localPath", () => {
+		for (const path of ["/", "/calcolatore", "/miglia/avios", "/punti/x"]) {
+			for (const locale of ["it", "en"] as const) {
+				expect(local.codePath(locale, local.localPath(locale, path))).toBe(
+					path,
+				);
+			}
+		}
+	});
+});
+
 describe("localeRouting", () => {
+	it("refuses a word that is not a segment of a path", () => {
+		expect(() =>
+			localeRouting(["it", "en"], "it", { en: { miglia: "Miles" } }),
+		).toThrow();
+		expect(() =>
+			localeRouting(["it", "en"], "it", { en: { miglia: "mi/les" } }),
+		).toThrow();
+	});
+
+	// Two segments with one word give two pages at one address.
+	it("refuses the same word for two segments of a language", () => {
+		expect(() =>
+			localeRouting(["it", "en"], "it", {
+				en: { miglia: "miles", punti: "miles" },
+			}),
+		).toThrow();
+	});
+
+	// The word of one segment must not be an other Italian segment: `/en/punti`
+	// is then two pages.
+	it("refuses a word that is an other segment of the code", () => {
+		expect(() =>
+			localeRouting(["it", "en"], "it", { en: { miglia: "punti" } }),
+		).toThrow();
+	});
+
 	it("refuses a base language that the list does not hold", () => {
 		expect(() => localeRouting(["it"], "en")).toThrow();
 	});

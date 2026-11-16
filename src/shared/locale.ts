@@ -37,6 +37,27 @@ export const LOCALE_TAGS: Record<Locale, LocaleTags> = {
 };
 
 /**
+ * The segments of a path that each language writes with its own word.
+ *
+ * The code writes the Italian path, for example `/miglia/avios`. A language
+ * with a word for `miglia` gives `/millas/avios`. The other paths stay the
+ * same in each language: the legal pages, the guides and the private pages.
+ * Paragraph 5.8 of `docs/architecture.md` gives the rules.
+ */
+export const SEGMENTS = ["calcolatore", "miglia", "punti"] as const;
+
+export type Segment = (typeof SEGMENTS)[number];
+
+/** The words of the segments of a language. A missing word keeps the segment. */
+export type SegmentWords = Readonly<Partial<Record<Segment, string>>>;
+
+/** The words of each language of the application. */
+export const SEGMENT_WORDS: Readonly<Record<Locale, SegmentWords>> = { it: {} };
+
+/** A word of a path: lower case letters, digits and hyphens. */
+const WORD = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
+/**
  * The functions of the path for a list of languages.
  *
  * The application uses `routing`, with `LOCALES`. A test gives a list with a
@@ -46,6 +67,9 @@ export const LOCALE_TAGS: Record<Locale, LocaleTags> = {
 export function localeRouting<L extends string>(
 	locales: readonly L[],
 	base: L,
+	words: Readonly<Partial<Record<L, SegmentWords>>> = {} as Readonly<
+		Partial<Record<L, SegmentWords>>
+	>,
 ) {
 	if (!locales.includes(base)) {
 		throw new Error(`The base language ${base} is not in the list.`);
@@ -53,8 +77,53 @@ export function localeRouting<L extends string>(
 	if (new Set(locales).size !== locales.length) {
 		throw new Error("The list holds the same language two times.");
 	}
+	for (const [locale, table] of Object.entries(words) as [L, SegmentWords][]) {
+		const values = Object.values(table);
+		if (new Set(values).size !== values.length) {
+			throw new Error(`The language ${locale} gives one word to two segments.`);
+		}
+		for (const [segment, word] of Object.entries(table)) {
+			if (!WORD.test(word)) {
+				throw new Error(`The word ${word} of ${locale} is not a segment.`);
+			}
+			if (word !== segment && (SEGMENTS as readonly string[]).includes(word)) {
+				throw new Error(`The word ${word} of ${locale} is an other segment.`);
+			}
+		}
+	}
 
 	const prefixed = locales.filter((locale) => locale !== base);
+
+	/** Writes the first segment of a path with the word of the language. */
+	function localPath(locale: L, path: string): string {
+		const table: Record<string, string | undefined> = words[locale] ?? {};
+		const end = path.indexOf("/", 1);
+		const segment = end === -1 ? path.slice(1) : path.slice(1, end);
+		const word = table[segment];
+		if (word === undefined) {
+			return path;
+		}
+		return `/${word}${end === -1 ? "" : path.slice(end)}`;
+	}
+
+	/**
+	 * Gives the path of the code for a path of the language: the opposite of
+	 * `localPath`. The Italian segment of a language with its own word gives
+	 * null: `/es/calcolatore` is no page, because `/es/calculadora` is.
+	 */
+	function codePath(locale: L, path: string): string | null {
+		const table: Record<string, string | undefined> = words[locale] ?? {};
+		const end = path.indexOf("/", 1);
+		const segment = end === -1 ? path.slice(1) : path.slice(1, end);
+		const rest = end === -1 ? "" : path.slice(end);
+		for (const [code, word] of Object.entries(table)) {
+			if (word === segment) {
+				return `/${code}${rest}`;
+			}
+		}
+		const own = table[segment];
+		return own !== undefined && own !== segment ? null : path;
+	}
 
 	return {
 		/**
@@ -64,6 +133,8 @@ export function localeRouting<L extends string>(
 		 * no prefix, thus `/it/login` stays a path of the base language, and
 		 * the server gives the status 404 to it. Two addresses for one page
 		 * divide the results of a search engine.
+		 *
+		 * The path keeps the words of the language. Compare it with `localPath`.
 		 */
 		localeOfPath(path: string): { locale: L; path: string } {
 			for (const locale of prefixed) {
@@ -78,18 +149,25 @@ export function localeRouting<L extends string>(
 			return { locale: base, path };
 		},
 
-		/** Writes the path of a page in a language. */
+		localPath,
+		codePath,
+
+		/**
+		 * Writes the path of a page in a language: the prefix, then the path
+		 * with the words of the language.
+		 */
 		pathFor(locale: L, path: string): string {
 			if (!path.startsWith("/")) {
 				throw new Error(`The path ${path} has no slash at the start.`);
 			}
+			const local = localPath(locale, path);
 			if (locale === base) {
-				return path;
+				return local;
 			}
-			return `/${locale}${path}`;
+			return `/${locale}${local}`;
 		},
 	};
 }
 
 /** The routing of the application. */
-export const routing = localeRouting(LOCALES, BASE_LOCALE);
+export const routing = localeRouting(LOCALES, BASE_LOCALE, SEGMENT_WORDS);

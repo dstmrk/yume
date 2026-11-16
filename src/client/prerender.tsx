@@ -129,8 +129,10 @@ if (!html.includes(HEAD_END)) {
 
 /** A static page of the build: its path, its elements and its head. */
 type StaticPage = {
-	/** The path with no prefix of the language. */
+	/** The path in the code, with no prefix of the language. */
 	path: string;
+	/** The path of the same page in an other language, when it is different. */
+	pathIn?: (locale: Locale) => string;
 	element: ReactNode;
 	title: (i18n: I18n) => string;
 	description: (i18n: I18n) => string;
@@ -325,8 +327,11 @@ function pagesOf(locale: Locale): StaticPage[] {
 			}),
 		),
 		...i18nOf(locale).t.guides.items.map(
-			(guide): StaticPage => ({
+			(guide, index): StaticPage => ({
 				path: PATHS.guide(guide.slug),
+				// The same guide has the same index in each language.
+				pathIn: (other) =>
+					PATHS.guide(i18nOf(other).t.guides.items[index]?.slug ?? guide.slug),
 				element: <GuidePage slug={guide.slug} />,
 				title: () => guide.metaTitle,
 				description: () => guide.description,
@@ -398,6 +403,7 @@ for (const locale of LOCALES) {
 			site: SITE_URL,
 			locale,
 			path: page.path,
+			pathIn: page.pathIn,
 			routing,
 			locales: LOCALES,
 			base: BASE_LOCALE,

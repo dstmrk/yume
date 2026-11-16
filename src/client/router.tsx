@@ -26,6 +26,7 @@ import {
 	Outlet,
 	redirect,
 } from "@tanstack/react-router";
+import { type Locale, routing } from "../shared/locale.ts";
 import { AdminPage } from "./AdminPage.tsx";
 import { AppShell } from "./AppShell.tsx";
 import { CalculatorPage } from "./CalculatorPage.tsx";
@@ -39,6 +40,7 @@ import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchMe, fetchSession } from "./lib/api.ts";
 import { loginErrorOf } from "./lib/auth.ts";
+import { pathRewrite } from "./lib/rewrite.ts";
 import { checkoutReturned } from "./lib/supporter.ts";
 import { NotFoundPage } from "./NotFoundPage.tsx";
 import { SourcePage } from "./SourcePage.tsx";
@@ -218,12 +220,17 @@ const routeTree = rootRoute.addChildren([
 /**
  * The router of a page in one language.
  *
- * `basepath` is the prefix of the language, for example `/en`, or `/` for the
- * base language. A change of the language loads a new page, thus one page
- * holds one router.
+ * The basepath is the prefix of the language, for example `/es`, or `/` for
+ * the base language. The rewrite gives the words of the language to the path:
+ * the routes hold the paths of the code. A change of the language loads a new
+ * page, thus one page holds one router.
  */
-export function createAppRouter(basepath: string) {
-	return createRouter({ routeTree, basepath });
+export function createAppRouter(locale: Locale) {
+	return createRouter({
+		routeTree,
+		basepath: routing.pathFor(locale, "/"),
+		rewrite: pathRewrite(routing, locale),
+	});
 }
 
 declare module "@tanstack/react-router" {
