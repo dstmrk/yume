@@ -124,13 +124,12 @@ These rules prevent the most dangerous defects in this application:
 5. **Give a source for each ratio.** Read the official page. Do not write a ratio from
    memory. Write the link of that page in a comment above the rule, in
    `src/server/db/seed/catalogue.ts`. The database keeps no link: the source is a note
-   for the author of the catalogue, and no surface shows it. A session of the harness
-   cannot read those pages: the tool of the web and a real browser both receive the
-   status 403 or 405, or the error `ERR_HTTP2_PROTOCOL_ERROR`. Turkish, Iberia, Flying
-   Blue, British Airways, Aer Lingus, Qatar and Klarna all give one of those results.
-   The Playwright server of `PLAYWRIGHT_URL` also receives the status 403 from each
-   domain of Klarna. Thus a person reads the page and gives the value. Do not take the
-   value from a blog.
+   for the author of the catalogue, and no surface shows it. An agent reads the page,
+   and a second agent reads it again with no access to the first value. The skill
+   `catalogue-discovery` gives the method and the tools. Some pages refuse the session:
+   Revolut and Klarna give the status 403 also to the Playwright server. Then the agent
+   reads the page in the browser of the user, in a local session. Do not take the value
+   from a blog.
 6. **Give a country to each transfer rule.** The field `country` holds a country in the
    ISO 3166-1 alpha-2 format, for example `IT`. The field is not null, and it is part of
    the key with `validFrom`. The partners and the ratios change with the country, thus
@@ -401,6 +400,7 @@ and the catalogue.
 | `conversion-math` | The calculation of the potential miles. The sequence of the steps with integers, the difference between a currency and a programme, and the selection of a versioned rule. |
 | `stripe-billing` | The payment of the supporter account. The one writer of `supporter_until`, the events of the webhook, their order, the tests with no network and the configuration of Stripe. |
 | `seo-content` | The public pages for the search engines and the assistants. The pages of the catalogue, the calculator, the guides, the sitemap, `llms.txt` and the structured data. |
+| `catalogue-discovery` | The transfer rules of a country from the official pages. The two agents, the tools that read a page and the record of the source in the pull request. |
 
 The harness reads the field `description` of a skill. Then the harness starts the skill
 for a task that matches. Write the names of the files and of the fields in the
@@ -411,5 +411,6 @@ description. Thus the correct task starts the skill.
 Ask the user before you do these operations:
 
 - add a new dependency
-- change a value in the catalogue of programmes or in the transfer rules
+- change a value in the catalogue of programmes or in the transfer rules. The pull
+  request of the skill `catalogue-discovery` is that question: the user merges it
 - change a decision in `docs/architecture.md`
