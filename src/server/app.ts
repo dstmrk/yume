@@ -18,6 +18,7 @@ import {
 	type MeResponse,
 	NO_CUSTOMER,
 	type PotentialResponse,
+	REVIEWER_ACCOUNT,
 	SUPPORTER_REQUIRED,
 	setCountrySchema,
 	setUnlimitedSchema,
@@ -67,6 +68,7 @@ import {
 	recordSnapshot,
 	today,
 } from "./operations.ts";
+import { removeUser } from "./removal.ts";
 import type { Billing } from "./stripe.ts";
 
 /**
@@ -506,6 +508,20 @@ export function createApp(
 			country: countryOf(db, c.get("userId")),
 		};
 		return c.json(body);
+	});
+
+	/**
+	 * Removes the user and each row of the user. Paragraph 4.9 of
+	 * `docs/architecture.md` gives the decisions.
+	 */
+	app.delete("/api/me", async (c) => {
+		const result = await removeUser(db, billing, c.get("userId"));
+		if (result.ok) {
+			return c.body(null, 204);
+		}
+		return result.error === REVIEWER_ACCOUNT
+			? c.json({ error: result.error }, 403)
+			: c.json({ error: result.error }, 503);
 	});
 
 	/**

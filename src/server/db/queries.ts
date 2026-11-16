@@ -15,6 +15,7 @@ import type { Country } from "../../shared/catalogue.ts";
 import type { TierSource } from "../../shared/tier.ts";
 import type { Db } from "./index.ts";
 import {
+	account,
 	balanceSnapshot,
 	currency,
 	expiryLot,
@@ -529,6 +530,23 @@ export function setUnlimited(
 		.where(eq(user.id, userId))
 		.run();
 	return result.changes > 0;
+}
+
+/**
+ * True when the user signs in with a password: the account of the reviewers.
+ * A person signs in with Google only. Paragraph 4.1.1 of
+ * `docs/architecture.md`.
+ */
+export function hasPassword(db: Db, userId: string): boolean {
+	return (
+		db
+			.select({ id: account.id })
+			.from(account)
+			.where(
+				and(eq(account.userId, userId), eq(account.providerId, "credential")),
+			)
+			.get() !== undefined
+	);
 }
 
 /**

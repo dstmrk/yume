@@ -187,6 +187,12 @@ export const NO_CUSTOMER = "no_customer";
  */
 export const PAYMENT_UNAVAILABLE = "payment_unavailable";
 
+/**
+ * The error of the removal of the account of the reviewers. Paragraph 4.1.1
+ * of `docs/architecture.md`: the administrator removes it with the script.
+ */
+export const REVIEWER_ACCOUNT = "reviewer_account";
+
 export type BillingRequest = z.infer<typeof billingRequestSchema>;
 
 /** The answer of the two routes of the payment: the address of Stripe. */

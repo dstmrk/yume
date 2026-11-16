@@ -249,6 +249,11 @@ export function fetchMe(): Promise<MeResponse> {
 	return request<MeResponse>("GET", "/api/me");
 }
 
+/** Removes the user and each row of the user. Paragraph 4.9. */
+export function deleteUser(): Promise<void> {
+	return request<void>("DELETE", "/api/me");
+}
+
 /** Writes the country of the user, one time after the first sign-in. */
 export function setCountry(country: Country): Promise<void> {
 	return request<void>("PUT", "/api/me/country", { country });

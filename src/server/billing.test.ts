@@ -3,6 +3,7 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	billingStateOf,
+	deleteCustomer,
 	handleStripeEvent,
 	startCheckout,
 	startPortal,
@@ -894,5 +895,66 @@ describe("startPortal", () => {
 		expect(
 			await startPortal(db, billing, { userId: USER, returnUrl: RETURN_URL }),
 		).toEqual({ ok: false, error: "payment_unavailable" });
+	});
+});
+
+describe("deleteCustomer", () => {
+	it("removes the customer in Stripe", async () => {
+		insertCustomer({ subscriptionId: "sub_1", status: "active" });
+		const { billing, calls } = fakeStripe(() => ({
+			body: { id: "cus_1", object: "customer", deleted: true },
+		}));
+
+		expect(await deleteCustomer(db, billing, USER)).toEqual({ ok: true });
+		expect(calls.map((call) => [call.method, call.path])).toEqual([
+			["DELETE", "/v1/customers/cus_1"],
+		]);
+	});
+
+	it("sends no request for a user with no customer", async () => {
+		const { billing, calls } = noNetwork();
+
+		expect(await deleteCustomer(db, billing, USER)).toEqual({ ok: true });
+		expect(calls).toEqual([]);
+	});
+
+	// A first removal can remove the customer and then fail in the database.
+	// The second removal then finds no customer in Stripe.
+	it("accepts a customer that Stripe no longer holds", async () => {
+		insertCustomer();
+		const { billing } = fakeStripe(() => ({
+			status: 404,
+			body: {
+				error: {
+					type: "invalid_request_error",
+					code: "resource_missing",
+					message: "No such customer: 'cus_1'",
+				},
+			},
+		}));
+
+		expect(await deleteCustomer(db, billing, USER)).toEqual({ ok: true });
+	});
+
+	// Without the removal Stripe charges the card of a user that does not exist.
+	it("gives an error when Stripe does not answer", async () => {
+		vi.spyOn(console, "error").mockImplementation(() => {});
+		insertCustomer();
+		const { billing } = fakeStripe(() => STRIPE_ERROR);
+
+		expect(await deleteCustomer(db, billing, USER)).toEqual({
+			ok: false,
+			error: "payment_unavailable",
+		});
+	});
+
+	// An instance that loses the variables of Stripe cannot stop a renewal.
+	it("gives an error for a customer on an instance with no payment", async () => {
+		insertCustomer();
+
+		expect(await deleteCustomer(db, undefined, USER)).toEqual({
+			ok: false,
+			error: "payment_unavailable",
+		});
 	});
 });

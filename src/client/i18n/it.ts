@@ -321,6 +321,9 @@ export const it = {
 	removeAccount: "Rimuovi conto",
 	removeAccountQuestion: "Rimuovi il conto e tutti i suoi saldi?",
 	removeError: "Rimozione non riuscita.",
+	deleteUser: "Elimina account",
+	deleteUserQuestion:
+		"Elimini l'account e tutti i suoi dati? È definitivo, e un abbonamento attivo termina subito.",
 	confirm: "Conferma",
 
 	// The assistants connected to the MCP server. Paragraph 4.7.2 of
@@ -773,12 +776,12 @@ export const it = {
 				title: "9. Periodo di conservazione",
 				paragraphs: [],
 				items: [
-					"Account, programmi e saldi: finché l'account esiste. Dopo una richiesta di cancellazione sono eliminati entro 30 giorni.",
+					"Account, programmi e saldi: finché l'account esiste. Dopo la cancellazione dell'account sono eliminati entro 30 giorni.",
 					"Sessione, con indirizzo IP e browser: finché la sessione esiste. Una sessione scade 7 giorni dopo l'ultimo uso e si chiude subito con Esci.",
 					"Autorizzazione di un assistente AI: finché non la revochi o non cancelli l'account.",
 					"Identificativi e stato dell'abbonamento: finché l'account esiste. Le registrazioni dei pagamenti restano presso Stripe e nella contabilità del titolare per 10 anni (art. 2220 c.c.).",
 					"Codici di accesso di un assistente AI: un codice di accesso scade dopo 1 ora; un codice di rinnovo scade dopo 30 giorni ed è sostituito a ogni uso. I codici scaduti o revocati sono eliminati entro un giorno.",
-					"Per chiedere la cancellazione del tuo account e di tutti i suoi dati, scrivi all'indirizzo qui sotto. Puoi anche togliere a Yume l'accesso al tuo account Google da myaccount.google.com/connections.",
+					"Puoi cancellare il tuo account e tutti i suoi dati dalla dashboard, con \"Elimina account\". Se non riesci ad accedere, scrivi all'indirizzo qui sotto. Puoi anche togliere a Yume l'accesso al tuo account Google da myaccount.google.com/connections.",
 				],
 				contact: true,
 			},
@@ -1031,7 +1034,7 @@ export const it = {
 			{
 				title: "9. Cancellazione e sospensione",
 				paragraphs: [
-					"Puoi chiedere la cancellazione del tuo account in ogni momento scrivendoci. I dati sono rimossi come descritto nell'Informativa privacy. La cancellazione chiude anche l'abbonamento dell'account sostenitore, senza altri addebiti.",
+					"Puoi cancellare il tuo account in ogni momento dalla dashboard, con \"Elimina account\", oppure scrivendoci. I dati sono rimossi come descritto nell'Informativa privacy. La cancellazione chiude subito anche l'abbonamento dell'account sostenitore, senza altri addebiti.",
 					"Possiamo sospendere o chiudere un account che viola questi Termini, con un avviso via email quando è possibile.",
 				],
 				items: [],

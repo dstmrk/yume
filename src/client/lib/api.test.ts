@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	createAccount,
 	deleteAccount,
+	deleteUser,
 	fetchCatalogue,
 	fetchConnections,
 	fetchOAuthClientName,
@@ -86,6 +87,12 @@ describe("the client of the API", () => {
 		expect(fetch).toHaveBeenLastCalledWith("/api/favorites/avios", {
 			method: "DELETE",
 		});
+	});
+
+	it("sends DELETE for the removal of the user", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		await expect(deleteUser()).resolves.toBeUndefined();
+		expect(fetch).toHaveBeenLastCalledWith("/api/me", { method: "DELETE" });
 	});
 
 	it("sends the country of the user with PUT", async () => {

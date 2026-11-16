@@ -19,7 +19,7 @@ import {
 	favoriteCurrencies,
 	listConnections,
 } from "./db/queries.ts";
-import { user } from "./db/schema.ts";
+import { account, user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 
@@ -1077,6 +1077,66 @@ describe("GET /api/potential", () => {
 		});
 		expect(response.status).toBe(409);
 		expect(await response.json()).toEqual({ error: "country_required" });
+	});
+});
+
+describe("DELETE /api/me", () => {
+	it("removes the user and the session", async () => {
+		const account = createAccount(db, { userId, programId: "amex-mr" });
+		addSnapshot(db, {
+			accountId: account,
+			points: 1900,
+			observedAt: "2026-11-10",
+		});
+
+		expect((await remove("/api/me")).status).toBe(204);
+
+		expect(db.select().from(user).where(eq(user.id, userId)).all()).toEqual([]);
+		expect(countAccounts(db, userId)).toBe(0);
+		// The session goes with the user: the next request has no session.
+		const after = await app.request("/api/me", { headers: { cookie } });
+		expect(after.status).toBe(401);
+	});
+
+	it("keeps the other user", async () => {
+		await remove("/api/me");
+		expect(
+			db.select().from(user).where(eq(user.id, OTHER_USER)).all(),
+		).toHaveLength(1);
+	});
+
+	it("refuses the account of the reviewers with the status 403", async () => {
+		db.insert(account)
+			.values({
+				id: "credential-1",
+				accountId: userId,
+				providerId: "credential",
+				userId,
+				password: "hash",
+				createdAt: new Date(),
+				updatedAt: new Date(),
+			})
+			.run();
+
+		const response = await remove("/api/me");
+
+		expect(response.status).toBe(403);
+		expect(await response.json()).toEqual({ error: "reviewer_account" });
+		expect(
+			db.select().from(user).where(eq(user.id, userId)).all(),
+		).toHaveLength(1);
+	});
+
+	// A form of an other origin cannot remove an account.
+	it("refuses a request of an other origin", async () => {
+		const response = await app.request("/api/me", {
+			method: "DELETE",
+			headers: { cookie, origin: "https://evil.example" },
+		});
+		expect(response.status).toBe(403);
+		expect(
+			db.select().from(user).where(eq(user.id, userId)).all(),
+		).toHaveLength(1);
 	});
 });
 

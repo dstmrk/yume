@@ -13,6 +13,7 @@ import { BoardPanel } from "./components/board/BoardPanel.tsx";
 import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
 import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
+import { Confirm } from "./components/Confirm.tsx";
 import { ConnectedAssistants } from "./components/ConnectedAssistants.tsx";
 import { CountryStep } from "./components/CountryStep.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
@@ -22,6 +23,7 @@ import { Button, buttonVariants } from "./components/ui/button.tsx";
 import { useI18n } from "./i18n/I18n.tsx";
 import { airlinesSummary, currencyAirlines } from "./lib/airlines.ts";
 import {
+	deleteUser,
 	fetchAccounts,
 	fetchCatalogue,
 	fetchFavorites,
@@ -65,6 +67,7 @@ export function Dashboard(props: { returned: boolean }) {
 				<AppTitle />
 				<CountryStep />
 				<SignOutButton />
+				<DeleteUserButton />
 			</div>
 		);
 	}
@@ -197,6 +200,7 @@ function Board(props: { returned: boolean }) {
 				/>
 				<AdminLink />
 				<SignOutButton />
+				<DeleteUserButton />
 			</div>
 		);
 	}
@@ -308,6 +312,7 @@ function Board(props: { returned: boolean }) {
 			/>
 			<AdminLink />
 			<SignOutButton />
+			<DeleteUserButton />
 		</div>
 	);
 }
@@ -328,6 +333,30 @@ function AdminLink() {
 		<Link to="/admin" className={buttonVariants({ variant: "outline" })}>
 			{text.adminLink}
 		</Link>
+	);
+}
+
+/**
+ * The removal of the account of the user, with a question first.
+ *
+ * After the removal the session does not exist. The cache goes away, and the
+ * router sends the user to `/login`, as after the sign-out.
+ */
+function DeleteUserButton() {
+	const { t: text } = useI18n();
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	return (
+		<Confirm
+			label={text.deleteUser}
+			question={text.deleteUserQuestion}
+			action={async () => {
+				await deleteUser();
+				queryClient.clear();
+				await router.invalidate();
+			}}
+			queryKeys={[]}
+		/>
 	);
 }
 

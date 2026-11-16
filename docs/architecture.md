@@ -1241,6 +1241,42 @@ The client filters and divides the list. `filterUsers` and `pageOf` of
 the project has no test of a component. The server gives each user in one answer. Add
 a pagination on the server when the quantity of users makes that answer slow.
 
+### 4.9 The removal of the account
+
+Status: **accepted**. Date: 2026-11-16.
+
+A user removes the account on the dashboard, with "Elimina account" and a question.
+`DELETE /api/me` calls `removeUser` of `src/server/removal.ts`. The foreign keys then
+remove each row of the user: the accounts, the snapshots, the favourites, the sessions,
+the tokens of the assistants and the row of `stripe_customer`.
+
+The country does not change, as paragraph 3.3.2 gives. A user who moves to an other
+country removes the account and makes a new account. That user then writes the balances
+again.
+
+**The customer of Stripe goes first.** `deleteCustomer` of `src/server/billing.ts`
+removes the customer in Stripe. Stripe then cancels each active subscription of that
+customer immediately. Without that request Stripe charges the card of a user that does
+not exist. The rules:
+
+- An error of Stripe removes nothing and gives the status 503.
+- A customer that Stripe no longer holds is a success. A first removal can stop after
+  the request to Stripe, and the second removal then finds no customer.
+- An instance with no payment and a row of `stripe_customer` gives the status 503: it
+  cannot stop a renewal.
+- The webhook gives the status 200 to a later event of that customer: paragraph 4.6.1
+  gives the rule of an unknown customer.
+
+The right of withdrawal of the Terms stays. The records of the payment stay with Stripe
+and in the accounts of the owner, as section 9 of the privacy policy gives.
+
+**The account of the reviewers is refused.** A user with a password is that account:
+paragraph 4.1.1. A reviewer who tries the button removes the account of the test and its
+data. The route then gives the status 403 and `reviewer_account`. The administrator
+writes that account again with the script.
+
+The MCP server gives no tool for this removal: paragraph 4.7.3 gives the reason.
+
 ## 5. User interface
 
 The visual theme of Yume is an airport departure board with split-flap displays. Solari
