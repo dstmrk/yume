@@ -288,7 +288,7 @@ describe("the pages of the seed", () => {
 	it("gives a page to each airline currency that a source reaches", () => {
 		const reached = new Set(
 			transferRules
-				.filter((item) => item.validTo === null)
+				.filter((item) => item.validTo === null && item.country === "IT")
 				.map(
 					(item) =>
 						programs.find((program) => program.id === item.toProgramId)

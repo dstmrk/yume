@@ -19,8 +19,13 @@ const airlineCurrencyIds = new Set(
 	currencies.filter((currency) => currency.kind === "airline").map((c) => c.id),
 );
 
-/** A rule with no `validTo` is a rule of today. Refer to the rule 4 of the data. */
-const activeRules = transferRules.filter((rule) => rule.validTo === null);
+/**
+ * A rule with no `validTo` is a rule of today. Refer to the rule 4 of the data.
+ * The copy gives the sources of Italy, thus it counts the rules of Italy only.
+ */
+const activeRules = transferRules.filter(
+	(rule) => rule.validTo === null && rule.country === "IT",
+);
 const reachable = new Set(activeRules.map((rule) => rule.toProgramId));
 
 const airlinePrograms = programs.filter((program) =>

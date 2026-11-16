@@ -65,13 +65,13 @@ describe("the catalogue", () => {
 		const targets = new Set(transferRules.map((rule) => rule.toProgramId));
 		const reached = programs.filter((program) => targets.has(program.id));
 
-		expect(programs.length).toBe(29);
-		expect(airline.size).toBe(21);
+		expect(programs.length).toBe(30);
+		expect(airline.size).toBe(22);
 		expect(
 			programs.filter((program) => airline.has(program.currencyId)).length,
-		).toBe(26);
-		expect(reached.length).toBe(21);
-		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(16);
+		).toBe(27);
+		expect(reached.length).toBe(22);
+		expect(new Set(reached.map((program) => program.currencyId)).size).toBe(17);
 	});
 });
 

@@ -36,6 +36,7 @@ export const PROGRAM_AIRLINES: Readonly<Record<string, readonly string[]>> = {
 	etihad: ["Etihad"],
 	icelandair: ["Icelandair"],
 	tap: ["TAP Air Portugal"],
+	"air-europa": ["Air Europa"],
 	united: ["United"],
 	thai: ["Thai Airways"],
 	// ITA Airways comes first: the catalogue is for Italy, and the card shows the

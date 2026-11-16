@@ -112,8 +112,8 @@ Thus the system calculates the potential **for each currency**, not for each pro
 If the system calculates the potential for each programme, it counts the same balance
 six times.
 
-The catalogue holds 26 airline programmes and 21 airline currencies. A source sends
-points to 21 of those programmes, and those 21 programmes use 16 currencies. Five
+The catalogue holds 27 airline programmes and 22 airline currencies. A source sends
+points to 22 of those programmes, and those 22 programmes use 17 currencies. Five
 programmes hold the five currencies that no source reaches. Appendix 8 gives those
 programmes.
 
@@ -2290,10 +2290,10 @@ of each programme. Yume calculates the potential miles only for a programme that
 reaches. A programme with no source is not a defect, thus the interface gives no warning
 for it.
 
-The catalogue contains 26 airline programmes. 21 of them are the transfer partners of
-Amex MR Italy, Revolut RevPoints and Klarna Cashback in October 2026. The last section of
-this appendix gives the five programmes that no source reaches. Each ratio is *source :
-target*. Each rule holds the country `IT`. Paragraph 3.3.2 gives the rule for an other
+The catalogue contains 27 airline programmes. 22 of them are the transfer partners of
+the sources of Italy and of Spain in November 2026. The last section of this appendix
+gives the five programmes that no source reaches. Each ratio is *source : target*. Each
+rule holds the country `IT` or the country `ES`. Paragraph 3.3.2 gives the rule for each
 country.
 
 This appendix is a summary. The seed file in `src/server/db/seed/` is the source of
@@ -2308,7 +2308,7 @@ seed file. Read the official page again and write the link in the comment.
 | Avios | British Airways Club, Iberia Club, Aer Lingus AerClub, Finnair Plus, Qatar Airways Privilege Club, Vueling Club |
 | Flying Blue miles | Flying Blue (Air France, KLM, Transavia) |
 
-Each of the other 14 programmes has its own currency: SAS EuroBonus, Singapore Airlines
+Each of the other 15 programmes has its own currency: Air Europa SUMA, SAS EuroBonus, Singapore Airlines
 KrisFlyer, Emirates Skywards, Aegean Miles+Bonus, Avianca LifeMiles, China Southern Sky
 Pearl Club, Etihad Guest, Icelandair Saga Club, TAP Miles&Go, Turkish Airlines
 Miles&Smiles, Cathay (Asia Miles), Delta SkyMiles, United MileagePlus and Thai Royal
@@ -2356,6 +2356,35 @@ seed file holds the hotel partners and the rail partners of no country now.
 | Radisson Rewards | 2 : 5 | — |
 | Italo Più | 5 : 1 | — |
 | PAYBACK | 1 : 1 | — |
+
+### Transfer rules — Spain
+
+The rules of Spain hold the country `ES`. Two agents read each page on 16 November 2026.
+
+**Amex Membership Rewards Spain.** Amex Spain lists six airline partners. The
+transfers to Emirates Skywards stop "hasta nuevo aviso", thus the catalogue holds no
+rule for Emirates. Air Europa SUMA has no other source.
+
+| Target | Ratio | Minimum |
+|---|---|---|
+| Air Europa SUMA | 1 : 1 | 1 |
+| Iberia Club (Avios) | 1 : 1 | 50 |
+| British Airways Club (Avios) | 1 : 1 | 250 |
+| Flying Blue | 1 : 1 | 500 |
+| SAS EuroBonus | 5 : 4 | 1 000 |
+| Delta SkyMiles | 3 : 2 | 3 |
+
+**Revolut RevPoints Spain.** The page of Spain gives "hasta 1:1" and no ratio for each
+partner. The user decided to copy the 17 rules of Italy to Spain. Examine these rules
+again with an account of Revolut Spain.
+
+**Klarna Cashback Spain.** The minimum and the step are 100 points, as in Italy.
+
+| Target | Points for 100 points of cashback |
+|---|---|
+| Finnair Plus (Avios), Thai Royal Orchid Plus | 99,09 |
+| SAS EuroBonus | 130,59 |
+| British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 78,17 |
 
 ### Programmes with no transfer source
 

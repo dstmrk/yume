@@ -52,7 +52,7 @@ gives the user an expectation that is not correct.
 
 ## 2. A currency is different from a programme
 
-Six programmes use Avios. The 21 airline programmes that a source reaches use 16
+Six programmes use Avios. The 22 airline programmes that a source reaches use 17
 currencies.
 
 **Calculate the potential for each currency.** If you calculate the potential

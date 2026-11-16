@@ -18,9 +18,10 @@
  * The field `validFrom` holds the date of the examination of the official page.
  * The rule can be older, but no person examined it before that date.
  *
- * The field `country` holds a country in the ISO 3166-1 alpha-2 format. Each
- * rule of this file applies to Italy, because Yume shows the rules of one
- * country only. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
+ * The field `country` holds a country in the ISO 3166-1 alpha-2 format. A rule
+ * applies to one country only: Italy or Spain. Each country writes its own
+ * rules, also when the ratio is the same. Paragraph 3.3.2 of
+ * `docs/architecture.md` gives the reason.
  */
 
 import type {
@@ -36,6 +37,7 @@ import type {
 const VERIFIED_ON = "2026-08-11";
 const VERIFIED_ON_2 = "2026-08-12";
 const VERIFIED_ON_3 = "2026-10-06";
+const VERIFIED_ON_ES = "2026-11-16";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -70,6 +72,7 @@ export const currencies: readonly Currency[] = [
 	{ id: "etihad-guest", code: "EG", name: "Etihad Guest", kind: "airline" },
 	{ id: "saga-points", code: "SAGA", name: "Saga Points", kind: "airline" },
 	{ id: "miles-and-go", code: "MG", name: "Miles&Go", kind: "airline" },
+	{ id: "suma", code: "SUMA", name: "SUMA", kind: "airline" },
 	{ id: "miles-and-more", code: "MM", name: "Miles & More", kind: "airline" },
 	{ id: "mileageplus", code: "MP", name: "MileagePlus", kind: "airline" },
 	{
@@ -259,6 +262,14 @@ export const programs: readonly Program[] = [
 		currencyId: "miles-and-go",
 		code: "TP",
 		name: "TAP",
+		transferable: true,
+	},
+	// Amex Spain is the only source of Air Europa SUMA.
+	{
+		id: "air-europa",
+		currencyId: "suma",
+		code: "UX",
+		name: "Air Europa",
 		transferable: true,
 	},
 	// Klarna is the only source of these two programmes.
@@ -811,6 +822,447 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
+		validTo: null,
+	},
+
+	// The rules of Spain. Two agents read each page on 16 November 2026 and gave
+	// the same values. The pull request of the country holds the record.
+	//
+	// Amex Spain lists six airline partners on
+	// https://www.americanexpress.com/es-es/rewards/membership-rewards/travel/all
+	// Emirates is not in the list: "la opción de transferir puntos Membership
+	// Rewards a Emirates Skywards no estará disponible hasta nuevo aviso". The
+	// hotel partners and Más Renfe are not in the catalogue.
+	{
+		// "1 punto Membership Rewards = 1 Milla Flying Blue", minimum 500 points,
+		// step 5
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/Flying-Blue/flying-blue/AF02
+		fromProgramId: "amex-mr",
+		toProgramId: "flying-blue",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 500,
+		increment: 5,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "3 puntos Membership Rewards = 2 SkyMiles®", minimum 3 points, step 3
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/Delta/delta-delta-skymiles/DL02
+		fromProgramId: "amex-mr",
+		toProgramId: "delta",
+		country: "ES",
+		ratioNum: 2,
+		ratioDen: 3,
+		minTransfer: 3,
+		increment: 3,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "5 puntos Membership Rewards = 4 puntos EuroBonus", minimum 1000 points,
+		// step 500
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/SAS/award-cancelled-/SAS-01
+		fromProgramId: "amex-mr",
+		toProgramId: "sas",
+		country: "ES",
+		ratioNum: 4,
+		ratioDen: 5,
+		minTransfer: 1000,
+		increment: 500,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "1 punto Membership Rewards = 1 Avios",
+		// "Se requiere un mínimo de 50 puntos Membership Rewards [...] en
+		// incrementos de 1 puntos Membership Rewards"
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/CLUB-IBERIA-PLUS/IberiaRT-Plus/IBERT
+		fromProgramId: "amex-mr",
+		toProgramId: "iberia-club",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 50,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "1 Punto Membership Rewards = 1 Avios",
+		// "Se requiere un mínimo de 250 puntos Membership Rewards [...] en
+		// incrementos de 1 puntos Membership Rewards"
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/British-Airways-EC/British-Airways-EC/BART-001
+		fromProgramId: "amex-mr",
+		toProgramId: "ba-club",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 250,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "1 puntos Membership Rewards = 1 Millas SUMA",
+		// "Se requiere un mínimo de 1 puntos Membership Rewards [...] en
+		// incrementos de 1 puntos Membership Rewards"
+		// Source: https://www.americanexpress.com/es-es/rewards/membership-rewards/partner/AIR-EUROPA-SUMA/AIR-EUROPA-SUMA/AIRE-001
+		fromProgramId: "amex-mr",
+		toProgramId: "air-europa",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+
+	// The routes of Revolut Spain.
+	//
+	// The page of Spain gives no ratio for each partner: "con una proporción de
+	// hasta 1:1, según el partner", and "un mínimo de 1 y un máximo de 999,999
+	// puntos por transacción". The application holds the full list. Thus the
+	// user decided on 16 November 2026 to copy the 17 rules of Italy to Spain
+	// for now. Examine these rules again with an account of Revolut Spain.
+	//
+	// The page of the partners of Spain names nine programmes: Flying Blue,
+	// British Airways, Iberia, Aer Lingus, Vueling, Qatar, Finnair, Turkish and
+	// TAP. The other eight routes come from the list of Italy only.
+	//
+	// Source: https://help.revolut.com/es-ES/help/revpoints/airline-miles/questions-airline-miles-faq3/
+	// Source: https://help.revolut.com/es-ES/help/revpoints/airline-miles/question-what-are-airline-miles/
+	{
+		fromProgramId: "revolut",
+		toProgramId: "ba-club",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "flying-blue",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "iberia-club",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "aer-lingus",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "finnair",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "qatar",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "vueling",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "sas",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "turkish",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "aegean",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "avianca",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "china-southern",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "etihad",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "icelandair",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "tap",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "emirates",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 2,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		fromProgramId: "revolut",
+		toProgramId: "singapore",
+		country: "ES",
+		ratioNum: 1,
+		ratioDen: 2,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+
+	// The routes of Klarna Spain. The page gives each ratio for 100 points of
+	// cashback, with two decimals, as the page of Italy. The catalogue keeps
+	// that ratio as two integers over 10 000 points. The page also says: "Las
+	// tasas de conversión dependen de tu país y moneda".
+	//
+	// The page gives no minimum and no step. The user confirmed on 16 November
+	// 2026 the value of Italy: 100 points, the safe choice.
+	//
+	// The hotel partners, GHA and Spenn are not in the catalogue.
+	//
+	// Source: https://www.klarna.com/es/suscripcion/max/
+	{
+		// "78,17 Avios por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "iberia-club",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "vueling",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "ba-club",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "aer-lingus",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "99,09 Avios por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "finnair",
+		country: "ES",
+		ratioNum: 9909,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 millas Flying Blue® por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "flying-blue",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 millas por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "turkish",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 millas por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "united",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "130,59 puntos SAS EuroBonus por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "sas",
+		country: "ES",
+		ratioNum: 13059,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "99,09 Royal Orchid Plus miles por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "thai",
+		country: "ES",
+		ratioNum: 9909,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
+		validTo: null,
+	},
+	{
+		// "78,17 Lifemiles por cada 100 puntos de cashback"
+		fromProgramId: "klarna",
+		toProgramId: "avianca",
+		country: "ES",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_ES,
 		validTo: null,
 	},
 ];
