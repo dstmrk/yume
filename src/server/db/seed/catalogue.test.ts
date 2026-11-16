@@ -229,4 +229,32 @@ describe("the rules of Klarna", () => {
 		);
 		expect(best).toBe(10_143);
 	});
+
+	// Klarna Italy lowered the ratios. The page of 16 November 2026 gives 78,17,
+	// 99,09 and 130,71. The rules of 6 October 2026 stay as historical data.
+	it("gives the ratios of 16 November 2026 from that date", () => {
+		const now = "2026-11-16";
+		const ruleOn = (to: string, on: string) => {
+			const found = findRule(transferRules, "klarna", to, "IT", on);
+			if (!found) throw new Error(`no rule from klarna to ${to}`);
+			return found;
+		};
+		const ratios: Record<string, number> = {
+			"ba-club": 7_817,
+			"iberia-club": 7_817,
+			vueling: 7_817,
+			"aer-lingus": 7_817,
+			"flying-blue": 7_817,
+			turkish: 7_817,
+			avianca: 7_817,
+			united: 7_817,
+			finnair: 9_909,
+			thai: 9_909,
+			sas: 13_071,
+		};
+		for (const [to, value] of Object.entries(ratios)) {
+			expect(convert(10_000, ruleOn(to, now))).toBe(value);
+		}
+		expect(convert(10_000, ruleOn("ba-club", "2026-11-15"))).toBe(8_002);
+	});
 });

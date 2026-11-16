@@ -2328,11 +2328,17 @@ Orchid Plus.
 Klarna gives each ratio for 100 points of cashback. The minimum and the step are 100
 points. The plan of the member changes the expiry of the cashback, not the ratio.
 
+Klarna Italy lowered the ratios. Two agents read the page on 16 November 2026. The
+rules of 6 October 2026 are closed on that date.
+
 | Target | Points for 100 points of cashback |
 |---|---|
-| Finnair Plus (Avios), Thai Royal Orchid Plus | 101,43 |
-| SAS EuroBonus | 132,24 |
-| British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 80,02 |
+| Finnair Plus (Avios), Thai Royal Orchid Plus | 99,09 |
+| SAS EuroBonus | 130,71 |
+| British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 78,17 |
+
+For SAS EuroBonus the two agents read two different values: 130,59 and 130,71. A third
+read gave 130,71. The user selected 130,71.
 
 For Avios, the route through Finnair Plus gives the largest value.
 

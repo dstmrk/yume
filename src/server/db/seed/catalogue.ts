@@ -38,6 +38,7 @@ const VERIFIED_ON = "2026-08-11";
 const VERIFIED_ON_2 = "2026-08-12";
 const VERIFIED_ON_3 = "2026-10-06";
 const VERIFIED_ON_ES = "2026-11-16";
+const VERIFIED_ON_4 = "2026-11-16";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -702,7 +703,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Avios ogni 100 punti cashback"
@@ -714,7 +715,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Avios ogni 100 punti cashback"
@@ -726,7 +727,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Avios ogni 100 punti cashback"
@@ -738,7 +739,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "101,43 Avios ogni 100 punti cashback"
@@ -750,7 +751,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Miglia Flying Blue ogni 100 punti cashback"
@@ -762,7 +763,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 miglia ogni 100 punti cashback"
@@ -774,7 +775,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "132,24 punti SAS EuroBonus ogni 100 punti cashback"
@@ -786,7 +787,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Lifemiles ogni 100 punti cashback"
@@ -798,7 +799,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 miglia ogni 100 punti cashback"
@@ -810,7 +811,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "101,43 Royal Orchid Plus miles ogni 100 punti cashback"
@@ -822,6 +823,148 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
+		validTo: VERIFIED_ON_4,
+	},
+
+	// Klarna Italy lowered the ratios. Two agents read the page on 16 November
+	// 2026 and gave the same values for ten partners. The rules of 6 October
+	// 2026 above are closed on that date. The page still gives no minimum and
+	// no step, thus the minimum and the step stay 100.
+	//
+	// For SAS EuroBonus the two reads gave 130,59 and 130,71. A third read gave
+	// 130,71. The user selected 130,71.
+	//
+	// Source: https://www.klarna.com/it/abbonamento/max/
+	{
+		// "78,17 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "ba-club",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "iberia-club",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "vueling",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "aer-lingus",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "99,09 Avios ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "finnair",
+		country: "IT",
+		ratioNum: 9909,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 Miglia Flying Blue® ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "flying-blue",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 miglia ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "turkish",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 Lifemiles ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "avianca",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "78,17 miglia ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "united",
+		country: "IT",
+		ratioNum: 7817,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "99,09 Royal Orchid Plus miles ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "thai",
+		country: "IT",
+		ratioNum: 9909,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "130,71 punti SAS EuroBonus ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "sas",
+		country: "IT",
+		ratioNum: 13071,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
 		validTo: null,
 	},
 
