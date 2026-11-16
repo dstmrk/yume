@@ -1,5 +1,7 @@
-import { routing } from "../../../shared/locale.ts";
+import { LOCALES, routing } from "../../../shared/locale.ts";
 import { useI18n } from "../../i18n/I18n.tsx";
+import { i18nOf } from "../../i18n/messages.ts";
+import { languageLinks } from "../../lib/languages.ts";
 import { PATHS } from "../../lib/pages.ts";
 
 /**
@@ -7,6 +9,11 @@ import { PATHS } from "../../lib/pages.ts";
  * Yume on a server of that person.
  */
 const SOURCE_URL = "https://github.com/dstmrk/yume";
+
+/** The name of each language in that language. */
+const NAMES = Object.fromEntries(
+	LOCALES.map((locale) => [locale, i18nOf(locale).t.languageName]),
+) as Record<(typeof LOCALES)[number], string>;
 
 /**
  * The foot of each surface.
@@ -79,6 +86,19 @@ export function SiteFooter() {
 			</p>
 			{/* The publisher and the VAT number, on each surface of each
 			    installation, as the legal pages. Paragraph 5.5.4. */}
+			{/* The selector of the language. Each name is in its own language. */}
+			{languageLinks(locale, LOCALES, routing, NAMES).map((link) => (
+				<p key={link.locale} className="mt-3">
+					<a
+						href={link.href}
+						hrefLang={link.locale}
+						lang={link.locale}
+						className="underline underline-offset-2 hover:text-board-text"
+					>
+						{link.name}
+					</a>
+				</p>
+			))}
 			<p className="mt-3">{text.footerPublisher}</p>
 		</footer>
 	);

@@ -8,12 +8,14 @@
  * that the Italian text prevails, by a decision of the owner (2026-11-16).
  *
  * The public pages of this language read the rules of Spain. The text names
- * the market as "España".
+ * the market as "España", and `es.test.ts` compares its numbers with the
+ * rules of Spain.
  */
 import type { Messages } from "./it.ts";
 
 export const es: Messages = {
 	appName: "Yume",
+	languageName: "Español",
 
 	homeTitle: "Cuántas millas valen tus puntos",
 	homeLead:
@@ -43,7 +45,7 @@ export const es: Messages = {
 		{
 			question: "¿Qué puntos puedo seguir con Yume?",
 			answer:
-				"Los saldos de los programas aéreos del catálogo y de las tarjetas de puntos para España: Amex Membership Rewards y los RevPoints de Revolut. Para los programas que esas tarjetas alcanzan, Yume calcula también las millas potenciales.",
+				"Los saldos de 27 programas aéreos y de tres tarjetas para España: Amex Membership Rewards, los RevPoints de Revolut y el cashback de Klarna. Para los 21 programas que esas tarjetas alcanzan, Yume calcula también las millas potenciales.",
 		},
 		{
 			question: "¿Por qué seis programas se convierten en una sola fila?",
@@ -168,10 +170,10 @@ export const es: Messages = {
 		hub: {
 			metaTitle: "Millas con puntos de tarjeta: todas las monedas en España",
 			description:
-				"Las monedas de millas que reciben puntos de Amex y Revolut en España, y las que no reciben. Una página por moneda.",
+				"Las monedas de millas que reciben puntos de Amex, Revolut y Klarna en España, y las que no reciben. Una página por moneda.",
 			title: "Las monedas de millas, una a una",
 			lead: (reachable: number, unreachable: number) =>
-				`Yume sigue ${reachable} monedas aéreas que reciben puntos de Amex o Revolut en España, y ${unreachable} que no reciben. Cada moneda tiene su página con los ratios oficiales.`,
+				`Yume sigue ${reachable} monedas aéreas que reciben puntos de Amex, Revolut o Klarna en España, y ${unreachable} que no reciben. Cada moneda tiene su página con los ratios oficiales.`,
 			reachableTitle: "Monedas que reciben puntos",
 			sourcesTitle: "Las tarjetas",
 			unreachableTitle: "Monedas que ninguna tarjeta alcanza",
@@ -182,9 +184,9 @@ export const es: Messages = {
 	},
 
 	calculator: {
-		metaTitle: "Calculadora de millas: puntos Amex y Revolut",
+		metaTitle: "Calculadora de millas: puntos Amex, Revolut y Klarna",
 		description:
-			"Escribe tus puntos Amex y Revolut y mira cuántas millas valen en cada moneda, con los ratios oficiales para España. Sin cuenta.",
+			"Escribe tus puntos Amex, Revolut y Klarna y mira cuántas millas valen en cada moneda, con los ratios oficiales para España. Sin cuenta.",
 		title: "Calcula las millas de tus puntos",
 		lead: "Escribe los puntos que tienes en cada tarjeta: la calculadora muestra el máximo de cada moneda, con los ratios oficiales de hoy para España. No hace falta una cuenta, y los números no salen de tu navegador.",
 		formTitle: "Tus puntos",
@@ -446,12 +448,12 @@ export const es: Messages = {
 				],
 			},
 			{
-				slug: "amex-revolut-millas",
-				metaTitle: "Amex o Revolut: a qué aerolíneas llegas",
+				slug: "amex-revolut-klarna-millas",
+				metaTitle: "Amex, Revolut o Klarna: a qué aerolíneas llegas",
 				description:
-					"Qué monedas de millas reciben puntos de Amex Membership Rewards y Revolut RevPoints en España, tarjeta por tarjeta.",
-				title: "Amex o Revolut: qué tarjeta llega a más aerolíneas",
-				lead: "Las tarjetas llegan a monedas aéreas distintas, y solo algunas monedas reciben puntos de todas. La tabla de abajo da, para cada moneda, las tarjetas que le transfieren puntos en España.",
+					"Qué monedas de millas reciben puntos de Amex Membership Rewards, Revolut RevPoints y Klarna Cashback en España, tarjeta por tarjeta.",
+				title: "Amex, Revolut o Klarna: qué tarjeta llega a más aerolíneas",
+				lead: "Las tres tarjetas llegan a monedas aéreas distintas, y solo algunas monedas reciben puntos de las tres. La tabla de abajo da, para cada moneda, las tarjetas que le transfieren puntos en España.",
 				published: "2026-11-16",
 				modified: "2026-11-16",
 				matrix: true,
@@ -564,6 +566,7 @@ export const es: Messages = {
 			"Avios",
 			"Membership Rewards",
 			"RevPoints",
+			"Cashback de Klarna",
 			"Millas aéreas",
 			"Transferencia de puntos",
 			"Programas de fidelización de aerolíneas",

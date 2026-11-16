@@ -15,7 +15,7 @@
  */
 
 /** The languages of the application. Add a language here with its text. */
-export const LOCALES = ["it"] as const;
+export const LOCALES = ["it", "es"] as const;
 
 export type Locale = (typeof LOCALES)[number];
 
@@ -34,6 +34,7 @@ export type LocaleTags = {
 
 export const LOCALE_TAGS: Record<Locale, LocaleTags> = {
 	it: { html: "it", intl: "it-IT", openGraph: "it_IT" },
+	es: { html: "es", intl: "es-ES", openGraph: "es_ES" },
 };
 
 /**
@@ -52,7 +53,10 @@ export type Segment = (typeof SEGMENTS)[number];
 export type SegmentWords = Readonly<Partial<Record<Segment, string>>>;
 
 /** The words of each language of the application. */
-export const SEGMENT_WORDS: Readonly<Record<Locale, SegmentWords>> = { it: {} };
+export const SEGMENT_WORDS: Readonly<Record<Locale, SegmentWords>> = {
+	it: {},
+	es: { calcolatore: "calculadora", miglia: "millas", punti: "puntos" },
+};
 
 /** A word of a path: lower case letters, digits and hyphens. */
 const WORD = /^[a-z0-9]+(-[a-z0-9]+)*$/;

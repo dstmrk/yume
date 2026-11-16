@@ -12,6 +12,8 @@
  */
 export const it = {
 	appName: "Yume",
+	// The name of the language in the language itself, for the selector.
+	languageName: "Italiano",
 
 	// The title of the page. It is the `h1`, and it holds the words of the
 	// question that a person writes in a search engine. The name of the

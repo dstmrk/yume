@@ -8,11 +8,12 @@
  */
 
 import { LOCALE_TAGS, LOCALES, type Locale } from "../../shared/locale.ts";
+import { es } from "./es.ts";
 import { it, type Messages } from "./it.ts";
 
 export type { Messages };
 
-const MESSAGES: Record<Locale, Messages> = { it };
+const MESSAGES: Record<Locale, Messages> = { it, es };
 
 /** The language of a page: its text and the locale of `Intl`. */
 export type I18n = {

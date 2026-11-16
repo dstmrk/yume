@@ -2048,8 +2048,9 @@ paragraph 5.5.4.
 
 ### 5.8 The languages of the interface
 
-Status: **accepted**. Date: 2026-11-09. The interface holds one language, Italian. The
-code makes a second language an addition: a file of text and one item of a list.
+Status: **accepted**. Date: 2026-11-09. The interface holds Italian, the base language,
+and Spanish since 2026-11-16. A new language is an addition: a file of text, one item of
+a list, its market in `MARKETS` and its words in `SEGMENT_WORDS`.
 
 **The language is different from the market.** The language gives the text and the
 format of the numbers and of the dates. The market gives the catalogue and the transfer
@@ -2109,7 +2110,7 @@ client and the server both use it.
 **The tests examine a second language now.** The functions receive the list of the
 languages as a parameter. A test gives the list `it` and `en`, with a text of the test.
 Thus the routing, the pages and the format of a second language have a test before the
-language exists. In production the list holds `it` only.
+language exists. In production the list holds `it` and `es` (2026-11-16).
 
 **Each language has a typed text.** The text of the base language gives the type. A
 second text must hold each key of that type, or the typecheck fails. Yume uses no library
