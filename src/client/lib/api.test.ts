@@ -7,6 +7,7 @@ import {
 	fetchOAuthClientName,
 	revokeConnection,
 	sendConsent,
+	setCountry,
 	setFavorite,
 	setUnlimited,
 	signInWithPassword,
@@ -84,6 +85,16 @@ describe("the client of the API", () => {
 		await setFavorite("avios", false);
 		expect(fetch).toHaveBeenLastCalledWith("/api/favorites/avios", {
 			method: "DELETE",
+		});
+	});
+
+	it("sends the country of the user with PUT", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		await expect(setCountry("IT")).resolves.toBeUndefined();
+		expect(fetch).toHaveBeenLastCalledWith("/api/me/country", {
+			method: "PUT",
+			headers: { "content-type": "application/json" },
+			body: JSON.stringify({ country: "IT" }),
 		});
 	});
 

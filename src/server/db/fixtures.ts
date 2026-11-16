@@ -9,6 +9,7 @@
  */
 
 import { makeSignature } from "better-auth/crypto";
+import type { Country } from "../../shared/catalogue.ts";
 import type { Auth } from "../auth.ts";
 import type { Db } from "./index.ts";
 import {
@@ -19,8 +20,15 @@ import {
 	user,
 } from "./schema.ts";
 
-/** Writes a user with the given id. It gives the same id. */
-export function insertUser(db: Db, id: string): string {
+/**
+ * Writes a user with the given id. It gives the same id. The user has the
+ * country `IT` by default. Give null for a user after the first sign-in.
+ */
+export function insertUser(
+	db: Db,
+	id: string,
+	country: Country | null = "IT",
+): string {
 	const now = new Date();
 	db.insert(user)
 		.values({
@@ -30,6 +38,7 @@ export function insertUser(db: Db, id: string): string {
 			emailVerified: false,
 			createdAt: now,
 			updatedAt: now,
+			country,
 		})
 		.run();
 	return id;

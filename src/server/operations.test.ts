@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { insertUser } from "./db/fixtures.ts";
 import { type Db, openDatabase } from "./db/index.ts";
 import { addSnapshot, createAccount, currentBalances } from "./db/queries.ts";
-import { user } from "./db/schema.ts";
+import { transferRule, user } from "./db/schema.ts";
 import { currencies } from "./db/seed/catalogue.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
 import {
@@ -169,8 +169,56 @@ describe("recordSnapshot", () => {
 });
 
 describe("potentialOf", () => {
+	/** The result of the calculation for a user with a country. */
+	function potentialFor(id: string) {
+		const result = potentialOf(db, id, "2026-11-09");
+		if (!result.ok) {
+			throw new Error(result.error);
+		}
+		return result.value;
+	}
+
+	// A user selects the country after the first sign-in. Before that choice no
+	// rule applies, thus the function gives no value of a country.
+	it("refuses a user with no country", () => {
+		insertUser(db, "new-user", null);
+		expect(potentialOf(db, "new-user", "2026-11-09")).toEqual({
+			ok: false,
+			error: "country_required",
+		});
+	});
+
+	// A rule of an other country gives no value to this country.
+	it("reads the rules of the country of the user", () => {
+		db.insert(transferRule)
+			.values({
+				fromProgramId: "amex-mr",
+				toProgramId: "ba-club",
+				country: "ES",
+				ratioNum: 1,
+				ratioDen: 1,
+				minTransfer: 1,
+				increment: 1,
+				validFrom: "2026-01-01",
+				validTo: null,
+			})
+			.run();
+		const spain = insertUser(db, "spain", null);
+		db.update(user).set({ country: "ES" }).where(eq(user.id, spain)).run();
+		const accountId = createAccount(db, {
+			userId: spain,
+			programId: "amex-mr",
+		});
+		addSnapshot(db, { accountId, points: 700, observedAt: "2026-08-11" });
+
+		const avios = potentialFor(spain).potential.find(
+			(row) => row.currencyId === "avios",
+		);
+		expect(avios).toMatchObject({ fromTransfers: 700, total: 700 });
+	});
+
 	it("gives the date of the calculation", () => {
-		expect(potentialOf(db, userId, "2026-11-09").at).toBe("2026-11-09");
+		expect(potentialFor(userId).at).toBe("2026-11-09");
 	});
 
 	it("gives one result for each airline currency", () => {
@@ -179,7 +227,7 @@ describe("potentialOf", () => {
 			.map((currency) => currency.id);
 
 		expect(
-			potentialOf(db, userId, "2026-11-09")
+			potentialFor(userId)
 				.potential.map((row) => row.currencyId)
 				.sort(),
 		).toEqual([...airline].sort());
@@ -195,7 +243,7 @@ describe("potentialOf", () => {
 			addSnapshot(db, { accountId, points, observedAt: "2026-08-11" });
 		}
 
-		const avios = potentialOf(db, userId, "2026-11-09").potential.find(
+		const avios = potentialFor(userId).potential.find(
 			(row) => row.currencyId === "avios",
 		);
 		expect(avios).toMatchObject({
@@ -209,7 +257,7 @@ describe("potentialOf", () => {
 	it("skips an account with no balance", () => {
 		createAccount(db, { userId, programId: "ba-club" });
 
-		const avios = potentialOf(db, userId, "2026-11-09").potential.find(
+		const avios = potentialFor(userId).potential.find(
 			(row) => row.currencyId === "avios",
 		);
 		expect(avios).toMatchObject({ current: 0, fromTransfers: 0, total: 0 });
@@ -222,7 +270,7 @@ describe("potentialOf", () => {
 		});
 		addSnapshot(db, { accountId, points: 1000, observedAt: "2026-08-11" });
 
-		const avios = potentialOf(db, userId, "2026-11-09").potential.find(
+		const avios = potentialFor(userId).potential.find(
 			(row) => row.currencyId === "avios",
 		);
 		expect(avios?.total).toBe(0);

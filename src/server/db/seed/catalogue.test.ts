@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
+import { COUNTRIES, DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
 import { convert, findRule } from "../../../shared/conversion.ts";
 import { currencies, programs, transferRules } from "./catalogue.ts";
 import { continuityErrors } from "./continuity.ts";
@@ -119,12 +119,11 @@ describe("the transfer rules", () => {
 		}
 	});
 
-	// Yume shows the rules of one country. A rule of a second country in this
-	// file gives no value while no surface selects a country.
-	it("holds the rules of Italy only", () => {
-		for (const rule of transferRules) {
-			expect(rule.country).toBe(DEFAULT_COUNTRY);
-		}
+	// A user selects a country of `COUNTRIES`. A rule of an other country gives
+	// a value to no user, and a country with no rule gives no potential.
+	it("holds the rules of each country that a user can select, and no other", () => {
+		const countries = new Set(transferRules.map((rule) => rule.country));
+		expect([...countries].sort()).toEqual([...COUNTRIES].sort());
 	});
 
 	it("sends points only to a programme that accepts a transfer", () => {

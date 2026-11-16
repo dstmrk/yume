@@ -14,6 +14,7 @@ import { FavoriteHeart } from "./components/board/FavoriteHeart.tsx";
 import { ProgramName } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { ConnectedAssistants } from "./components/ConnectedAssistants.tsx";
+import { CountryStep } from "./components/CountryStep.tsx";
 import { NewAccountForm } from "./components/NewAccountForm.tsx";
 import { NewBalanceForm } from "./components/NewBalanceForm.tsx";
 import { SupporterPanel } from "./components/SupporterPanel.tsx";
@@ -39,8 +40,40 @@ import { byValueDesc } from "./lib/sort.ts";
 /**
  * The dashboard. `returned` is true after the return from Stripe Checkout:
  * the section of the supporter account then waits for the webhook.
+ *
+ * A user with no country selects it first: the potential miles need the rules
+ * of a country. Paragraph 3.3.2 of `docs/architecture.md`.
  */
 export function Dashboard(props: { returned: boolean }) {
+	const { t: text } = useI18n();
+	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
+
+	if (me.isPending || me.isError) {
+		return (
+			<>
+				<AppTitle />
+				<p className="text-board-muted text-sm">
+					{me.isPending ? text.loading : text.loadError}
+				</p>
+			</>
+		);
+	}
+
+	if (me.data.country === null) {
+		return (
+			<div className="flex flex-col gap-6">
+				<AppTitle />
+				<CountryStep />
+				<SignOutButton />
+			</div>
+		);
+	}
+
+	return <Board returned={props.returned} />;
+}
+
+/** The surfaces of the dashboard, for a user with a country. */
+function Board(props: { returned: boolean }) {
 	const { t: text, intl } = useI18n();
 	const [expanded, setExpanded] = useState(false);
 	const queryClient = useQueryClient();

@@ -275,6 +275,11 @@ export const it = {
 	showLess: "Mostra meno",
 	favorite: "Preferito",
 
+	countryTitle: "Il tuo paese",
+	countryBody:
+		"Le regole di trasferimento cambiano da paese a paese. Il paese non si può cambiare.",
+	countryError: "Paese non salvato. Riprova.",
+
 	startTitle: "Inizia da qui",
 	startBody:
 		"Aggiungi il primo conto con il suo saldo. In cima alla lista trovi le carte punti: sono la fonte delle miglia potenziali.",

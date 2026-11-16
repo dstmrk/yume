@@ -134,9 +134,10 @@ These rules prevent the most dangerous defects in this application:
 6. **Give a country to each transfer rule.** The field `country` holds a country in the
    ISO 3166-1 alpha-2 format, for example `IT`. The field is not null, and it is part of
    the key with `validFrom`. The partners and the ratios change with the country, thus
-   `findRule` compares that value exactly. The catalogue holds the rules of Italy only,
-   and the server gives `DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the
-   calculation. Read the official page of the country of the rule. Paragraph 3.3.2 of
+   `findRule` compares that value exactly. Each user has one country, in `user.country`,
+   and the calculation reads it. Add a country to `COUNTRIES` of
+   `src/shared/catalogue.ts` with its rules only. A public page reads `DEFAULT_COUNTRY`.
+   Read the official page of the country of the rule. Paragraph 3.3.2 of
    `docs/architecture.md` gives the reason.
 
 The conversion logic is in `src/shared/`. The functions must be pure and must do no I/O.

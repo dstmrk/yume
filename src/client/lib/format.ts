@@ -119,3 +119,15 @@ const list = cached(
 export function formatList(items: readonly string[], intl: string): string {
 	return list(intl).format(items);
 }
+
+const regions = cached(
+	(intl) => new Intl.DisplayNames(intl, { type: "region" }),
+);
+
+/**
+ * Writes the name of a country in the language of the page: `IT` gives
+ * `Italia` in Italian. The text of the interface holds no name of a country.
+ */
+export function formatCountry(country: string, intl: string): string {
+	return regions(intl).of(country) ?? country;
+}

@@ -17,7 +17,6 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { WebStandardStreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js";
 import type { CallToolResult } from "@modelcontextprotocol/sdk/types.js";
 import { z } from "zod";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { isValidAt } from "../shared/conversion.ts";
 import { canUseMcp } from "../shared/tier.ts";
 import type { Auth } from "./auth.ts";
@@ -26,6 +25,7 @@ import {
 	allCurrencies,
 	allPrograms,
 	allTransferRules,
+	countryOf,
 	currentBalances,
 	hasConnection,
 } from "./db/queries.ts";
@@ -45,6 +45,13 @@ import {
  */
 export const POTENTIAL_NOTICE =
 	"Potential miles are a calculation from the current balances and the transfer rules, not a balance. A transfer of points between programmes is permanent.";
+
+/**
+ * The error of `get_potential` and of `get_catalogue` for a user with no
+ * country. The rules of a country apply only after that choice.
+ */
+export const COUNTRY_NOTICE =
+	"The user of Yume has selected no country. The transfer rules depend on the country, and the user selects it on the dashboard of Yume.";
 
 /** The error of each tool for a free account on the official instance. */
 export const SUPPORTER_NOTICE =
@@ -305,7 +312,11 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 		},
 		() =>
 			result((now) => {
-				const { at, potential } = potentialOf(db, userId, today(now));
+				const found = potentialOf(db, userId, today(now));
+				if (!found.ok) {
+					return failure(COUNTRY_NOTICE);
+				}
+				const { at, potential } = found.value;
 				return { at, notice: POTENTIAL_NOTICE, potential };
 			}),
 	);
@@ -315,21 +326,25 @@ function mcpServer(db: Db, userId: string, limits: boolean): McpServer {
 		{
 			title: "Get catalogue",
 			description:
-				"Gives the catalogue of Yume: the currencies, the loyalty programmes and the transfer rules that apply today in the country of the catalogue. A ratio is two integers: ratioNum target points for ratioDen source points, with a minimum transfer and a step.",
+				"Gives the catalogue of Yume: the currencies, the loyalty programmes and the transfer rules that apply today in the country of the user. A ratio is two integers: ratioNum target points for ratioDen source points, with a minimum transfer and a step.",
 			outputSchema: catalogueOutput,
 			annotations: { title: "Get catalogue", ...READS },
 			_meta: AUTHENTICATED,
 		},
 		() =>
 			result((now) => {
+				const country = countryOf(db, userId);
+				if (country === null) {
+					return failure(COUNTRY_NOTICE);
+				}
 				const at = today(now);
 				return {
 					at,
-					country: DEFAULT_COUNTRY,
+					country,
 					currencies: allCurrencies(db),
 					programs: allPrograms(db),
 					transferRules: allTransferRules(db).filter(
-						(rule) => rule.country === DEFAULT_COUNTRY && isValidAt(rule, at),
+						(rule) => rule.country === country && isValidAt(rule, at),
 					),
 				};
 			}),

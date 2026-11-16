@@ -278,17 +278,34 @@ the selection.
 `findRule` compares the country exactly. A rule of an other country gives no value to
 this country.
 
-The catalogue holds the rules of Italy only. No surface selects a country, therefore the
-server gives the constant `DEFAULT_COUNTRY` of `src/shared/catalogue.ts` to the
-calculation. A second country in the catalogue needs the country of the user: the
-dashboard must then ask for that value, and the table `user` must hold it. Yume adds that
-field with that requirement, and not before it.
+**Each user has one country.** Status: **accepted**. Date: 2026-11-16. The column
+`user.country` holds it. "Amex" then means the Amex of that country. A user with the rules
+of two countries does not exist: each calculation reads one country.
+
+- The first sign-in with Google writes no country: Better Auth makes the user before any
+  form of Yume. The dashboard then shows only the choice of the country. `PUT
+  /api/me/country` writes it, and `GET /api/me` gives it.
+- The list `COUNTRIES` of `src/shared/catalogue.ts` holds the countries that a user can
+  select. A country enters that list with its rules in the catalogue, not before. A test
+  of the seed compares the two lists.
+- The country does not change. The same country two times gives the status 204. An other
+  country gives the status 409 and `country_fixed`. A user who moves to an other country
+  removes the account and makes a new one in that country.
+- Before the choice, `GET /api/potential` gives the status 409 and `country_required`.
+  The tools `get_potential` and `get_catalogue` give an error that names the choice on the
+  dashboard.
+- The migration `0014_user_country` gives `IT` to each user before it: those users read
+  the rules of Italy. The script of paragraph 4.1.1 also gives `IT` to the account of the
+  reviewers, because the test cases of the directories read the rules of Italy.
+
+A public page has no user. It reads `DEFAULT_COUNTRY` of `src/shared/catalogue.ts`.
 
 ### 3.4 Tables
 
 ```
 -- Better Auth controls these tables: user, session, account, verification
 -- user also holds supporter_until? and unlimited. Refer to paragraph 4.6
+-- user also holds country?. Refer to paragraph 3.3.2
 
 currency(id, code, name, kind)        -- 'airline' | 'flexible' | 'hotel' | 'rail'
 program(id, currencyId, code, name, airlineIata?, alliance?, transferable)
@@ -986,7 +1003,7 @@ The server gives four tools:
 |---|---|---|
 | `list_accounts` | It gives the accounts of the user, with the name and the currency of the programme, and the most recent snapshot of each one, with its expiry lots. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
 | `get_potential` | It gives the potential miles of each airline currency, as `GET /api/potential` does. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
-| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of `DEFAULT_COUNTRY` that apply today. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
+| `get_catalogue` | It gives the currencies, the programmes and the transfer rules of the country of the user that apply today. | `title`, `readOnlyHint: true`, `destructiveHint: false`, `openWorldHint: false` |
 | `add_snapshot` | It adds a snapshot to an account of the user. | `title`, `readOnlyHint: false`, `destructiveHint: true`, `openWorldHint: false` |
 
 Each tool has a `title` and an explicit value of the three hints. The directory of
@@ -1271,7 +1288,11 @@ panel.
 
 The quantity of the accounts is the signal of that state. Thus the database keeps no
 flag of the onboarding, and the block goes away with the first account. Yume has no
-route of onboarding and no tour of the screens. The public page of paragraph 5.5.1 gives
+route of onboarding and no tour of the screens.
+
+The choice of the country comes before that block. A user with no country reads only
+that choice on `/dashboard`: the potential needs the rules of a country. Paragraph 3.3.2
+gives the rules. The country is the signal, thus that state also needs no flag. The public page of paragraph 5.5.1 gives
 the context before the sign-in.
 
 The block shows no value of the user, thus it gives no warning of the transfer. The

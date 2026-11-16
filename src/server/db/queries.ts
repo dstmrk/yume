@@ -5,11 +5,13 @@ import {
 	eq,
 	inArray,
 	isNotNull,
+	isNull,
 	lt,
 	or,
 	sql,
 } from "drizzle-orm";
 import type { AccountRow, Connection, ExpiryLot } from "../../shared/api.ts";
+import type { Country } from "../../shared/catalogue.ts";
 import type { TierSource } from "../../shared/tier.ts";
 import type { Db } from "./index.ts";
 import {
@@ -527,6 +529,34 @@ export function setUnlimited(
 		.where(eq(user.id, userId))
 		.run();
 	return result.changes > 0;
+}
+
+/**
+ * The country of the transfer rules of a user, or null. A user has no country
+ * after the first sign-in. A user that does not exist also gives null.
+ */
+export function countryOf(db: Db, userId: string): Country | null {
+	const row = db
+		.select({ country: user.country })
+		.from(user)
+		.where(eq(user.id, userId))
+		.get();
+	return (row?.country as Country | null | undefined) ?? null;
+}
+
+/**
+ * Writes the country of a user with no country. It gives true when the user
+ * then has `country`: also when the user already had it.
+ *
+ * The function does not change a country. A user of an other country makes a
+ * new account. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
+ */
+export function setCountry(db: Db, userId: string, country: Country): boolean {
+	db.update(user)
+		.set({ country, updatedAt: new Date() })
+		.where(and(eq(user.id, userId), isNull(user.country)))
+		.run();
+	return countryOf(db, userId) === country;
 }
 
 /**

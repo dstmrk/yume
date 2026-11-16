@@ -23,12 +23,24 @@ export type IsoDate = string;
 export type CountryCode = string;
 
 /**
- * The country of the rules that the application uses.
+ * The countries that a user can select.
  *
- * The catalogue holds the rules of Italy only, and no surface selects a
- * country. A second country in the catalogue needs a country of the user.
+ * A country is in this list when the catalogue holds its rules. A user selects
+ * one country after the first sign-in, and the country does not change.
+ * Paragraph 3.3.2 of `docs/architecture.md` gives the rules.
  */
-export const DEFAULT_COUNTRY: CountryCode = "IT";
+export const COUNTRIES = ["IT"] as const;
+
+/** A country that a user can select. */
+export type Country = (typeof COUNTRIES)[number];
+
+/**
+ * The country of the rules of the public pages.
+ *
+ * A public page has no user, thus it has no country of a user. Paragraph
+ * 3.3.2 of `docs/architecture.md` gives the rule.
+ */
+export const DEFAULT_COUNTRY: Country = "IT";
 
 /**
  * The kind of a currency.

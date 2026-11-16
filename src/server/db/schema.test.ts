@@ -511,3 +511,26 @@ describe("the migration of the authorisation server", () => {
 		expect(old.select().from(schema.oauthConsent).all()).toEqual([]);
 	});
 });
+
+describe("the migration of the country of the user", () => {
+	it("gives the country IT to each user of the version before", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: migrationsUntil("0013_stripe_billing") });
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		expect(old.select().from(schema.user).all()[0]).toMatchObject({
+			id: "author",
+			country: "IT",
+		});
+	});
+
+	it("gives no country to a user of the new version", () => {
+		insertUser(db, "user-1", null);
+		expect(db.select().from(schema.user).all()[0]?.country).toBeNull();
+	});
+});

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+	formatCountry,
 	formatDate,
 	formatEuros,
 	formatHundredths,
@@ -116,5 +117,13 @@ describe("formatList", () => {
 
 	it("gives an empty text with no item", () => {
 		expect(formatList([], IT)).toBe("");
+	});
+});
+
+describe("formatCountry", () => {
+	it("writes the name of the country in the language of the page", () => {
+		expect(formatCountry("IT", IT)).toBe("Italia");
+		expect(formatCountry("ES", IT)).toBe("Spagna");
+		expect(formatCountry("ES", "es-ES")).toBe("España");
 	});
 });

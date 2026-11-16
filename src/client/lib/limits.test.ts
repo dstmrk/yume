@@ -28,6 +28,7 @@ const FREE: MeResponse = {
 	limits: true,
 	tier: "free",
 	billing: null,
+	country: "IT",
 };
 
 function blocked(me: MeResponse | undefined, held: string[] = []) {

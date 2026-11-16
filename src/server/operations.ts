@@ -13,10 +13,10 @@
 import type { z } from "zod";
 import {
 	addSnapshotSchema,
+	COUNTRY_REQUIRED,
 	type PotentialResponse,
 	SUPPORTER_REQUIRED,
 } from "../shared/api.ts";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
 import { potentialMiles } from "../shared/potential.ts";
 import {
 	accountTier,
@@ -30,6 +30,7 @@ import {
 	allCurrencies,
 	allPrograms,
 	allTransferRules,
+	countryOf,
 	currentBalances,
 	findAccount,
 	tierSourceOf,
@@ -139,14 +140,22 @@ export function recordSnapshot(
  * not add the values of two currencies: the user cannot send the same points
  * to two currencies.
  *
- * The calculation uses the rules of `DEFAULT_COUNTRY`. The user selects no
- * country now. Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
+ * The calculation uses the rules of the country of the user. A user with no
+ * country gets `COUNTRY_REQUIRED`: no rule applies before that choice.
+ * Paragraph 3.3.2 of `docs/architecture.md` gives the reason.
  */
 export function potentialOf(
 	db: Db,
 	userId: string,
 	at: string,
-): PotentialResponse {
+):
+	| { ok: true; value: PotentialResponse }
+	| { ok: false; error: typeof COUNTRY_REQUIRED } {
+	const country = countryOf(db, userId);
+	if (country === null) {
+		return { ok: false, error: COUNTRY_REQUIRED };
+	}
+
 	const programs = allPrograms(db);
 	const rules = allTransferRules(db);
 	const balances = currentBalances(db, userId)
@@ -161,10 +170,10 @@ export function potentialOf(
 				balances,
 				programs,
 				rules,
-				country: DEFAULT_COUNTRY,
+				country,
 				at,
 			}),
 		);
 
-	return { at, potential };
+	return { ok: true, value: { at, potential } };
 }

@@ -10,6 +10,7 @@ import type {
 	MeResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
+import type { Country } from "../../shared/catalogue.ts";
 import type { Locale } from "../../shared/locale.ts";
 import {
 	type GoogleSignInBody,
@@ -246,6 +247,11 @@ export function deleteSnapshot(
 /** Gives if the user of the session is the administrator. */
 export function fetchMe(): Promise<MeResponse> {
 	return request<MeResponse>("GET", "/api/me");
+}
+
+/** Writes the country of the user, one time after the first sign-in. */
+export function setCountry(country: Country): Promise<void> {
+	return request<void>("PUT", "/api/me/country", { country });
 }
 
 /**
