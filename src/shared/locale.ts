@@ -3,7 +3,7 @@
  *
  * The language is different from the market. The language gives the text and
  * the format of the numbers. The market gives the catalogue and the transfer
- * rules: refer to `DEFAULT_COUNTRY` of `catalogue.ts`. Paragraph 5.8 of
+ * rules: refer to `MARKETS` of `catalogue.ts`. Paragraph 5.8 of
  * `docs/architecture.md` gives the decisions.
  *
  * The path is the only source of the language. The base language has no

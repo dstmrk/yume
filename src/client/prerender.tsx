@@ -47,11 +47,12 @@ import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import type { ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import {
 	BASE_LOCALE,
 	LOCALE_TAGS,
 	LOCALES,
+	type Locale,
 	routing,
 } from "../shared/locale.ts";
 import { AppShell } from "./AppShell.tsx";
@@ -61,7 +62,7 @@ import { CurrencyPage } from "./CurrencyPage.tsx";
 import { GuidePage } from "./GuidePage.tsx";
 import { HomePage } from "./HomePage.tsx";
 import { I18nProvider } from "./i18n/I18n.tsx";
-import { type I18n, i18nOf, type Messages } from "./i18n/messages.ts";
+import { type I18n, i18nOf } from "./i18n/messages.ts";
 import { LegalPage } from "./LegalPage.tsx";
 import { todayIso } from "./lib/balance.ts";
 import {
@@ -139,9 +140,18 @@ type StaticPage = {
 
 /** The date of the build. The pages give the rules that are valid today. */
 const AT = todayIso(new Date());
-const currencies = currencyPages(SEED, DEFAULT_COUNTRY, AT);
-const sources = sourcePages(SEED, DEFAULT_COUNTRY, AT, SOURCE_SLUGS);
-const unreachable = unreachableCurrencies(SEED, DEFAULT_COUNTRY, AT);
+/**
+ * The catalogue of the market of a language. Each language gives the rules of
+ * its own country, thus two languages can hold different pages of currencies.
+ */
+function catalogueOf(locale: Locale) {
+	const market = MARKETS[locale];
+	return {
+		currencies: currencyPages(SEED, market, AT),
+		sources: sourcePages(SEED, market, AT, SOURCE_SLUGS),
+		unreachable: unreachableCurrencies(SEED, market, AT),
+	};
+}
 
 /** The path of a page in the language, with absolute paths of the prefix. */
 function localCrumbs(
@@ -169,179 +179,188 @@ function graph(items: readonly JsonLdItem[]): string {
  * title is the title of the page alone, with no name of the application: the
  * search engine cuts a title of more than 60 characters. Paragraph 5.5.5 of
  * `docs/architecture.md` gives the rules.
+ *
+ * Each language has its own list: the pages of the catalogue follow the market
+ * of the language, and a guide has the slug of the language.
  */
-const PAGES: readonly StaticPage[] = [
-	{
-		path: "/",
-		element: <HomePage />,
-		title: ({ t }) => `Yume — ${t.homeTitle}`,
-		description: ({ t }) => t.siteDescription,
-		jsonLd: (i18n) => toJsonLdScript(homeGraph(SITE_URL, i18n)),
-	},
-	{
-		path: "/privacy",
-		element: <LegalPage document="privacy" />,
-		title: ({ t }) => `${t.privacy.title} — Yume`,
-		description: ({ t }) => t.privacy.description,
-	},
-	{
-		path: "/tos",
-		element: <LegalPage document="tos" />,
-		title: ({ t }) => `${t.tos.title} — Yume`,
-		description: ({ t }) => t.tos.description,
-	},
-	// The documentation of the MCP server. The reviewer of the directory of
-	// Anthropic and an assistant can read it with no JavaScript.
-	{
-		path: "/connector",
-		element: <LegalPage document="connector" />,
-		title: ({ t }) => `${t.connector.title} — Yume`,
-		description: ({ t }) => t.connector.description,
-	},
-	// The contact of the service. The directories of the assistants read it.
-	{
-		path: "/support",
-		element: <LegalPage document="support" />,
-		title: ({ t }) => `${t.support.title} — Yume`,
-		description: ({ t }) => t.support.description,
-	},
-	{
-		path: PATHS.calculator,
-		element: <CalculatorPage />,
-		title: ({ t }) => t.calculator.metaTitle,
-		description: ({ t }) => t.calculator.description,
-		jsonLd: (i18n) =>
-			graph([
-				breadcrumbJsonLd(
-					SITE_URL,
-					localCrumbs(
-						i18n.locale,
-						pageCrumbs(
-							i18n.t.catalogue,
-							i18n.t.footerCalculator,
-							PATHS.calculator,
-						),
-					),
-				),
-				faqPageJsonLd(i18n.t.calculator.faq),
-			]),
-	},
-	{
-		path: PATHS.currencies,
-		element: <CurrenciesPage />,
-		title: ({ t }) => t.catalogue.hub.metaTitle,
-		description: ({ t }) => t.catalogue.hub.description,
-		jsonLd: (i18n) =>
-			graph([
-				breadcrumbJsonLd(
-					SITE_URL,
-					localCrumbs(
-						i18n.locale,
-						pageCrumbs(
-							i18n.t.catalogue,
-							i18n.t.catalogue.currencies,
-							PATHS.currencies,
-						),
-					),
-				),
-			]),
-	},
-	...currencies.map(
-		(page): StaticPage => ({
-			path: PATHS.currency(page.currency.id),
-			element: <CurrencyPage currencyId={page.currency.id} />,
-			title: ({ t }) => t.catalogue.currency.metaTitle(page.currency.name),
-			description: (i18n) => currencyText(page, sources, i18n).description,
-			jsonLd: (i18n) => {
-				const text = currencyText(page, sources, i18n);
-				const path = routing.pathFor(
-					i18n.locale,
-					PATHS.currency(page.currency.id),
-				);
-				return graph([
-					webPageJsonLd(SITE_URL, i18n, {
-						path,
-						title: text.title,
-						description: text.description,
-						modified: page.updated,
-					}),
-					breadcrumbJsonLd(
-						SITE_URL,
-						localCrumbs(
-							i18n.locale,
-							currencyCrumbs(i18n.t.catalogue, page.currency),
-						),
-					),
-					faqPageJsonLd(text.faq),
-				]);
-			},
-		}),
-	),
-	...sources.map(
-		(page): StaticPage => ({
-			path: PATHS.source(page.slug),
-			element: <SourcePage slug={page.slug} />,
-			title: (i18n) => sourceText(page, i18n).metaTitle,
-			description: (i18n) => sourceText(page, i18n).description,
-			jsonLd: (i18n) => {
-				const text = sourceText(page, i18n);
-				const path = routing.pathFor(i18n.locale, PATHS.source(page.slug));
-				return graph([
-					webPageJsonLd(SITE_URL, i18n, {
-						path,
-						title: text.title,
-						description: text.description,
-						modified: page.updated,
-					}),
-					breadcrumbJsonLd(
-						SITE_URL,
-						localCrumbs(
-							i18n.locale,
-							pageCrumbs(i18n.t.catalogue, text.title, PATHS.source(page.slug)),
-						),
-					),
-					faqPageJsonLd(text.faq),
-				]);
-			},
-		}),
-	),
-	...i18nOf(BASE_LOCALE).t.guides.items.map((base, index): StaticPage => {
-		const guideOf = (t: Messages) => t.guides.items[index] ?? base;
-		return {
-			path: PATHS.guide(base.slug),
-			element: <GuidePage slug={base.slug} />,
-			title: ({ t }) => guideOf(t).metaTitle,
-			description: ({ t }) => guideOf(t).description,
-			jsonLd: (i18n) => {
-				const guide = guideOf(i18n.t);
-				return graph([
-					articleJsonLd(SITE_URL, i18n, {
-						path: routing.pathFor(i18n.locale, PATHS.guide(guide.slug)),
-						title: guide.title,
-						description: guide.description,
-						published: guide.published,
-						modified: guide.modified,
-					}),
+function pagesOf(locale: Locale): StaticPage[] {
+	const { currencies, sources } = catalogueOf(locale);
+	return [
+		{
+			path: "/",
+			element: <HomePage />,
+			title: ({ t }) => `Yume — ${t.homeTitle}`,
+			description: ({ t }) => t.siteDescription,
+			jsonLd: (i18n) => toJsonLdScript(homeGraph(SITE_URL, i18n)),
+		},
+		{
+			path: "/privacy",
+			element: <LegalPage document="privacy" />,
+			title: ({ t }) => `${t.privacy.title} — Yume`,
+			description: ({ t }) => t.privacy.description,
+		},
+		{
+			path: "/tos",
+			element: <LegalPage document="tos" />,
+			title: ({ t }) => `${t.tos.title} — Yume`,
+			description: ({ t }) => t.tos.description,
+		},
+		// The documentation of the MCP server. The reviewer of the directory of
+		// Anthropic and an assistant can read it with no JavaScript.
+		{
+			path: "/connector",
+			element: <LegalPage document="connector" />,
+			title: ({ t }) => `${t.connector.title} — Yume`,
+			description: ({ t }) => t.connector.description,
+		},
+		// The contact of the service. The directories of the assistants read it.
+		{
+			path: "/support",
+			element: <LegalPage document="support" />,
+			title: ({ t }) => `${t.support.title} — Yume`,
+			description: ({ t }) => t.support.description,
+		},
+		{
+			path: PATHS.calculator,
+			element: <CalculatorPage />,
+			title: ({ t }) => t.calculator.metaTitle,
+			description: ({ t }) => t.calculator.description,
+			jsonLd: (i18n) =>
+				graph([
 					breadcrumbJsonLd(
 						SITE_URL,
 						localCrumbs(
 							i18n.locale,
 							pageCrumbs(
 								i18n.t.catalogue,
-								guide.title,
-								PATHS.guide(guide.slug),
+								i18n.t.footerCalculator,
+								PATHS.calculator,
 							),
 						),
 					),
-					faqPageJsonLd(guide.faq),
-				]);
-			},
-		};
-	}),
-];
+					faqPageJsonLd(i18n.t.calculator.faq),
+				]),
+		},
+		{
+			path: PATHS.currencies,
+			element: <CurrenciesPage />,
+			title: ({ t }) => t.catalogue.hub.metaTitle,
+			description: ({ t }) => t.catalogue.hub.description,
+			jsonLd: (i18n) =>
+				graph([
+					breadcrumbJsonLd(
+						SITE_URL,
+						localCrumbs(
+							i18n.locale,
+							pageCrumbs(
+								i18n.t.catalogue,
+								i18n.t.catalogue.currencies,
+								PATHS.currencies,
+							),
+						),
+					),
+				]),
+		},
+		...currencies.map(
+			(page): StaticPage => ({
+				path: PATHS.currency(page.currency.id),
+				element: <CurrencyPage currencyId={page.currency.id} />,
+				title: ({ t }) => t.catalogue.currency.metaTitle(page.currency.name),
+				description: (i18n) => currencyText(page, sources, i18n).description,
+				jsonLd: (i18n) => {
+					const text = currencyText(page, sources, i18n);
+					const path = routing.pathFor(
+						i18n.locale,
+						PATHS.currency(page.currency.id),
+					);
+					return graph([
+						webPageJsonLd(SITE_URL, i18n, {
+							path,
+							title: text.title,
+							description: text.description,
+							modified: page.updated,
+						}),
+						breadcrumbJsonLd(
+							SITE_URL,
+							localCrumbs(
+								i18n.locale,
+								currencyCrumbs(i18n.t.catalogue, page.currency),
+							),
+						),
+						faqPageJsonLd(text.faq),
+					]);
+				},
+			}),
+		),
+		...sources.map(
+			(page): StaticPage => ({
+				path: PATHS.source(page.slug),
+				element: <SourcePage slug={page.slug} />,
+				title: (i18n) => sourceText(page, i18n).metaTitle,
+				description: (i18n) => sourceText(page, i18n).description,
+				jsonLd: (i18n) => {
+					const text = sourceText(page, i18n);
+					const path = routing.pathFor(i18n.locale, PATHS.source(page.slug));
+					return graph([
+						webPageJsonLd(SITE_URL, i18n, {
+							path,
+							title: text.title,
+							description: text.description,
+							modified: page.updated,
+						}),
+						breadcrumbJsonLd(
+							SITE_URL,
+							localCrumbs(
+								i18n.locale,
+								pageCrumbs(
+									i18n.t.catalogue,
+									text.title,
+									PATHS.source(page.slug),
+								),
+							),
+						),
+						faqPageJsonLd(text.faq),
+					]);
+				},
+			}),
+		),
+		...i18nOf(locale).t.guides.items.map(
+			(guide): StaticPage => ({
+				path: PATHS.guide(guide.slug),
+				element: <GuidePage slug={guide.slug} />,
+				title: () => guide.metaTitle,
+				description: () => guide.description,
+				jsonLd: (i18n) =>
+					graph([
+						articleJsonLd(SITE_URL, i18n, {
+							path: routing.pathFor(i18n.locale, PATHS.guide(guide.slug)),
+							title: guide.title,
+							description: guide.description,
+							published: guide.published,
+							modified: guide.modified,
+						}),
+						breadcrumbJsonLd(
+							SITE_URL,
+							localCrumbs(
+								i18n.locale,
+								pageCrumbs(
+									i18n.t.catalogue,
+									guide.title,
+									PATHS.guide(guide.slug),
+								),
+							),
+						),
+						faqPageJsonLd(guide.faq),
+					]),
+			}),
+		),
+	];
+}
 
 for (const locale of LOCALES) {
 	const i18n = i18nOf(locale);
+	const pages = pagesOf(locale);
+	const { currencies, sources, unreachable } = catalogueOf(locale);
 
 	// The shell has the title and the description of the public page: the
 	// browser shows that title until the bundle loads.
@@ -368,7 +387,7 @@ for (const locale of LOCALES) {
 		`The pre-render wrote the shell of the application in ${shellPath}.`,
 	);
 
-	for (const page of PAGES) {
+	for (const page of pages) {
 		const markup = renderToStaticMarkup(
 			<I18nProvider locale={locale}>
 				<AppShell>{page.element}</AppShell>
@@ -412,10 +431,12 @@ for (const locale of LOCALES) {
 	const fullPath = distPath(locale, "llms-full.txt");
 	// The links of `llms.txt`: each page of content after the public page,
 	// with the title of its head.
-	const links = PAGES.filter((page) => page.path !== "/").map((page) => ({
-		title: page.title(i18n),
-		url: `${SITE_URL}${routing.pathFor(locale, page.path)}`,
-	}));
+	const links = pages
+		.filter((page) => page.path !== "/")
+		.map((page) => ({
+			title: page.title(i18n),
+			url: `${SITE_URL}${routing.pathFor(locale, page.path)}`,
+		}));
 	const llms = llmsTxt(
 		home,
 		i18n.t,
@@ -434,13 +455,18 @@ for (const locale of LOCALES) {
 	});
 	writeFileSync(fullPath, full);
 	console.log(`The pre-render wrote ${full.length} characters in ${fullPath}.`);
+	// The currencies that no source reaches have no page. The list of the
+	// currencies names them.
+	console.log(
+		`The pre-render wrote ${currencies.length} pages of currencies and ${sources.length} pages of sources for ${locale}. ${unreachable.length} currencies have no page.`,
+	);
 }
 
 // One sitemap for each language, at the root: `robots.txt` gives its address.
 const sitemap = sitemapXml(
 	SITE_URL,
 	LOCALES.flatMap((locale) =>
-		publicPaths(SEED, DEFAULT_COUNTRY, AT, i18nOf(locale).t.guides.items).map(
+		publicPaths(SEED, MARKETS[locale], AT, i18nOf(locale).t.guides.items).map(
 			(page) => ({ ...page, path: routing.pathFor(locale, page.path) }),
 		),
 	),
@@ -448,9 +474,4 @@ const sitemap = sitemapXml(
 writeFileSync("dist/sitemap.xml", sitemap);
 console.log(
 	`The pre-render wrote ${sitemap.split("<url>").length - 1} addresses in dist/sitemap.xml.`,
-);
-// The currencies that no source reaches have no page. The list of the
-// currencies names them.
-console.log(
-	`The pre-render wrote ${currencies.length} pages of currencies and ${sources.length} pages of sources. ${unreachable.length} currencies have no page.`,
 );

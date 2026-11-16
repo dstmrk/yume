@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { COUNTRIES, DEFAULT_COUNTRY } from "../../../shared/catalogue.ts";
+import { COUNTRIES } from "../../../shared/catalogue.ts";
 import { convert, findRule } from "../../../shared/conversion.ts";
 import { currencies, programs, transferRules } from "./catalogue.ts";
 import { continuityErrors } from "./continuity.ts";
@@ -192,7 +192,7 @@ describe("the transfer rules", () => {
 describe("the rules of Klarna", () => {
 	const at = "2026-10-06";
 	const rule = (to: string) => {
-		const found = findRule(transferRules, "klarna", to, DEFAULT_COUNTRY, at);
+		const found = findRule(transferRules, "klarna", to, "IT", at);
 		if (!found) throw new Error(`no rule from klarna to ${to}`);
 		return found;
 	};
@@ -222,7 +222,7 @@ describe("the rules of Klarna", () => {
 		const best = Math.max(
 			...avios
 				.map((program) =>
-					findRule(transferRules, "klarna", program.id, DEFAULT_COUNTRY, at),
+					findRule(transferRules, "klarna", program.id, "IT", at),
 				)
 				.filter((found) => found !== undefined)
 				.map((found) => convert(10_000, found)),

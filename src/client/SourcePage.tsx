@@ -1,4 +1,4 @@
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import { routing } from "../shared/locale.ts";
 import { SectionTitle } from "./components/board/SectionTitle.tsx";
 import { TextLink } from "./components/board/TextLink.tsx";
@@ -26,7 +26,7 @@ export function SourcePage({ slug }: { slug: string }) {
 	const { t: text, locale, intl } = i18n;
 	const page = sourcePages(
 		SEED,
-		DEFAULT_COUNTRY,
+		MARKETS[i18n.locale],
 		todayIso(new Date()),
 		SOURCE_SLUGS,
 	).find((item) => item.slug === slug);

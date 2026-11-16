@@ -1,4 +1,4 @@
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import { routing } from "../shared/locale.ts";
 import { SectionTitle } from "./components/board/SectionTitle.tsx";
 import { TextLink } from "./components/board/TextLink.tsx";
@@ -24,9 +24,9 @@ import { PublicPage } from "./PublicPage.tsx";
 export function CurrenciesPage() {
 	const { t: text, locale, intl } = useI18n();
 	const at = todayIso(new Date());
-	const pages = currencyPages(SEED, DEFAULT_COUNTRY, at);
-	const sources = sourcePages(SEED, DEFAULT_COUNTRY, at, SOURCE_SLUGS);
-	const unreachable = unreachableCurrencies(SEED, DEFAULT_COUNTRY, at);
+	const pages = currencyPages(SEED, MARKETS[locale], at);
+	const sources = sourcePages(SEED, MARKETS[locale], at, SOURCE_SLUGS);
+	const unreachable = unreachableCurrencies(SEED, MARKETS[locale], at);
 	const hub = text.catalogue.hub;
 
 	return (

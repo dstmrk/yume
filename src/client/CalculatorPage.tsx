@@ -1,5 +1,5 @@
 import { useId, useState } from "react";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import { routing } from "../shared/locale.ts";
 import { SectionTitle } from "./components/board/SectionTitle.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
@@ -37,7 +37,7 @@ export function CalculatorPage() {
 	const { t: text, locale, intl } = i18n;
 	const fieldId = useId();
 	const at = todayIso(new Date());
-	const sources = sourcePages(SEED, DEFAULT_COUNTRY, at, SOURCE_SLUGS);
+	const sources = sourcePages(SEED, MARKETS[i18n.locale], at, SOURCE_SLUGS);
 	const [fields, setFields] = useState<Record<string, string>>({});
 	const calc = text.calculator;
 
@@ -49,7 +49,7 @@ export function CalculatorPage() {
 	const rows = calculatorRows({
 		points,
 		catalogue: SEED,
-		country: DEFAULT_COUNTRY,
+		country: MARKETS[i18n.locale],
 		at,
 	});
 	const labelOf = new Map(

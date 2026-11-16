@@ -135,7 +135,8 @@ These rules prevent the most dangerous defects in this application:
    the key with `validFrom`. The partners and the ratios change with the country, thus
    `findRule` compares that value exactly. Each user has one country, in `user.country`,
    and the calculation reads it. Add a country to `COUNTRIES` of
-   `src/shared/catalogue.ts` with its rules only. A public page reads `DEFAULT_COUNTRY`.
+   `src/shared/catalogue.ts` with its rules only. A public page reads
+   the market of its language, in `MARKETS`.
    Read the official page of the country of the rule. Paragraph 3.3.2 of
    `docs/architecture.md` gives the reason.
 

@@ -6,6 +6,8 @@
  * the client and the server both use them.
  */
 
+import type { Locale } from "./locale.ts";
+
 /**
  * A date in the ISO 8601 format, for example `2026-08-11`.
  *
@@ -35,12 +37,14 @@ export const COUNTRIES = ["IT"] as const;
 export type Country = (typeof COUNTRIES)[number];
 
 /**
- * The country of the rules of the public pages.
+ * The market of each language: the country of the rules of its public pages.
  *
- * A public page has no user, thus it has no country of a user. Paragraph
- * 3.3.2 of `docs/architecture.md` gives the rule.
+ * A public page has no user, thus it has no country of a user. It reads the
+ * rules of the country of its language: `/` reads Italy. The market of a
+ * person is `user.country`, not this value. Paragraphs 3.3.2 and 5.8 of
+ * `docs/architecture.md` give the rules.
  */
-export const DEFAULT_COUNTRY: Country = "IT";
+export const MARKETS: Readonly<Record<Locale, Country>> = { it: "IT" };
 
 /**
  * The kind of a currency.
