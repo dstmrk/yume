@@ -945,7 +945,7 @@ export const it = {
 			{
 				title: "1. Oggetto del servizio",
 				paragraphs: [
-					"Yume è un servizio di Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015. Mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali per l'Italia.",
+					"Yume è un servizio di Annadermolab, ditta individuale, con sede in Torino (TO), P.IVA 11836750015. Mostra i saldi dei programmi fedeltà che inserisci e calcola le miglia potenziali per ogni valuta, ai rapporti di trasferimento ufficiali del tuo paese.",
 					"L'account gratuito non ha costi. L'account sostenitore è a pagamento e aggiunge le funzioni della sezione 7-bis.",
 					"Yume non si collega ai tuoi conti, non legge i saldi in automatico e non trasferisce punti. Non appartiene ad American Express, a Revolut, a Klarna né ai programmi fedeltà citati.",
 				],
