@@ -298,7 +298,8 @@ of two countries does not exist: each calculation reads one country.
   the rules of Italy. The script of paragraph 4.1.1 also gives `IT` to the account of the
   reviewers, because the test cases of the directories read the rules of Italy.
 
-A public page has no user. It reads `DEFAULT_COUNTRY` of `src/shared/catalogue.ts`.
+A public page has no user. It reads the market of its language: `MARKETS` of
+`src/shared/catalogue.ts`, for example `it` gives `IT`. Paragraph 5.8 gives the rule.
 
 ### 3.4 Tables
 
@@ -2055,6 +2056,15 @@ format of the numbers and of the dates. The market gives the catalogue and the t
 rules: the column `country` of paragraph 3.3.2. A person from Italy who lives in Spain
 needs the rules of Spain and the Italian text. Thus no value of one controls the other.
 This paragraph gives the language only.
+
+**A language has one market for the public pages.** A public page has no user, thus
+it reads the rules of the market of its language. `MARKETS` of
+`src/shared/catalogue.ts` holds that country for each language, and the type asks for
+each language. Status: **accepted**. Date: 2026-11-16. The base language reads Italy.
+Spanish reads Spain. A person of the dashboard reads `user.country`, not this value.
+
+The pre-render makes the pages of each language from its market. Two languages can
+thus hold different pages of currencies. A guide has the slug of its language.
 
 **The path is the only source of the language.** The base language, Italian, has no
 prefix: `/`, `/login`, `/dashboard`. Each other language has its prefix: `/en/`,

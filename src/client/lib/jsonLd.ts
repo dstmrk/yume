@@ -13,7 +13,7 @@
  * page needs its own graph and a `BreadcrumbList`.
  */
 
-import { DEFAULT_COUNTRY } from "../../shared/catalogue.ts";
+import { MARKETS } from "../../shared/catalogue.ts";
 import type { I18n } from "../i18n/messages.ts";
 
 /** The context of each item. schema.org gives the vocabulary. */
@@ -31,8 +31,8 @@ export type JsonLdItem = Record<string, unknown>;
 /**
  * The person or the group behind the application.
  *
- * `areaServed` is the country of the rules of the catalogue. Refer to the rule
- * 6 of the data in `CLAUDE.md`.
+ * `areaServed` is the market of the language of the page: the country of the
+ * rules that the page gives. Refer to the rule 6 of the data in `CLAUDE.md`.
  */
 export function organizationJsonLd(site: string, i18n: I18n) {
 	return {
@@ -41,7 +41,7 @@ export function organizationJsonLd(site: string, i18n: I18n) {
 		name: "Yume",
 		url: site,
 		logo: `${site}/icon-512.png`,
-		areaServed: DEFAULT_COUNTRY,
+		areaServed: MARKETS[i18n.locale],
 		knowsAbout: [...i18n.t.jsonLd.knowsAbout],
 	} as const;
 }

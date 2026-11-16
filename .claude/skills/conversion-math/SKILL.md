@@ -124,7 +124,7 @@ of that country.
 **Read the country of the user.** `potentialOf` of `src/server/operations.ts`
 reads `user.country`. A user with no country gets `country_required`, not the
 rules of a default country. A public page has no user: it reads
-`DEFAULT_COUNTRY` of `src/shared/catalogue.ts`.
+the market of its language, `MARKETS` of `src/shared/catalogue.ts`.
 
 **Add the country to `COUNTRIES` with its rules.** A user can select each
 country of that list. A test of the seed compares the list with the countries

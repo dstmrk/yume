@@ -1,6 +1,6 @@
 import type { CSSProperties, ReactNode } from "react";
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
-import { routing } from "../shared/locale.ts";
+import { MARKETS } from "../shared/catalogue.ts";
+import { type Locale, routing } from "../shared/locale.ts";
 import { LogoMark } from "./components/board/ProgramLogo.tsx";
 import { SplitFlapNumber } from "./components/board/SplitFlapNumber.tsx";
 import { SplitFlapWord } from "./components/board/SplitFlapWord.tsx";
@@ -254,7 +254,7 @@ export function HomePage() {
 								{text.homeExploreCalculator}
 							</TextLink>
 						</li>
-						{homeSources().map((source) => (
+						{homeSources(locale).map((source) => (
 							<li key={source.slug}>
 								<TextLink
 									href={routing.pathFor(locale, PATHS.source(source.slug))}
@@ -297,8 +297,8 @@ export function HomePage() {
 }
 
 /** The sources of the catalogue, with the rules of today. */
-function homeSources() {
-	return sourcePages(SEED, DEFAULT_COUNTRY, todayIso(new Date()), SOURCE_SLUGS);
+function homeSources(locale: Locale) {
+	return sourcePages(SEED, MARKETS[locale], todayIso(new Date()), SOURCE_SLUGS);
 }
 
 /**

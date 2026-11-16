@@ -1,4 +1,4 @@
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import { routing } from "../shared/locale.ts";
 import { SectionTitle } from "./components/board/SectionTitle.tsx";
 import { TextLink } from "./components/board/TextLink.tsx";
@@ -29,13 +29,13 @@ export function CurrencyPage({ currencyId }: { currencyId: string }) {
 	const i18n = useI18n();
 	const { t: text, locale } = i18n;
 	const at = todayIso(new Date());
-	const page = currencyPages(SEED, DEFAULT_COUNTRY, at).find(
+	const page = currencyPages(SEED, MARKETS[i18n.locale], at).find(
 		(item) => item.currency.id === currencyId,
 	);
 	if (page === undefined) {
 		return <NotFoundPage />;
 	}
-	const sources = sourcePages(SEED, DEFAULT_COUNTRY, at, SOURCE_SLUGS);
+	const sources = sourcePages(SEED, MARKETS[i18n.locale], at, SOURCE_SLUGS);
 	const content = currencyText(page, sources, i18n);
 	const name = page.currency.name;
 

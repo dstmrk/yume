@@ -1,4 +1,4 @@
-import { DEFAULT_COUNTRY } from "../shared/catalogue.ts";
+import { MARKETS } from "../shared/catalogue.ts";
 import { routing } from "../shared/locale.ts";
 import { SectionTitle } from "./components/board/SectionTitle.tsx";
 import { TextLink } from "./components/board/TextLink.tsx";
@@ -100,8 +100,8 @@ function SourceMatrix() {
 	const i18n = useI18n();
 	const { t: text, locale, intl } = i18n;
 	const at = todayIso(new Date());
-	const currencies = currencyPages(SEED, DEFAULT_COUNTRY, at);
-	const sources = sourcePages(SEED, DEFAULT_COUNTRY, at, SOURCE_SLUGS);
+	const currencies = currencyPages(SEED, MARKETS[locale], at);
+	const sources = sourcePages(SEED, MARKETS[locale], at, SOURCE_SLUGS);
 	const rows = sourceMatrix(currencies, sources, intl);
 
 	return (
