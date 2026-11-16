@@ -14,7 +14,7 @@ const queryClient = new QueryClient();
  * Paragraph 5.8 of `docs/architecture.md` gives the rule.
  */
 const { locale } = routing.localeOfPath(window.location.pathname);
-const router = createAppRouter(routing.pathFor(locale, "/"));
+const router = createAppRouter(locale);
 
 const root = document.getElementById("root");
 if (root === null) {

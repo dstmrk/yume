@@ -106,6 +106,56 @@ describe("localizeHead for an other language", () => {
 	});
 });
 
+// A guide has an other slug in each language. The links `hreflang` give the
+// page of the same guide in each language, not the same slug.
+describe("headOf for a page with an other path in each language", () => {
+	const local = localeRouting(["it", "en"], "it", {
+		en: { miglia: "miles" },
+	});
+	const guide = headOf({
+		site: SITE,
+		locale: "en",
+		path: "/guide/potential-miles",
+		pathIn: (locale) =>
+			locale === "it" ? "/guide/miglia-potenziali" : "/guide/potential-miles",
+		routing: local,
+		locales: ["it", "en"],
+		base: "it",
+		tags,
+		title: "t",
+		description: "d",
+	});
+
+	it("gives the address of each language to its link", () => {
+		expect(guide.url).toBe(`${SITE}/en/guide/potential-miles`);
+		expect(guide.alternates).toEqual([
+			{ hreflang: "it", href: `${SITE}/guide/miglia-potenziali` },
+			{ hreflang: "en", href: `${SITE}/en/guide/potential-miles` },
+			{ hreflang: "x-default", href: `${SITE}/guide/miglia-potenziali` },
+		]);
+	});
+
+	// A segment with a word of the language changes in the links also.
+	it("writes the word of each language in the links", () => {
+		const currency = headOf({
+			site: SITE,
+			locale: "it",
+			path: "/miglia/avios",
+			routing: local,
+			locales: ["it", "en"],
+			base: "it",
+			tags,
+			title: "t",
+			description: "d",
+		});
+		expect(currency.alternates.map((link) => link.href)).toEqual([
+			`${SITE}/miglia/avios`,
+			`${SITE}/en/miles/avios`,
+			`${SITE}/miglia/avios`,
+		]);
+	});
+});
+
 // The build is the only moment that writes the head. A template with a change
 // must stop the build, not give a page with the Italian head.
 describe("localizeHead with a template that is not correct", () => {

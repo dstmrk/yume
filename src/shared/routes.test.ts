@@ -118,6 +118,28 @@ describe("pageOfPath", () => {
 		expect(pageOfPath("/en/en/login", two).found).toBe(false);
 	});
 
+	// A language with its own word for a segment. The page is at the word of
+	// the language, and the Italian word under the prefix is no page.
+	it("finds a page at the word of the language only", () => {
+		const local = localeRouting(["it", "en"], "it", {
+			en: { calcolatore: "calculator" },
+		});
+		expect(pageOfPath("/en/calculator", local)).toEqual({
+			locale: "en",
+			found: true,
+		});
+		expect(pageOfPath("/en/calculator/", local).found).toBe(true);
+		expect(pageOfPath("/en/calcolatore", local)).toEqual({
+			locale: "en",
+			found: false,
+		});
+		expect(pageOfPath("/calcolatore", local)).toEqual({
+			locale: "it",
+			found: true,
+		});
+		expect(pageOfPath("/calculator", local).found).toBe(false);
+	});
+
 	it("uses the languages of the application with no second argument", () => {
 		expect(pageOfPath("/login")).toEqual({ locale: "it", found: true });
 	});

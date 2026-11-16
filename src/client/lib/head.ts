@@ -27,14 +27,17 @@ export type Head = {
 /**
  * Gives the values of the head of one static page in one language.
  *
- * `path` is the path of the page with no prefix, for example `/privacy`. Each
- * page holds its own canonical address and the links `hreflang` of the same
- * page in the other languages.
+ * `path` is the path of the page in the code, with no prefix, for example
+ * `/privacy`. Each page holds its own canonical address and the links
+ * `hreflang` of the same page in the other languages. `pathIn` gives the path
+ * of the page in an other language when it is different: a guide has a slug
+ * in each language. `routing` writes the prefix and the words of the language.
  */
 export function headOf<L extends string>(input: {
 	site: string;
 	locale: L;
 	path: string;
+	pathIn?: (locale: L) => string;
 	routing: { pathFor(locale: L, path: string): string };
 	locales: readonly L[];
 	base: L;
@@ -42,8 +45,9 @@ export function headOf<L extends string>(input: {
 	title: string;
 	description: string;
 }): Head {
+	const pathIn = input.pathIn ?? (() => input.path);
 	const urlOf = (locale: L) =>
-		`${input.site}${input.routing.pathFor(locale, input.path)}`;
+		`${input.site}${input.routing.pathFor(locale, locale === input.locale ? input.path : pathIn(locale))}`;
 	return {
 		lang: input.tags[input.locale].html,
 		openGraph: input.tags[input.locale].openGraph,
