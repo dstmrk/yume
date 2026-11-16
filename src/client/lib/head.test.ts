@@ -7,7 +7,7 @@ import { appShellOf, headOf, localizeHead, ROBOTS_PREVIEW } from "./head.ts";
 const SITE = "https://yumemiles.com";
 const template = readFileSync("src/client/index.html", "utf8");
 
-// The application holds one language. The test gives a second language, thus
+// The test gives a language of the test, `en`, thus
 // the head of that language has a test before the language exists.
 const two = localeRouting(["it", "en"], "it");
 const tags = {

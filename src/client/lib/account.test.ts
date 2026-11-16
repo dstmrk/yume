@@ -1,9 +1,15 @@
 import { describe, expect, it } from "vitest";
+import {
+	currencies as seedCurrencies,
+	programs as seedPrograms,
+	transferRules as seedRules,
+} from "../../server/db/seed/catalogue.ts";
 import type {
 	Currency,
 	Program,
 	TransferRule,
 } from "../../shared/catalogue.ts";
+import { COUNTRIES } from "../../shared/catalogue.ts";
 import {
 	isTooManyAccounts,
 	matchesProgram,
@@ -340,6 +346,29 @@ describe("programsOfCountry", () => {
 
 	// Before the choice of the country, and while `GET /api/me` loads, the list
 	// has no country to compare. It then shows each programme.
+	// The owner asked for it (2026-11-16): each airline programme of the
+	// catalogue is in the list of each country, also with no source there. A
+	// person keeps a balance of a programme that no card reaches.
+	it("keeps each airline programme of the catalogue in each country", () => {
+		const airline = new Set(
+			seedCurrencies.filter((c) => c.kind === "airline").map((c) => c.id),
+		);
+		const airlinePrograms = seedPrograms.filter((p) =>
+			airline.has(p.currencyId),
+		);
+		for (const country of COUNTRIES) {
+			const list = programsOfCountry(
+				seedPrograms,
+				seedCurrencies,
+				seedRules,
+				country,
+			);
+			for (const program of airlinePrograms) {
+				expect(list, `${program.id} in ${country}`).toContainEqual(program);
+			}
+		}
+	});
+
 	it("keeps each programme with no country", () => {
 		const result = programsOfCountry([amex, klarna, ba], currencies, [], null);
 		expect(result.map((row) => row.id)).toEqual([

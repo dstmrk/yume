@@ -7,7 +7,7 @@ import {
 	routing,
 } from "./locale.ts";
 
-// The application holds one language. These tests use a second language, thus
+// These tests use a language of the test, `en`, with its own rules, thus
 // they examine the routing that the second language receives.
 const two = localeRouting(["it", "en"], "it");
 

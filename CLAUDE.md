@@ -16,7 +16,7 @@ contains the stack, the data model and the deployment rules.
 | Item | Language |
 |---|---|
 | Documents (`*.md`) | English. Use ASD-STE100 Simplified Technical English. |
-| User interface text | Italian. |
+| User interface text | Italian, the base language, and Spanish. |
 | Code, identifiers, comments | English. |
 | Commit messages, PR text | English. |
 
@@ -33,8 +33,9 @@ ASD-STE100 gives these rules for the documents:
 - Use `must` for a requirement. Use `can` for a possibility. Do not use `should`.
 - Do not use idioms and do not use technical slang.
 
-Keep the Italian text of the interface in one place: `src/client/i18n/it.ts`. Do not put
-Italian text in the server code. A component reads the text with `useI18n`. Paragraph 5.8
+Keep the text of the interface in one file for each language: `src/client/i18n/it.ts`
+and `es.ts`. The Italian text gives the type of each other text. Do not put text of the
+interface in the server code. A component reads the text with `useI18n`. Paragraph 5.8
 of `docs/architecture.md` gives the rules of the languages.
 
 The head of `src/client/index.html` is the one exception. The title, the description and

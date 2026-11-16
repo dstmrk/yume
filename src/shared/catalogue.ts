@@ -44,7 +44,10 @@ export type Country = (typeof COUNTRIES)[number];
  * person is `user.country`, not this value. Paragraphs 3.3.2 and 5.8 of
  * `docs/architecture.md` give the rules.
  */
-export const MARKETS: Readonly<Record<Locale, Country>> = { it: "IT" };
+export const MARKETS: Readonly<Record<Locale, Country>> = {
+	it: "IT",
+	es: "ES",
+};
 
 /**
  * The kind of a currency.
