@@ -787,7 +787,7 @@ export const transferRules: readonly TransferRule[] = [
 		minTransfer: 100,
 		increment: 100,
 		validFrom: VERIFIED_ON_3,
-		validTo: null,
+		validTo: VERIFIED_ON_4,
 	},
 	{
 		// "80,02 Lifemiles ogni 100 punti cashback"
@@ -827,9 +827,12 @@ export const transferRules: readonly TransferRule[] = [
 	},
 
 	// Klarna Italy lowered the ratios. Two agents read the page on 16 November
-	// 2026 and gave the same values for these ten partners. The rules of
-	// 6 October 2026 above are closed on that date. The page still gives no
-	// minimum and no step, thus the minimum and the step stay 100.
+	// 2026 and gave the same values for ten partners. The rules of 6 October
+	// 2026 above are closed on that date. The page still gives no minimum and
+	// no step, thus the minimum and the step stay 100.
+	//
+	// For SAS EuroBonus the two reads gave 130,59 and 130,71. A third read gave
+	// 130,71. The user selected 130,71.
 	//
 	// Source: https://www.klarna.com/it/abbonamento/max/
 	{
@@ -946,6 +949,18 @@ export const transferRules: readonly TransferRule[] = [
 		toProgramId: "thai",
 		country: "IT",
 		ratioNum: 9909,
+		ratioDen: 10000,
+		minTransfer: 100,
+		increment: 100,
+		validFrom: VERIFIED_ON_4,
+		validTo: null,
+	},
+	{
+		// "130,71 punti SAS EuroBonus ogni 100 punti cashback"
+		fromProgramId: "klarna",
+		toProgramId: "sas",
+		country: "IT",
+		ratioNum: 13071,
 		ratioDen: 10000,
 		minTransfer: 100,
 		increment: 100,
