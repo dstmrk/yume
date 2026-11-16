@@ -49,7 +49,7 @@ export const it = {
 		{
 			question: "Quali punti posso seguire con Yume?",
 			answer:
-				"I saldi di 26 programmi aerei e di tre carte per l'Italia: Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna. Per i 21 programmi che quelle carte raggiungono, Yume calcola anche le miglia potenziali.",
+				"I saldi di 27 programmi aerei e di tre carte per l'Italia: Amex Membership Rewards, i RevPoints di Revolut e il cashback di Klarna. Per i 21 programmi che quelle carte raggiungono, Yume calcola anche le miglia potenziali.",
 		},
 		{
 			question: "Perché sei programmi diventano una riga sola?",

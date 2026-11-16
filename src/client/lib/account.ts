@@ -2,7 +2,12 @@ import {
 	type CreateAccountInput,
 	TOO_MANY_ACCOUNTS,
 } from "../../shared/api.ts";
-import type { Currency, Program } from "../../shared/catalogue.ts";
+import type {
+	CountryCode,
+	Currency,
+	Program,
+	TransferRule,
+} from "../../shared/catalogue.ts";
 import { airlinesOf } from "./airlines.ts";
 import { todayIso } from "./balance.ts";
 import { ApiError } from "./errors.ts";
@@ -12,7 +17,7 @@ import { ApiError } from "./errors.ts";
  *
  * The default comparison of JavaScript reads the numbers of the characters.
  * With that comparison each capital letter comes before each small letter, and
- * a letter with an accent comes after `z`. The catalogue holds 29
+ * a letter with an accent comes after `z`. The catalogue holds 30
  * programmes, thus the list needs the order of a dictionary.
  */
 const collators = new Map<string, Intl.Collator>();
@@ -34,7 +39,7 @@ function collatorOf(intl: string): Intl.Collator {
  * Membership Rewards, Revolut RevPoints and Klarna Cashback. The potential of a currency grows
  * only with a source. Refer to paragraph 3.5 of `docs/architecture.md`.
  * Therefore a user who adds only airline programmes reads a potential that is
- * equal to each balance. The three sources are in the middle of 29 names in
+ * equal to each balance. The three sources are in the middle of 30 names in
  * the order of the alphabet, thus this function moves them to the top.
  */
 export function sortPrograms(
@@ -51,6 +56,42 @@ export function sortPrograms(
 	const byName = collatorOf(intl);
 	return [...programs].sort(
 		(a, b) => rank(a) - rank(b) || byName.compare(a.name, b.name),
+	);
+}
+
+/**
+ * Gives the programmes of the list of the country of the user.
+ *
+ * A source with no active rule in that country gives no potential: Klarna
+ * converts no cashback for a user of a country with no Klarna rule. The list
+ * then does not show that source. Each programme that is not a source stays,
+ * because it holds a balance with no rule. Paragraph 4 of the skill
+ * `catalogue-discovery` gives the rule.
+ *
+ * With no country, before the choice or while `GET /api/me` loads, the list
+ * shows each programme.
+ */
+export function programsOfCountry(
+	programs: readonly Program[],
+	currencies: readonly Currency[],
+	rules: readonly TransferRule[],
+	country: CountryCode | null,
+): Program[] {
+	if (country === null) {
+		return [...programs];
+	}
+	const sources = new Set(
+		currencies
+			.filter((currency) => currency.kind === "flexible")
+			.map((currency) => currency.id),
+	);
+	const active = new Set(
+		rules
+			.filter((rule) => rule.country === country && rule.validTo === null)
+			.map((rule) => rule.fromProgramId),
+	);
+	return programs.filter(
+		(program) => !sources.has(program.currencyId) || active.has(program.id),
 	);
 }
 

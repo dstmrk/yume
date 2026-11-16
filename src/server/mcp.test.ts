@@ -540,16 +540,11 @@ describe("a user with no country", () => {
 	});
 
 	it("reads the rules of the country of the user", async () => {
-		const base = db.select().from(transferRule).limit(1).get();
-		if (base === undefined) throw new Error("no rule");
-		db.insert(transferRule)
-			.values({
-				...base,
-				country: "ES",
-				validFrom: "2020-01-01",
-				validTo: null,
-			})
-			.run();
+		const rules = db
+			.select()
+			.from(transferRule)
+			.where(eq(transferRule.country, "ES"))
+			.all();
 		db.update(user).set({ country: "ES" }).where(eq(user.id, userId)).run();
 		const client = await connect(await mcpAccessToken(app, cookie, BASE_URL));
 
@@ -558,8 +553,11 @@ describe("a user with no country", () => {
 			transferRules: { country: string }[];
 		};
 		expect(body.country).toBe("ES");
-		expect(body.transferRules).toHaveLength(1);
-		expect(body.transferRules[0]?.country).toBe("ES");
+		expect(rules.length).toBeGreaterThan(0);
+		expect(body.transferRules).toHaveLength(rules.length);
+		for (const rule of body.transferRules) {
+			expect(rule.country).toBe("ES");
+		}
 	});
 });
 

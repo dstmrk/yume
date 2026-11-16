@@ -1,10 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { Currency, Program } from "../../shared/catalogue.ts";
+import type {
+	Currency,
+	Program,
+	TransferRule,
+} from "../../shared/catalogue.ts";
 import {
 	isTooManyAccounts,
 	matchesProgram,
 	newAccountBody,
 	programAirlinesLine,
+	programsOfCountry,
 	searchNamesOf,
 	sortPrograms,
 } from "./account.ts";
@@ -267,5 +272,80 @@ describe("newAccountBody", () => {
 	// A balance of 0 is a value of the user, not an empty field.
 	it("gives a snapshot of 0 points", () => {
 		expect(newAccountBody("amex-mr", 0, now).snapshot?.points).toBe(0);
+	});
+});
+
+function rule(
+	fromProgramId: string,
+	country: string,
+	validTo: string | null = null,
+): TransferRule {
+	return {
+		fromProgramId,
+		toProgramId: "ba-club",
+		country,
+		ratioNum: 1,
+		ratioDen: 1,
+		minTransfer: 1,
+		increment: 1,
+		validFrom: "2026-01-01",
+		validTo,
+	};
+}
+
+describe("programsOfCountry", () => {
+	const amex = program("amex-mr", "Amex", "mr");
+	const klarna = program("klarna", "Klarna", "mr");
+	const ba = program("ba-club", "British Airways");
+
+	// Paragraph 4 of the skill `catalogue-discovery`: a source with no rule in
+	// the country of the user gives no potential, thus the list does not show it.
+	it("removes a source with no rule in the country of the user", () => {
+		const result = programsOfCountry(
+			[amex, klarna, ba],
+			currencies,
+			[rule("amex-mr", "ES"), rule("klarna", "IT")],
+			"ES",
+		);
+		expect(result.map((row) => row.id)).toEqual(["amex-mr", "ba-club"]);
+	});
+
+	// An airline programme holds a balance with no source. The list keeps it in
+	// each country.
+	it("keeps each programme that is not a source", () => {
+		const result = programsOfCountry([ba], currencies, [], "ES");
+		expect(result.map((row) => row.id)).toEqual(["ba-club"]);
+	});
+
+	// A closed rule is historical data. It sends no point today.
+	it("removes a source with only closed rules in the country", () => {
+		const result = programsOfCountry(
+			[klarna],
+			currencies,
+			[rule("klarna", "ES", "2026-06-01")],
+			"ES",
+		);
+		expect(result).toEqual([]);
+	});
+
+	// The rule of the source must be from the source, not to it.
+	it("does not count a rule to the source", () => {
+		const toKlarna: TransferRule = {
+			...rule("amex-mr", "ES"),
+			toProgramId: "klarna",
+		};
+		const result = programsOfCountry([klarna], currencies, [toKlarna], "ES");
+		expect(result).toEqual([]);
+	});
+
+	// Before the choice of the country, and while `GET /api/me` loads, the list
+	// has no country to compare. It then shows each programme.
+	it("keeps each programme with no country", () => {
+		const result = programsOfCountry([amex, klarna, ba], currencies, [], null);
+		expect(result.map((row) => row.id)).toEqual([
+			"amex-mr",
+			"klarna",
+			"ba-club",
+		]);
 	});
 });

@@ -248,7 +248,7 @@ describe("the catalogue queries", () => {
 
 	it("gives a rule with the shape of the shared type", () => {
 		const rule = allTransferRules(db).find(
-			(row) => row.toProgramId === "iberia-club",
+			(row) => row.toProgramId === "iberia-club" && row.country === "IT",
 		);
 		expect(rule).toMatchObject({
 			fromProgramId: "amex-mr",

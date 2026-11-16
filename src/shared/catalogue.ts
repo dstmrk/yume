@@ -31,7 +31,7 @@ export type CountryCode = string;
  * one country after the first sign-in, and the country does not change.
  * Paragraph 3.3.2 of `docs/architecture.md` gives the rules.
  */
-export const COUNTRIES = ["IT"] as const;
+export const COUNTRIES = ["IT", "ES"] as const;
 
 /** A country that a user can select. */
 export type Country = (typeof COUNTRIES)[number];

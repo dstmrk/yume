@@ -7,6 +7,7 @@ import {
 	matchesProgram,
 	newAccountBody,
 	programAirlinesLine,
+	programsOfCountry,
 	searchNamesOf,
 	sortPrograms,
 } from "../lib/account.ts";
@@ -15,6 +16,7 @@ import { createAccount, fetchMe } from "../lib/api.ts";
 import { readOptionalPoints } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
 import { blockedPrograms } from "../lib/limits.ts";
+import { SEED } from "../lib/seed.ts";
 import { ProgramName } from "./board/ProgramLogo.tsx";
 import { SupporterLink } from "./SupporterPanel.tsx";
 import { Button } from "./ui/button.tsx";
@@ -119,7 +121,16 @@ function Fields({
 		accountProgramIds,
 	);
 
-	const options = sortPrograms(programs, currencies, intl);
+	const options = sortPrograms(
+		programsOfCountry(
+			programs,
+			currencies,
+			SEED.rules,
+			me.data?.country ?? null,
+		),
+		currencies,
+		intl,
+	);
 	const searchNames = searchNamesOf(options, currencies);
 	const selected = options.find((program) => program.id === programId);
 

@@ -49,6 +49,7 @@ challenge, for example "Just a moment...", did not read the page.
 | `curl` from the session | Amex Italy: the partner pages hold the ratio in the static HTML. |
 | The Playwright MCP server | It reads a page that needs JavaScript. Revolut gives the challenge of Cloudflare and the status 403. Klarna gives the status 403. |
 | The browser of the user, in a local session | Revolut and Klarna. The user opens that session: ask for it. |
+| The built-in browser of the desktop app | Amex Spain, Revolut Spain, Klarna Spain and Wikimedia Commons on 2026-11-16, with no sign-in. Amex Spain sends an old partner address to `travel/all`: read the current addresses there. |
 
 The sites of Turkish, Iberia, Flying Blue, British Airways, Aer Lingus and Qatar give
 the status 403 or 405, or `ERR_HTTP2_PROTOCOL_ERROR`, to `curl` and to the browser of
