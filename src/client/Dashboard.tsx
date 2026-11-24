@@ -310,6 +310,10 @@ function Board(props: { returned: boolean }) {
 				currencies={catalogue.data.currencies}
 				accountProgramIds={programIds}
 			/>
+			{/* The household of paragraph 4.10 of `docs/architecture.md`. */}
+			<Link to="/household" className={buttonVariants({ variant: "outline" })}>
+				{text.household.link}
+			</Link>
 			<AdminLink />
 			<SignOutButton />
 			<DeleteUserButton />

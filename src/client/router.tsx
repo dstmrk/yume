@@ -36,6 +36,7 @@ import { CurrencyPage } from "./CurrencyPage.tsx";
 import { Dashboard } from "./Dashboard.tsx";
 import { GuidePage } from "./GuidePage.tsx";
 import { HomePage } from "./HomePage.tsx";
+import { HouseholdPage } from "./HouseholdPage.tsx";
 import { LegalPage } from "./LegalPage.tsx";
 import { LoginPage } from "./LoginPage.tsx";
 import { fetchMe, fetchSession } from "./lib/api.ts";
@@ -84,6 +85,18 @@ const dashboardRoute = createRoute({
 	component: () => (
 		<Dashboard returned={dashboardRoute.useSearch().checkout === "done"} />
 	),
+});
+
+// The household of the user. Paragraph 4.10 of `docs/architecture.md`.
+const householdRoute = createRoute({
+	getParentRoute: () => rootRoute,
+	path: "/household",
+	beforeLoad: async () => {
+		if ((await fetchSession()) === null) {
+			throw redirect({ to: "/login" });
+		}
+	},
+	component: HouseholdPage,
 });
 
 // The page of the administrator. Each other user reads the dashboard. The
@@ -203,6 +216,7 @@ const guideRoute = createRoute({
 const routeTree = rootRoute.addChildren([
 	homeRoute,
 	dashboardRoute,
+	householdRoute,
 	adminRoute,
 	loginRoute,
 	consentRoute,

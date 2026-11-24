@@ -314,7 +314,7 @@ export const es: Messages = {
 	supporter: {
 		title: "Apoyo",
 		offer:
-			"Klarna, programas aéreos sin límite, fechas de caducidad de los puntos y asistentes de IA.",
+			"Klarna, programas aéreos sin límite, fechas de caducidad de los puntos, familia y asistentes de IA.",
 		perYear: "al año",
 		buy: "Apoya el proyecto",
 		renewal: "Se renueva cada año. Cancela cuando quieras.",
@@ -329,6 +329,57 @@ export const es: Messages = {
 		already: "Ya tienes una suscripción: gestiónala desde el portal.",
 		unavailable: "Pago no disponible. Inténtalo dentro de un rato.",
 		link: "Apoya el proyecto",
+	},
+
+	dashboardLink: "Panel",
+
+	household: {
+		link: "Familia",
+		title: "Familia",
+		intro:
+			"Reúne los saldos de quien vive contigo. El total aparece solo donde el programa permite juntar las millas.",
+		pooledLabel: "Millas potenciales de la familia",
+		notPooled: "No acumulables: cada persona usa sus propias millas.",
+		noPotential: "Ninguna milla potencial en la familia.",
+		create: "Crear familia",
+		countryFirst: "Elige antes el país en el panel.",
+		invitationFrom: "Invitación de",
+		acceptNote: "Si aceptas, la familia ve tus saldos.",
+		accept: "Aceptar",
+		refuse: "Rechazar",
+		membersTitle: "Personas",
+		owner: "Titular",
+		you: "tú",
+		manual: "sin cuenta",
+		readOnly:
+			"Suscripción caducada: la familia se queda, pero no puedes añadir personas ni cuentas.",
+		inviteTitle: "Invita a una persona con Yume",
+		inviteNote: "Yume no envía emails: avisa tú a la persona.",
+		emailLabel: "Email de Google",
+		nameLabel: "Nombre",
+		invite: "Invitar",
+		pendingTitle: "Invitaciones pendientes",
+		cancelInvite: "Cancelar",
+		manualTitle: "Añade a una persona sin Yume",
+		addManual: "Añadir",
+		removeMember: "Quitar",
+		removeMemberQuestion:
+			"¿Quitas a la persona de la familia? Sus cuentas de Yume siguen siendo suyas.",
+		removeManualQuestion: "¿Quitas a la persona y todos sus saldos?",
+		leave: "Salir de la familia",
+		leaveQuestion: "¿Sales? La familia ya no verá tus saldos.",
+		remove: "Eliminar familia",
+		removeQuestion:
+			"¿Eliminas la familia? Las personas sin cuenta y sus saldos desaparecen.",
+		errors: {
+			countryMismatch: "La persona es de otro país.",
+			full: "La familia ya tiene 8 personas.",
+			alreadyMember: "La persona ya está en la familia.",
+			alreadyInHousehold: "Ya formas parte de una familia.",
+			supporterRequired: "Solo para quien apoya el proyecto.",
+			invalid: "Revisa el email y el nombre.",
+			general: "Operación fallida.",
+		},
 	},
 
 	loading: "Cargando…",
@@ -621,6 +672,7 @@ export const es: Messages = {
 					"Datos de la sesión: dirección IP y tipo de navegador del dispositivo desde el que accedes.",
 					"Si conectas un asistente de IA (sección 4 bis): el nombre y la dirección de la aplicación que has autorizado, los permisos que le has dado, la fecha de la autorización y los códigos de acceso que Yume le entrega.",
 					"Si apoyas el proyecto: los identificadores del cliente y de la suscripción en Stripe, el estado de la suscripción y la fecha de fin del periodo pagado. Yume envía a Stripe tu dirección de email.",
+					"Si usas la familia: el nombre que el titular escribe para cada persona, la dirección de email de cada invitación, y los programas y los saldos que el titular introduce para una persona sin cuenta. El titular introduce los datos de esa persona solo con su consentimiento.",
 					"Yume no pide ni conserva contraseñas, tarjetas de pago ni credenciales de los programas de fidelización, y no se conecta a tus cuentas. Los datos de la tarjeta los introduces en la página de Stripe, y Yume no los recibe.",
 				],
 				contact: false,
@@ -691,6 +743,7 @@ export const es: Messages = {
 					"Cloudflare Inc., para la red, la protección del sitio y el reenvío de los emails a la dirección de privacidad, como encargado del tratamiento (art. 28 RGPD). Política: cloudflare.com/privacypolicy.",
 					"Stripe Payments Europe, Ltd (Irlanda), solo si apoyas el proyecto, para el pago, la renovación y los recibos de la suscripción. Stripe trata los datos de pago como encargado del tratamiento (art. 28 RGPD) y, para sus propias obligaciones legales y la prevención del fraude, como responsable autónomo. Política: stripe.com/privacy.",
 					"El proveedor del asistente de IA que conectas tú, por ejemplo Anthropic para Claude u OpenAI para ChatGPT y Codex, solo si lo conectas y solo para los datos que el asistente pide, como responsable autónomo (sección 4 bis).",
+					"Las personas de tu familia, solo si aceptas una invitación o si creas la familia: ven tus programas y tus saldos. Quien recibe una invitación ve el email del titular. Al salir de la familia, el uso compartido termina al momento.",
 					"Las autoridades públicas, solo en los casos previstos por la ley.",
 				],
 				contact: false,
@@ -936,7 +989,7 @@ export const es: Messages = {
 			{
 				title: "7 bis. Cuenta de apoyo",
 				paragraphs: [
-					"La cuenta gratuita incluye Amex y Revolut sin límite y 2 programas aéreos. La cuenta de apoyo añade las demás fuentes de puntos del catálogo, hoy Klarna, los programas aéreos sin límite, las fechas de caducidad de los puntos y la conexión de un asistente de IA.",
+					"La cuenta gratuita incluye Amex y Revolut sin límite y 2 programas aéreos. La cuenta de apoyo añade las demás fuentes de puntos del catálogo, hoy Klarna, los programas aéreos sin límite, las fechas de caducidad de los puntos, la familia y la conexión de un asistente de IA.",
 				],
 				items: [
 					"Precio: 9,99 € al año, precio final. El pago se hace en la página de Stripe Payments Europe, Ltd: Yume no recibe los datos de la tarjeta. Stripe te envía el recibo por email.",
@@ -945,6 +998,7 @@ export const es: Messages = {
 					"Derecho de desistimiento: puedes desistir en un plazo de 14 días desde el pago sin indicar el motivo (art. 52 del D.Lgs. 206/2005 italiano). Escribe a la dirección de abajo, también con el formulario de desistimiento (Anexo I, parte B, del Código del Consumo italiano). Te reembolsamos el importe completo en un plazo de 14 días con el mismo medio de pago, y la cuenta vuelve a ser gratuita.",
 					"Renovación fallida: si el pago de la renovación no se completa, la cuenta vuelve a ser gratuita. Stripe reintenta el cargo durante algunos días; con el pago, la cuenta de apoyo se reanuda.",
 					"Fin de la cuenta de apoyo: no pierdes datos. Las cuentas, los saldos y las caducidades se quedan, pero no puedes añadir cuentas o caducidades más allá de los límites de la cuenta gratuita.",
+					"Familia: el titular la crea e invita a las personas, o las añade sin cuenta. Quien acepta una invitación muestra sus saldos a la familia. Al final de la cuenta de apoyo del titular la familia se queda, pero no se añaden personas ni cuentas.",
 				],
 				contact: true,
 			},

@@ -7,6 +7,7 @@ import type {
 	ConnectionsResponse,
 	CreateAccountInput,
 	FavoritesResponse,
+	HouseholdResponse,
 	MeResponse,
 	PotentialResponse,
 } from "../../shared/api.ts";
@@ -292,5 +293,85 @@ export function setUnlimited(
 		"PUT",
 		`/api/admin/users/${encodeURIComponent(userId)}/unlimited`,
 		{ unlimited },
+	);
+}
+
+/*
+ * The household of paragraph 4.10 of `docs/architecture.md`. Each id goes
+ * through `encodeURIComponent`, and the address of an invitation also: it
+ * holds the character `@`.
+ */
+
+export function fetchHousehold(): Promise<HouseholdResponse> {
+	return request<HouseholdResponse>("GET", "/api/household");
+}
+
+export function createHousehold(): Promise<{ id: string }> {
+	return request<{ id: string }>("POST", "/api/household");
+}
+
+export function deleteHousehold(): Promise<void> {
+	return request("DELETE", "/api/household");
+}
+
+export function inviteToHousehold(email: string, name: string): Promise<void> {
+	return request("POST", "/api/household/invites", { email, name });
+}
+
+export function cancelHouseholdInvite(email: string): Promise<void> {
+	return request(
+		"DELETE",
+		`/api/household/invites/${encodeURIComponent(email)}`,
+	);
+}
+
+/** Accepts an invitation with `true`, or refuses it with `false`. */
+export function answerInvitation(
+	householdId: string,
+	accept: boolean,
+): Promise<void> {
+	return request(
+		accept ? "POST" : "DELETE",
+		`/api/household/invitations/${encodeURIComponent(householdId)}`,
+	);
+}
+
+export function addManualMember(name: string): Promise<{ id: string }> {
+	return request<{ id: string }>("POST", "/api/household/members", { name });
+}
+
+export function removeHouseholdMember(memberId: string): Promise<void> {
+	return request(
+		"DELETE",
+		`/api/household/members/${encodeURIComponent(memberId)}`,
+	);
+}
+
+export function createMemberAccount(
+	memberId: string,
+	input: CreateAccountInput,
+): Promise<{ id: string }> {
+	return request<{ id: string }>(
+		"POST",
+		`/api/household/members/${encodeURIComponent(memberId)}/accounts`,
+		input,
+	);
+}
+
+export function addMemberSnapshot(
+	accountId: string,
+	input: AddSnapshotInput,
+): Promise<{ id: string }> {
+	return request<{ id: string }>(
+		"POST",
+		`/api/household/accounts/${encodeURIComponent(accountId)}/snapshots`,
+		input,
+	);
+}
+
+export function deleteMemberAccount(accountId: string): Promise<void> {
+	return request(
+		"DELETE",
+		`/api/household/accounts/${encodeURIComponent(accountId)}`,
 	);
 }
