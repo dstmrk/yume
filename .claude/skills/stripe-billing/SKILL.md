@@ -149,7 +149,7 @@ buys. A promise of a function that does not exist is a defect of the contract wi
 consumer. Obey these rules:
 
 - Name only a function that `src/shared/tier.ts` gates: `canAddAccount`,
-  `canWriteExpiryLots` and `canUseMcp`.
+  `canWriteExpiryLots`, `canUseMcp` and `canManageHousehold`.
 - Name only a source of points of `src/server/db/seed/catalogue.ts`. Read the catalogue,
   not an example of `docs/architecture.md`. The type `currency.kind` allows `hotel` and
   `rail`, but the catalogue holds no such currency.

@@ -92,6 +92,18 @@ Then add the results of the accounts of one source programme into one route.
 `points` is the sum of the best result of each account. Each option is the sum
 of the results of the accounts in that programme.
 
+### The household
+
+`householdPotential` of `src/shared/household.ts` calls `potentialMiles` for each
+member, with the country of the household. Each member is a separate calculation:
+a source of one person cannot send points to the account of an other person.
+
+**Add the members only for a currency with a pool.** A row of `HOUSEHOLD_POOLS`
+gives the pool of a programme in a country, with `validFrom` and `validTo`. One
+programme of the currency with a valid pool is sufficient. With no pool, `total`
+is null: two people cannot spend their miles in one booking. Paragraph 4.10 of
+`docs/architecture.md` gives the rules.
+
 ---
 
 ## 3. The transfer rules have versions
