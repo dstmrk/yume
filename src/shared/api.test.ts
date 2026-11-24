@@ -234,20 +234,38 @@ describe("billingRequestSchema", () => {
 describe("householdInviteSchema", () => {
 	it("writes the address in lower case with no spaces", () => {
 		expect(
-			householdInviteSchema.parse({ email: "  Giulia.Rossi@Gmail.com " }),
-		).toEqual({ email: "giulia.rossi@gmail.com" });
+			householdInviteSchema.parse({
+				email: "  Giulia.Rossi@Gmail.com ",
+				name: " Giulia ",
+			}),
+		).toEqual({ email: "giulia.rossi@gmail.com", name: "Giulia" });
 	});
 
 	it("refuses a text that is not an address", () => {
-		expect(householdInviteSchema.safeParse({ email: "giulia" }).success).toBe(
+		expect(
+			householdInviteSchema.safeParse({ email: "giulia", name: "G" }).success,
+		).toBe(false);
+		expect(
+			householdInviteSchema.safeParse({ email: "", name: "G" }).success,
+		).toBe(false);
+	});
+
+	it("asks for a name", () => {
+		expect(householdInviteSchema.safeParse({ email: "a@b.it" }).success).toBe(
 			false,
 		);
-		expect(householdInviteSchema.safeParse({ email: "" }).success).toBe(false);
+		expect(
+			householdInviteSchema.safeParse({ email: "a@b.it", name: " " }).success,
+		).toBe(false);
 	});
 
 	it("refuses an other field", () => {
 		expect(
-			householdInviteSchema.safeParse({ email: "a@b.it", owner: true }).success,
+			householdInviteSchema.safeParse({
+				email: "a@b.it",
+				name: "A",
+				owner: true,
+			}).success,
 		).toBe(false);
 	});
 });

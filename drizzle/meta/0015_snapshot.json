@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5e9d9374-5716-4584-b73e-091539df99c8",
+  "id": "22748b46-36a7-4fad-85b1-0b954f019748",
   "prevId": "6a98f4d8-32d7-44e8-8c66-f17c36e7e568",
   "tables": {
     "account": {
@@ -416,6 +416,13 @@
           "notNull": true,
           "autoincrement": false
         },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
         "created_at": {
           "name": "created_at",
           "type": "text",
@@ -548,7 +555,7 @@
       "checkConstraints": {
         "household_member_user_or_name": {
           "name": "household_member_user_or_name",
-          "value": "(\"household_member\".\"user_id\" is null) <> (\"household_member\".\"name\" is null)"
+          "value": "\"household_member\".\"user_id\" is not null or \"household_member\".\"name\" is not null"
         }
       }
     },

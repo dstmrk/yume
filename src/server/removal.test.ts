@@ -195,7 +195,13 @@ describe("the removal of a user of a household", () => {
 			).ok,
 		).toBe(true);
 		createAccount(db, { userId: OTHER_USER, programId: "iberia-club" });
-		invite(db, USER, { email: `${OTHER_USER}@example.com` }, false, NOW);
+		invite(
+			db,
+			USER,
+			{ email: `${OTHER_USER}@example.com`, name: "Luca" },
+			false,
+			NOW,
+		);
 		expect(
 			acceptInvitation(
 				db,

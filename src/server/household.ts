@@ -152,7 +152,7 @@ export function householdOf(
 	const membership = membershipOf(db, userId);
 	if (membership === undefined) {
 		const invitations = db
-			.select({ householdId: household.id, ownerName: user.name })
+			.select({ householdId: household.id, ownerEmail: user.email })
 			.from(householdInvite)
 			.innerJoin(household, eq(household.id, householdInvite.householdId))
 			.innerJoin(user, eq(user.id, household.ownerId))
@@ -168,11 +168,9 @@ export function householdOf(
 		.select({
 			id: householdMember.id,
 			userId: householdMember.userId,
-			manualName: householdMember.name,
-			userName: user.name,
+			name: householdMember.name,
 		})
 		.from(householdMember)
-		.leftJoin(user, eq(user.id, householdMember.userId))
 		.where(eq(householdMember.householdId, householdId))
 		.orderBy(asc(householdMember.createdAt), asc(householdMember.id))
 		.all();
@@ -180,7 +178,7 @@ export function householdOf(
 	const members: HouseholdMember[] = rows
 		.map((row) => ({
 			id: row.id,
-			name: row.userName ?? row.manualName ?? "",
+			name: row.name,
 			kind: row.userId === null ? ("manual" as const) : ("user" as const),
 			owner: row.userId === ownerId,
 			self: row.userId === userId,
@@ -224,12 +222,11 @@ export function householdOf(
 
 	const invites = isOwner
 		? db
-				.select({ email: householdInvite.email })
+				.select({ email: householdInvite.email, name: householdInvite.name })
 				.from(householdInvite)
 				.where(eq(householdInvite.householdId, householdId))
 				.orderBy(asc(householdInvite.createdAt), asc(householdInvite.email))
 				.all()
-				.map((row) => row.email)
 		: [];
 
 	return {
@@ -303,7 +300,7 @@ export function invite(
 	if (!parsed.success) {
 		return invalid(parsed.error.issues);
 	}
-	const { email } = parsed.data;
+	const { email, name } = parsed.data;
 	const member = db
 		.select({ id: householdMember.id })
 		.from(householdMember)
@@ -342,6 +339,7 @@ export function invite(
 		.values({
 			householdId: owned.householdId,
 			email,
+			name,
 			createdAt: now.toISOString(),
 		})
 		.run();
@@ -385,7 +383,7 @@ export function acceptInvitation(
 ): HouseholdResult {
 	const email = emailOf(db, userId);
 	const found = db
-		.select({ ownerId: household.ownerId })
+		.select({ ownerId: household.ownerId, name: householdInvite.name })
 		.from(householdInvite)
 		.innerJoin(household, eq(household.id, householdInvite.householdId))
 		.where(
@@ -424,6 +422,7 @@ export function acceptInvitation(
 				id: crypto.randomUUID(),
 				householdId,
 				userId,
+				name: found.name,
 				createdAt: now.toISOString(),
 			})
 			.run();

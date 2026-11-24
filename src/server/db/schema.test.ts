@@ -610,20 +610,24 @@ describe("the tables of the household", () => {
 		insertUser(db, "member");
 	});
 
-	it("refuses a member with a user and a name", () => {
+	it("keeps the name of a member of Yume, that the owner wrote", () => {
 		const { id } = household("owner");
-		expect(() =>
+		db.insert(schema.householdMember)
+			.values({
+				id: "x",
+				householdId: id,
+				userId: "member",
+				name: "Luca",
+				createdAt: at,
+			})
+			.run();
+		expect(
 			db
-				.insert(schema.householdMember)
-				.values({
-					id: "x",
-					householdId: id,
-					userId: "member",
-					name: "Luca",
-					createdAt: at,
-				})
-				.run(),
-		).toThrow();
+				.select()
+				.from(schema.householdMember)
+				.where(eq(schema.householdMember.id, "x"))
+				.get()?.name,
+		).toBe("Luca");
 	});
 
 	it("refuses a member with no user and no name", () => {
@@ -668,7 +672,12 @@ describe("the tables of the household", () => {
 			.values({ id: "m2", householdId: id, userId: "member", createdAt: at })
 			.run();
 		db.insert(schema.householdInvite)
-			.values({ householdId: id, email: "a@example.com", createdAt: at })
+			.values({
+				householdId: id,
+				email: "a@example.com",
+				name: "A",
+				createdAt: at,
+			})
 			.run();
 		const own = createAccount(db, { userId: "member", programId: "ba-club" });
 		db.insert(schema.userAccount)

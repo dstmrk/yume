@@ -322,7 +322,7 @@ stripe_event(id, type, receivedAt)    -- refer to paragraph 4.6.1
 
 household(id, ownerId, createdAt)     -- refer to paragraph 4.10
 household_member(id, householdId, userId?, name?, createdAt)
-household_invite(householdId, email, createdAt)
+household_invite(householdId, email, name, createdAt)
 household_pool(programId, country, validFrom, validTo?)
 ```
 
@@ -1350,12 +1350,18 @@ and the snapshots of the manual members go with them. A member of Yume loses onl
 share: the accounts of that member stay. When a member removes the account, the
 household loses that member. Paragraph 4.9 gives the removal of the account.
 
-**9. The invitation.** Yume sends no email. The owner writes the Google address of the
-person. The person sees the invitation on `/household` at the next sign-in with that
-address. The person accepts or refuses it. The owner tells the person out of Yume. Only
-the Google account with that address can accept, thus a message that goes to a third
-person gives no access. The address of an invitation is a personal datum: the owner and
-the invited person see it. The other members do not see it.
+**9. The invitation.** Yume sends no email. The owner writes the Google address and the
+name of the person. The person sees the invitation on `/household` at the next sign-in
+with that address. The person accepts or refuses it. The owner tells the person out of
+Yume. Only the Google account with that address can accept, thus a message that goes to a
+third person gives no access. The address of an invitation is a personal datum: the owner
+sees it. The invited person sees the address of the owner, because that person must know
+who invites. The other members see no address.
+
+**The names.** Yume keeps no name of a Google account: paragraph 4.1. Thus the owner
+writes the name of each other member, in the invitation or in the form of a manual
+member. The acceptance copies the name of the invitation to the row of the member. The
+row of the owner holds no name, and the page shows the label of the owner.
 
 **10. No tool of the MCP server.** The tools of paragraph 4.7.3 stay personal. A later
 task can add a tool. That task must examine the rules of the two directories.
@@ -1366,15 +1372,16 @@ task can add a tool. That task must examine the rules of the two directories.
 household(id, ownerId, createdAt)                  -- ownerId is unique
 household_member(id, householdId, userId?, name?, createdAt)
                                                    -- userId is unique
-household_invite(householdId, email, createdAt)    -- the key is the pair
+household_invite(householdId, email, name, createdAt) -- the key is the pair
 household_pool(programId, country, validFrom, validTo?)
 user_account(..., memberId?)                       -- a manual member only
 ```
 
 - The owner also has a row in `household_member`. Then the unique column `userId` makes
   the rule "one household for each user" mechanical.
-- A row of `household_member` holds `userId` or `name`, not the two. A check of SQLite
-  examines that rule.
+- A row of `household_member` holds `userId`, `name` or the two. A check of SQLite
+  refuses a row with neither. A manual member holds `name` only, and the owner holds
+  `userId` only.
 - An account of a manual member holds `userId` of the owner and `memberId` of that
   member. Thus the foreign key of `userId` removes it with the owner, and the foreign key
   of `memberId` removes it with the member. Each personal query of `user_account` reads

@@ -126,17 +126,24 @@ export const createAccountSchema = z.object({
 export const MAX_HOUSEHOLD_PEOPLE = 8;
 
 /**
+ * The name of a member that the owner writes. Yume keeps no name of a Google
+ * account, thus the household shows this name. Paragraph 4.10.
+ */
+const memberNameSchema = z.string().trim().min(1).max(40);
+
+/**
  * An invitation to a household. The email is the Google address of the
  * person. The schema removes the spaces and writes the address in lower case,
  * because the comparison with the address of the user is exact.
  */
 export const householdInviteSchema = z.strictObject({
 	email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
+	name: memberNameSchema,
 });
 
 /** A manual member of a household: a person with no account of Yume. */
 export const manualMemberSchema = z.strictObject({
-	name: z.string().trim().min(1).max(40),
+	name: memberNameSchema,
 });
 
 /** The error of a request for a second household of one user. */
@@ -369,8 +376,11 @@ export type ConnectionsResponse = { connections: Connection[] };
 /** One member of a household, with the current balance of each account. */
 export type HouseholdMember = {
 	id: string;
-	/** The name of the Google account, or the name that the owner wrote. */
-	name: string;
+	/**
+	 * The name that the owner wrote. It is null for the owner: the client
+	 * shows the label of the owner.
+	 */
+	name: string | null;
 	kind: "user" | "manual";
 	owner: boolean;
 	/** True for the member of the session. */
@@ -381,7 +391,8 @@ export type HouseholdMember = {
 /** An open invitation to a household, for the person of the session. */
 export type HouseholdInvitation = {
 	householdId: string;
-	ownerName: string;
+	/** The Google address of the owner. The person reads who invites. */
+	ownerEmail: string;
 };
 
 /**
@@ -398,8 +409,8 @@ export type HouseholdResponse = {
 		 * an account. It reads the level of the owner.
 		 */
 		canManage: boolean;
-		/** The addresses of the open invitations. Only the owner reads them. */
-		invites: string[];
+		/** The open invitations. Only the owner reads them. */
+		invites: { email: string; name: string }[];
 		members: HouseholdMember[];
 		/** The date of the calculation. */
 		at: string;

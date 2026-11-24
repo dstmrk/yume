@@ -448,10 +448,13 @@ export const household = sqliteTable("household", {
 });
 
 /**
- * A member of a household: a user of Yume, or a manual member with a name.
+ * A member of a household: a user of Yume, or a manual member.
  *
  * The owner also has a row. The column `user_id` is unique, thus a user is in
- * one household at most. A row holds `user_id` or `name`, not the two.
+ * one household at most. Yume keeps no name of a Google account, thus the
+ * owner writes the name of each other member: a manual member, or a user of
+ * Yume in the invitation. The row of the owner holds no name. A manual member
+ * holds a name and no `user_id`.
  */
 export const householdMember = sqliteTable(
 	"household_member",
@@ -470,16 +473,17 @@ export const householdMember = sqliteTable(
 		index("household_member_household_id").on(table.householdId),
 		check(
 			"household_member_user_or_name",
-			sql`(${table.userId} is null) <> (${table.name} is null)`,
+			sql`${table.userId} is not null or ${table.name} is not null`,
 		),
 	],
 );
 
 /**
  * An open invitation to a household. The email is the Google address of the
- * person, in lower case. Yume sends no email: the person sees the invitation
- * at the next sign-in. The key is the pair, thus one household invites one
- * address one time.
+ * person, in lower case. The name is the name that the owner writes: the
+ * acceptance copies it to the row of the member. Yume sends no email: the
+ * person sees the invitation at the next sign-in. The key is the pair, thus
+ * one household invites one address one time.
  */
 export const householdInvite = sqliteTable(
 	"household_invite",
@@ -488,6 +492,7 @@ export const householdInvite = sqliteTable(
 			.notNull()
 			.references(() => household.id, { onDelete: "cascade" }),
 		email: text("email").notNull(),
+		name: text("name").notNull(),
 		createdAt: text("created_at").notNull(),
 	},
 	(table) => [

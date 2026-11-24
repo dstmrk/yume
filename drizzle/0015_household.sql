@@ -13,6 +13,7 @@ CREATE UNIQUE INDEX `household_owner_id_unique` ON `household` (`owner_id`);--> 
 CREATE TABLE `household_invite` (
 	`household_id` text NOT NULL,
 	`email` text NOT NULL,
+	`name` text NOT NULL,
 	`created_at` text NOT NULL,
 	PRIMARY KEY(`household_id`, `email`),
 	FOREIGN KEY (`household_id`) REFERENCES `household`(`id`) ON UPDATE no action ON DELETE cascade
@@ -27,7 +28,7 @@ CREATE TABLE `household_member` (
 	`created_at` text NOT NULL,
 	FOREIGN KEY (`household_id`) REFERENCES `household`(`id`) ON UPDATE no action ON DELETE cascade,
 	FOREIGN KEY (`user_id`) REFERENCES `user`(`id`) ON UPDATE no action ON DELETE cascade,
-	CONSTRAINT "household_member_user_or_name" CHECK(("household_member"."user_id" is null) <> ("household_member"."name" is null))
+	CONSTRAINT "household_member_user_or_name" CHECK("household_member"."user_id" is not null or "household_member"."name" is not null)
 );
 --> statement-breakpoint
 CREATE UNIQUE INDEX `household_member_user_id_unique` ON `household_member` (`user_id`);--> statement-breakpoint

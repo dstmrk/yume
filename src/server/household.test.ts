@@ -91,6 +91,7 @@ async function join(id: string, as = FRIEND) {
 		(
 			await send(OWNER, "POST", "/api/household/invites", {
 				email: `${as}@example.com`,
+				name: "Persona",
 			})
 		).status,
 	).toBe(204);
@@ -152,13 +153,14 @@ describe("the invitations", () => {
 		const id = await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: " Friend@Example.com ",
+			name: "Persona",
 		});
 		expect((await view(FRIEND)).invitations).toEqual([
-			{ householdId: id, ownerName: OWNER },
+			{ householdId: id, ownerEmail: `${OWNER}@example.com` },
 		]);
 		expect((await view(SPANIARD)).invitations).toEqual([]);
 		expect((await view(OWNER)).household?.invites).toEqual([
-			"friend@example.com",
+			{ email: "friend@example.com", name: "Persona" },
 		]);
 	});
 
@@ -180,11 +182,13 @@ describe("the invitations", () => {
 		expect(body.household?.owner).toBe(false);
 		expect(body.household?.canManage).toBe(false);
 		expect(body.household?.invites).toEqual([]);
+		// The owner has no name: the client shows the label of the owner. The
+		// name of a member of Yume is the name of the invitation.
 		expect(
 			body.household?.members.map((m) => [m.name, m.accounts[0]?.points]),
 		).toEqual([
-			[OWNER, 1000],
-			[FRIEND, 500],
+			[null, 1000],
+			["Persona", 500],
 		]);
 	});
 
@@ -192,6 +196,7 @@ describe("the invitations", () => {
 		const id = await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		const response = await send(
 			SPANIARD,
@@ -206,6 +211,7 @@ describe("the invitations", () => {
 		const id = await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "spaniard@example.com",
+			name: "Persona",
 		});
 		const response = await send(
 			SPANIARD,
@@ -222,6 +228,7 @@ describe("the invitations", () => {
 		await make(FRIEND);
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		const response = await send(
 			FRIEND,
@@ -240,6 +247,7 @@ describe("the invitations", () => {
 		const other = await make("second");
 		await send("second", "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		await join(id);
 		expect(
@@ -257,6 +265,7 @@ describe("the invitations", () => {
 		for (const email of ["friend@example.com", "OWNER@example.com"]) {
 			const response = await send(OWNER, "POST", "/api/household/invites", {
 				email,
+				name: "Persona",
 			});
 			expect(response.status).toBe(409);
 			expect(await response.json()).toEqual({ error: "already_member" });
@@ -270,6 +279,7 @@ describe("the invitations", () => {
 				(
 					await send(OWNER, "POST", "/api/household/invites", {
 						email: "friend@example.com",
+						name: "Persona",
 					})
 				).status,
 			).toBe(204);
@@ -282,6 +292,7 @@ describe("the invitations", () => {
 		await join(id);
 		const response = await send(FRIEND, "POST", "/api/household/invites", {
 			email: "spaniard@example.com",
+			name: "Persona",
 		});
 		expect(response.status).toBe(404);
 	});
@@ -290,6 +301,7 @@ describe("the invitations", () => {
 		await make();
 		const response = await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend",
+			name: "Persona",
 		});
 		expect(response.status).toBe(400);
 	});
@@ -298,6 +310,7 @@ describe("the invitations", () => {
 		const id = await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		expect(
 			(await send(FRIEND, "DELETE", `/api/household/invitations/${id}`)).status,
@@ -306,6 +319,7 @@ describe("the invitations", () => {
 
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		expect(
 			(await send(OWNER, "DELETE", "/api/household/invites/friend@example.com"))
@@ -320,6 +334,7 @@ describe("the limit of 8 people", () => {
 		await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		for (let i = 0; i < 6; i++) {
 			await manual(`Persona ${i}`);
@@ -332,6 +347,7 @@ describe("the limit of 8 people", () => {
 		expect(await member.json()).toEqual({ error: "household_full" });
 		const invitation = await send(OWNER, "POST", "/api/household/invites", {
 			email: "spaniard@example.com",
+			name: "Persona",
 		});
 		expect(invitation.status).toBe(409);
 	});
@@ -340,6 +356,7 @@ describe("the limit of 8 people", () => {
 		const id = await make();
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		for (let i = 0; i < 6; i++) {
 			await manual(`Persona ${i}`);
@@ -474,6 +491,7 @@ describe("the end of the supporter account of the owner", () => {
 		const { id: accountId } = (await created.json()) as { id: string };
 		await send(OWNER, "POST", "/api/household/invites", {
 			email: "friend@example.com",
+			name: "Persona",
 		});
 		supporter(OWNER, false);
 
@@ -486,6 +504,7 @@ describe("the end of the supporter account of the owner", () => {
 			(
 				await send(OWNER, "POST", "/api/household/invites", {
 					email: "spaniard@example.com",
+					name: "Persona",
 				})
 			).status,
 		).toBe(403);
