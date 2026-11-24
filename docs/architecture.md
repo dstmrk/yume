@@ -1258,7 +1258,9 @@ Status: **accepted**. Date: 2026-11-16.
 A user removes the account on the dashboard, with "Elimina account" and a question.
 `DELETE /api/me` calls `removeUser` of `src/server/removal.ts`. The foreign keys then
 remove each row of the user: the accounts, the snapshots, the favourites, the sessions,
-the tokens of the assistants and the row of `stripe_customer`.
+the tokens of the assistants and the row of `stripe_customer`. They also remove the
+household of an owner and the row of a member of a household: paragraph 4.10 gives the
+rules.
 
 The country does not change, as paragraph 3.3.2 gives. A user who moves to an other
 country removes the account and makes a new account. That user then writes the balances
