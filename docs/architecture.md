@@ -2532,6 +2532,14 @@ again with an account of Revolut Spain.
 | SAS EuroBonus | 130,59 |
 | British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 78,17 |
 
+### Household pools
+
+`HOUSEHOLD_POOLS` holds ANA Mileage Club in Italy and in Spain from 2026-11-24. The
+page of the AMC Family Account Service gives 2 to 8 members, a fee of 1 000 miles and a
+member who lives outside Japan. A programme with no row has no pool. On 2026-11-24 the
+tools of the session could not read the pages of 20 programmes, for example British
+Airways, Iberia and Flying Blue. Those programmes have no row until a person reads them.
+
 ### Programmes with no transfer source
 
 **Miles & More** is the programme of ITA Airways from 1 April 2026. On that date, ITA

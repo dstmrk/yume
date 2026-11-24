@@ -40,6 +40,7 @@ const VERIFIED_ON_2 = "2026-08-12";
 const VERIFIED_ON_3 = "2026-10-06";
 const VERIFIED_ON_ES = "2026-11-16";
 const VERIFIED_ON_4 = "2026-11-16";
+const VERIFIED_ON_HOUSEHOLD = "2026-11-24";
 
 export const currencies: readonly Currency[] = [
 	{
@@ -1420,4 +1421,23 @@ export const transferRules: readonly TransferRule[] = [
  * Do not remove a row. A programme with no row has no pool, and the household
  * then shows no total for its currency.
  */
-export const HOUSEHOLD_POOLS: readonly HouseholdPool[] = [];
+export const HOUSEHOLD_POOLS: readonly HouseholdPool[] = [
+	{
+		// "AFA is a service for members who live outside Japan which allows you
+		// to combine the miles earned by your family, and to redeem awards"
+		// 2 to 8 members, a fee of 1,000 miles, the primary member redeems.
+		// Source: https://www.ana.co.jp/en/it/amc/amc-family-account-service/
+		programId: "ana",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// The same text as the page of Italy.
+		// Source: https://www.ana.co.jp/en/es/amc/amc-family-account-service/
+		programId: "ana",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+];
