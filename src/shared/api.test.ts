@@ -3,8 +3,10 @@ import {
 	addSnapshotSchema,
 	billingRequestSchema,
 	createAccountSchema,
+	householdInviteSchema,
 	isoDateSchema,
 	MAX_EXPIRY_LOTS,
+	manualMemberSchema,
 } from "./api.ts";
 
 describe("isoDateSchema", () => {
@@ -226,5 +228,48 @@ describe("billingRequestSchema", () => {
 				returnUrl: "https://example.com",
 			}).success,
 		).toBe(false);
+	});
+});
+
+describe("householdInviteSchema", () => {
+	it("writes the address in lower case with no spaces", () => {
+		expect(
+			householdInviteSchema.parse({ email: "  Giulia.Rossi@Gmail.com " }),
+		).toEqual({ email: "giulia.rossi@gmail.com" });
+	});
+
+	it("refuses a text that is not an address", () => {
+		expect(householdInviteSchema.safeParse({ email: "giulia" }).success).toBe(
+			false,
+		);
+		expect(householdInviteSchema.safeParse({ email: "" }).success).toBe(false);
+	});
+
+	it("refuses an other field", () => {
+		expect(
+			householdInviteSchema.safeParse({ email: "a@b.it", owner: true }).success,
+		).toBe(false);
+	});
+});
+
+describe("manualMemberSchema", () => {
+	it("removes the spaces of the name", () => {
+		expect(manualMemberSchema.parse({ name: "  Giulia " })).toEqual({
+			name: "Giulia",
+		});
+	});
+
+	it("refuses an empty name and a name of spaces", () => {
+		expect(manualMemberSchema.safeParse({ name: "" }).success).toBe(false);
+		expect(manualMemberSchema.safeParse({ name: "   " }).success).toBe(false);
+	});
+
+	it("refuses a name of more than 40 characters", () => {
+		expect(manualMemberSchema.safeParse({ name: "a".repeat(41) }).success).toBe(
+			false,
+		);
+		expect(manualMemberSchema.safeParse({ name: "a".repeat(40) }).success).toBe(
+			true,
+		);
 	});
 });

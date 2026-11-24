@@ -33,6 +33,8 @@ import {
 	countryOf,
 	currentBalances,
 	findAccount,
+	findMemberAccount,
+	memberBalances,
 	tierSourceOf,
 } from "./db/queries.ts";
 
@@ -74,11 +76,26 @@ export function entitlementOf(
 	return { limits, tier: accountTier(tierSourceOf(db, userId), now) };
 }
 
-/** The expiry lots of the current balance of an account of the user. */
-function currentLotsOf(db: Db, userId: string, accountId: string) {
+/**
+ * The account of the request, and the current balances of its owner: the
+ * personal accounts of the user, or the accounts of one manual member of the
+ * household of the user. Paragraph 4.10 of `docs/architecture.md`.
+ */
+function accountOf(
+	db: Db,
+	scope: "personal" | "member",
+	userId: string,
+	accountId: string,
+) {
+	if (scope === "personal") {
+		const found = findAccount(db, accountId, userId);
+		return found && { balances: currentBalances(db, userId) };
+	}
+	const found = findMemberAccount(db, accountId, userId);
 	return (
-		currentBalances(db, userId).find((row) => row.accountId === accountId)
-			?.lots ?? []
+		found?.memberId && {
+			balances: memberBalances(db, userId, found.memberId),
+		}
 	);
 }
 
@@ -109,10 +126,16 @@ export function recordSnapshot(
 		now: Date;
 		/** The value of `FREE_ACCOUNT_LIMITS`. */
 		limits: boolean;
+		/**
+		 * `member` gives an account of a manual member of the household of the
+		 * user. The default value is a personal account.
+		 */
+		scope?: "personal" | "member";
 	},
 ): SnapshotResult {
 	const { userId, accountId, body, now, limits } = request;
-	if (findAccount(db, accountId, userId) === undefined) {
+	const account = accountOf(db, request.scope ?? "personal", userId, accountId);
+	if (!account) {
 		return { ok: false, error: "unknown_account" };
 	}
 	const snapshot = addSnapshotSchema.safeParse(body);
@@ -126,7 +149,10 @@ export function recordSnapshot(
 	if (
 		lots.length > 0 &&
 		!canWriteExpiryLots(entitlementOf(db, userId, limits, now)) &&
-		!keepsCurrentLots(lots, currentLotsOf(db, userId, accountId))
+		!keepsCurrentLots(
+			lots,
+			account.balances.find((row) => row.accountId === accountId)?.lots ?? [],
+		)
 	) {
 		return { ok: false, error: SUPPORTER_REQUIRED };
 	}

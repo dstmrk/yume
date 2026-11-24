@@ -7,6 +7,7 @@ import type { Currency, Program } from "./catalogue.ts";
 import {
 	accountTier,
 	canAddAccount,
+	canManageHousehold,
 	canUseMcp,
 	canWriteExpiryLots,
 	type Entitlement,
@@ -297,5 +298,20 @@ describe("keepsCurrentLots", () => {
 
 	it("refuses one lot two times", () => {
 		expect(keepsCurrentLots([MARCH, MARCH], [MARCH])).toBe(false);
+	});
+});
+
+describe("canManageHousehold", () => {
+	it("refuses the household to a free owner with the limits active", () => {
+		expect(canManageHousehold(FREE)).toBe(false);
+	});
+
+	it("gives the household to a supporter owner and to an unlimited owner", () => {
+		expect(canManageHousehold(SUPPORTER)).toBe(true);
+		expect(canManageHousehold(UNLIMITED)).toBe(true);
+	});
+
+	it("gives the household to a free owner with no limits", () => {
+		expect(canManageHousehold({ limits: false, tier: "free" })).toBe(true);
 	});
 });

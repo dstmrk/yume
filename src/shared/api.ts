@@ -13,6 +13,7 @@ import {
 	type Currency,
 	type Program,
 } from "./catalogue.ts";
+import type { HouseholdPotential } from "./household.ts";
 import { LOCALES } from "./locale.ts";
 import type { PotentialMiles } from "./potential.ts";
 import type { AccountTier } from "./tier.ts";
@@ -118,6 +119,42 @@ export const createAccountSchema = z.object({
 });
 
 /**
+ * The maximum quantity of people of a household: the owner, the members of
+ * Yume, the manual members and the open invitations. Paragraph 4.10 of
+ * `docs/architecture.md`.
+ */
+export const MAX_HOUSEHOLD_PEOPLE = 8;
+
+/**
+ * An invitation to a household. The email is the Google address of the
+ * person. The schema removes the spaces and writes the address in lower case,
+ * because the comparison with the address of the user is exact.
+ */
+export const householdInviteSchema = z.strictObject({
+	email: z.string().trim().toLowerCase().pipe(z.email().max(254)),
+});
+
+/** A manual member of a household: a person with no account of Yume. */
+export const manualMemberSchema = z.strictObject({
+	name: z.string().trim().min(1).max(40),
+});
+
+/** The error of a request for a second household of one user. */
+export const ALREADY_IN_HOUSEHOLD = "already_in_household";
+
+/** The error of an invitation of a person of an other country. */
+export const COUNTRY_MISMATCH = "country_mismatch";
+
+/** The error of a household with `MAX_HOUSEHOLD_PEOPLE` people. */
+export const HOUSEHOLD_FULL = "household_full";
+
+/** The error of an invitation of an address that is in the household. */
+export const ALREADY_MEMBER = "already_member";
+
+/** The error of an owner who leaves the household: the owner removes it. */
+export const OWNER_CANNOT_LEAVE = "owner_cannot_leave";
+
+/**
  * The error of `POST /api/accounts` when the user holds the maximum quantity of
  * accounts. The client reads it and shows its own message.
  */
@@ -198,6 +235,8 @@ export type BillingRequest = z.infer<typeof billingRequestSchema>;
 /** The answer of the two routes of the payment: the address of Stripe. */
 export type BillingRedirectResponse = { url: string };
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
+export type HouseholdInviteInput = z.infer<typeof householdInviteSchema>;
+export type ManualMemberInput = z.infer<typeof manualMemberSchema>;
 export type AddSnapshotInput = z.infer<typeof addSnapshotSchema>;
 export type ExpiryLot = z.infer<typeof expiryLotSchema>;
 
@@ -326,3 +365,47 @@ export type Connection = {
 };
 
 export type ConnectionsResponse = { connections: Connection[] };
+
+/** One member of a household, with the current balance of each account. */
+export type HouseholdMember = {
+	id: string;
+	/** The name of the Google account, or the name that the owner wrote. */
+	name: string;
+	kind: "user" | "manual";
+	owner: boolean;
+	/** True for the member of the session. */
+	self: boolean;
+	accounts: AccountRow[];
+};
+
+/** An open invitation to a household, for the person of the session. */
+export type HouseholdInvitation = {
+	householdId: string;
+	ownerName: string;
+};
+
+/**
+ * The household of the user of the session. Paragraph 4.10 of
+ * `docs/architecture.md` gives the decisions.
+ */
+export type HouseholdResponse = {
+	household: {
+		id: string;
+		/** True when the user of the session is the owner. */
+		owner: boolean;
+		/**
+		 * True when the owner can invite a person, add a manual member and add
+		 * an account. It reads the level of the owner.
+		 */
+		canManage: boolean;
+		/** The addresses of the open invitations. Only the owner reads them. */
+		invites: string[];
+		members: HouseholdMember[];
+		/** The date of the calculation. */
+		at: string;
+		/** One row for each airline currency. */
+		potential: HouseholdPotential[];
+	} | null;
+	/** The invitations of the user. The list is empty in a household. */
+	invitations: HouseholdInvitation[];
+};
