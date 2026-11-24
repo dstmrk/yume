@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { COUNTRIES } from "../../../shared/catalogue.ts";
 import { convert, findRule } from "../../../shared/conversion.ts";
-import { currencies, programs, transferRules } from "./catalogue.ts";
+import {
+	currencies,
+	HOUSEHOLD_POOLS,
+	programs,
+	transferRules,
+} from "./catalogue.ts";
 import { continuityErrors } from "./continuity.ts";
 
 /**
@@ -256,5 +261,39 @@ describe("the rules of Klarna", () => {
 			expect(convert(10_000, ruleOn(to, now))).toBe(value);
 		}
 		expect(convert(10_000, ruleOn("ba-club", "2026-11-15"))).toBe(8_002);
+	});
+});
+
+describe("the pools of the households", () => {
+	it("refers to an airline programme", () => {
+		const airline = new Set(
+			currencies.filter((c) => c.kind === "airline").map((c) => c.id),
+		);
+		for (const pool of HOUSEHOLD_POOLS) {
+			const found = programs.find((p) => p.id === pool.programId);
+			expect(found, pool.programId).toBeDefined();
+			expect(airline.has(found?.currencyId ?? "")).toBe(true);
+		}
+	});
+
+	it("holds a country that a user can select", () => {
+		for (const pool of HOUSEHOLD_POOLS) {
+			expect(COUNTRIES as readonly string[]).toContain(pool.country);
+		}
+	});
+
+	it("holds contiguous versions for each programme in each country", () => {
+		const asRules = HOUSEHOLD_POOLS.map((pool) => ({
+			fromProgramId: pool.programId,
+			toProgramId: pool.programId,
+			country: pool.country,
+			ratioNum: 1,
+			ratioDen: 1,
+			minTransfer: 0,
+			increment: 1,
+			validFrom: pool.validFrom,
+			validTo: pool.validTo,
+		}));
+		expect(continuityErrors(asRules)).toEqual([]);
 	});
 });

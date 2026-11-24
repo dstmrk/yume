@@ -26,6 +26,7 @@
 
 import type {
 	Currency,
+	HouseholdPool,
 	Program,
 	TransferRule,
 } from "../../../shared/catalogue.ts";
@@ -1409,3 +1410,14 @@ export const transferRules: readonly TransferRule[] = [
 		validTo: null,
 	},
 ];
+
+/**
+ * The programmes that let the members of one household pool their miles into
+ * one balance. Paragraph 4.10 of `docs/architecture.md` gives the rules.
+ *
+ * The rules of a transfer rule apply: read the official page of the country,
+ * write the link and the text above the row, and close a pool with `validTo`.
+ * Do not remove a row. A programme with no row has no pool, and the household
+ * then shows no total for its currency.
+ */
+export const HOUSEHOLD_POOLS: readonly HouseholdPool[] = [];
