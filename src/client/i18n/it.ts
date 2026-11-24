@@ -352,7 +352,7 @@ export const it = {
 		// Name only the functions that `src/shared/tier.ts` gates and the
 		// sources of the catalogue. The skill `stripe-billing` gives the rule.
 		offer:
-			"Klarna, programmi aerei senza limiti, date di scadenza dei punti e assistenti AI.",
+			"Klarna, programmi aerei senza limiti, date di scadenza dei punti, famiglia e assistenti AI.",
 		perYear: "all'anno",
 		buy: "Diventa sostenitore",
 		renewal: "Si rinnova ogni anno. Disdici quando vuoi.",
@@ -369,6 +369,59 @@ export const it = {
 		already: "Hai già un abbonamento: gestiscilo dal portale.",
 		unavailable: "Pagamento non disponibile. Riprova tra poco.",
 		link: "Diventa sostenitore",
+	},
+
+	// The household of paragraph 4.10 of `docs/architecture.md`. The interface
+	// says "famiglia": the word of the programmes in Italian.
+	dashboardLink: "Dashboard",
+
+	household: {
+		link: "Famiglia",
+		title: "Famiglia",
+		intro:
+			"Metti insieme i saldi di chi vive con te. Il totale appare solo dove il programma permette di unire le miglia.",
+		pooledLabel: "Miglia potenziali della famiglia",
+		notPooled: "Non cumulabili: ognuno usa le proprie miglia.",
+		noPotential: "Nessuna miglia potenziale nella famiglia.",
+		create: "Crea famiglia",
+		countryFirst: "Scegli prima il paese nella dashboard.",
+		invitationFrom: "Invito da",
+		acceptNote: "Se accetti, la famiglia vede i tuoi saldi.",
+		accept: "Accetta",
+		refuse: "Rifiuta",
+		membersTitle: "Persone",
+		owner: "Titolare",
+		you: "tu",
+		manual: "senza account",
+		readOnly:
+			"Abbonamento scaduto: la famiglia resta, ma non puoi aggiungere persone o conti.",
+		inviteTitle: "Invita una persona con Yume",
+		inviteNote: "Yume non invia email: avvisa tu la persona.",
+		emailLabel: "Email Google",
+		nameLabel: "Nome",
+		invite: "Invita",
+		pendingTitle: "Inviti in attesa",
+		cancelInvite: "Annulla",
+		manualTitle: "Aggiungi una persona senza Yume",
+		addManual: "Aggiungi",
+		removeMember: "Rimuovi",
+		removeMemberQuestion:
+			"Rimuovi la persona dalla famiglia? I suoi conti Yume restano suoi.",
+		removeManualQuestion: "Rimuovi la persona e tutti i suoi saldi?",
+		leave: "Esci dalla famiglia",
+		leaveQuestion: "Esci? La famiglia non vedrà più i tuoi saldi.",
+		remove: "Elimina famiglia",
+		removeQuestion:
+			"Elimini la famiglia? Le persone senza account e i loro saldi spariscono.",
+		errors: {
+			countryMismatch: "La persona è di un altro paese.",
+			full: "La famiglia ha già 8 persone.",
+			alreadyMember: "La persona è già nella famiglia.",
+			alreadyInHousehold: "Fai già parte di una famiglia.",
+			supporterRequired: "Riservato ai sostenitori.",
+			invalid: "Controlla email e nome.",
+			general: "Operazione non riuscita.",
+		},
 	},
 
 	loading: "Caricamento…",
@@ -691,6 +744,7 @@ export const it = {
 					"Dati della sessione: indirizzo IP e tipo di browser del dispositivo da cui accedi.",
 					"Se colleghi un assistente AI (sezione 4-bis): il nome e l'indirizzo dell'applicazione che hai autorizzato, i permessi che le hai dato, la data dell'autorizzazione e i codici di accesso che Yume le rilascia.",
 					"Se diventi sostenitore: gli identificativi del cliente e dell'abbonamento presso Stripe, lo stato dell'abbonamento e la data di fine del periodo pagato. Yume invia a Stripe il tuo indirizzo email.",
+					"Se usi la famiglia: il nome che il titolare scrive per ogni persona, l'indirizzo email di ogni invito, e i programmi e i saldi che il titolare inserisce per una persona senza account. Il titolare inserisce i dati di quella persona solo con il suo consenso.",
 					"Yume non chiede né conserva password, carte di pagamento o credenziali dei programmi fedeltà, e non si collega ai tuoi conti. I dati della carta li inserisci sulla pagina di Stripe, e Yume non li riceve.",
 				],
 				contact: false,
@@ -761,6 +815,7 @@ export const it = {
 					"Cloudflare Inc., per la rete, la protezione del sito e l'inoltro delle email all'indirizzo della privacy, come responsabile del trattamento (art. 28 GDPR). Informativa: cloudflare.com/privacypolicy.",
 					"Stripe Payments Europe, Ltd (Irlanda), solo se diventi sostenitore, per il pagamento, il rinnovo e le ricevute dell'abbonamento. Stripe tratta i dati di pagamento come responsabile del trattamento (art. 28 GDPR) e, per i propri obblighi di legge e la prevenzione delle frodi, come titolare autonomo. Informativa: stripe.com/privacy.",
 					"Il fornitore dell'assistente AI che colleghi tu, per esempio Anthropic per Claude o OpenAI per ChatGPT e Codex, solo se lo colleghi e solo per i dati che l'assistente richiede, come titolare autonomo (sezione 4-bis).",
+					"Le persone della tua famiglia, solo se accetti un invito o se crei la famiglia: vedono i tuoi programmi e i tuoi saldi. Chi riceve un invito vede l'email del titolare. Uscendo dalla famiglia la condivisione termina subito.",
 					"Le autorità pubbliche, solo nei casi previsti dalla legge.",
 				],
 				contact: false,
@@ -1013,7 +1068,7 @@ export const it = {
 			{
 				title: "7-bis. Account sostenitore",
 				paragraphs: [
-					"L'account gratuito comprende Amex e Revolut senza limiti e 2 programmi aerei. L'account sostenitore aggiunge le altre fonti di punti del catalogo, oggi Klarna, i programmi aerei senza limiti, le date di scadenza dei punti e il collegamento di un assistente AI.",
+					"L'account gratuito comprende Amex e Revolut senza limiti e 2 programmi aerei. L'account sostenitore aggiunge le altre fonti di punti del catalogo, oggi Klarna, i programmi aerei senza limiti, le date di scadenza dei punti, la famiglia e il collegamento di un assistente AI.",
 				],
 				items: [
 					"Prezzo: 9,99 € all'anno, prezzo finale. Il pagamento avviene sulla pagina di Stripe Payments Europe, Ltd: Yume non riceve i dati della carta. Stripe ti invia la ricevuta via email.",
@@ -1022,6 +1077,7 @@ export const it = {
 					"Diritto di recesso: puoi recedere entro 14 giorni dal pagamento senza indicare un motivo (art. 52 D.Lgs. 206/2005). Scrivi all'indirizzo qui sotto, anche con il modulo tipo di recesso (Allegato I, parte B, del Codice del Consumo). Ti rimborsiamo l'intero importo entro 14 giorni con lo stesso mezzo di pagamento, e l'account torna gratuito.",
 					"Rinnovo non riuscito: se il pagamento del rinnovo non va a buon fine l'account torna gratuito. Stripe ritenta l'addebito per alcuni giorni; con il pagamento l'account sostenitore riprende.",
 					"Fine dell'account sostenitore: non perdi dati. Conti, saldi e scadenze restano, ma non puoi aggiungere conti o scadenze oltre i limiti dell'account gratuito.",
+					"Famiglia: il titolare la crea e invita le persone, o le aggiunge senza account. Chi accetta un invito mostra i propri saldi alla famiglia. Alla fine dell'account sostenitore del titolare la famiglia resta, ma non si aggiungono persone o conti.",
 				],
 				contact: true,
 			},

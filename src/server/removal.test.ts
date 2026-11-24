@@ -15,8 +15,17 @@ import {
 	session,
 	stripeCustomer,
 	user,
+	userAccount,
 } from "./db/schema.ts";
 import { seedCatalogue } from "./db/seed/seed.ts";
+import {
+	acceptInvitation,
+	addManualMember,
+	addMemberAccount,
+	createHousehold,
+	householdOf,
+	invite,
+} from "./household.ts";
 import { removeUser } from "./removal.ts";
 import { fakeStripe, STRIPE_ERROR } from "./stripe-fixtures.ts";
 
@@ -161,5 +170,67 @@ describe("removeUser", () => {
 
 		expect(currentBalances(db, OTHER_USER)).toHaveLength(1);
 		expect(db.select().from(stripeCustomer).all()).toHaveLength(1);
+	});
+});
+
+describe("the removal of a user of a household", () => {
+	const NOW = new Date("2026-11-24T10:00:00Z");
+
+	/** A household of USER with OTHER_USER and a manual member with a balance. */
+	function household(): void {
+		expect(createHousehold(db, USER, false, NOW).ok).toBe(true);
+		const giulia = addManualMember(db, USER, { name: "Giulia" }, false, NOW);
+		if (!giulia.ok) throw new Error(giulia.error);
+		expect(
+			addMemberAccount(
+				db,
+				USER,
+				giulia.value.id,
+				{
+					programId: "ba-club",
+					snapshot: { points: 10, observedAt: "2026-11-24" },
+				},
+				false,
+				NOW,
+			).ok,
+		).toBe(true);
+		createAccount(db, { userId: OTHER_USER, programId: "iberia-club" });
+		invite(
+			db,
+			USER,
+			{ email: `${OTHER_USER}@example.com`, name: "Luca" },
+			false,
+			NOW,
+		);
+		expect(
+			acceptInvitation(
+				db,
+				OTHER_USER,
+				householdOf(db, OTHER_USER, false, NOW).invitations[0]?.householdId ??
+					"",
+				NOW,
+			).ok,
+		).toBe(true);
+	}
+
+	it("removes the household of the owner and its manual members", async () => {
+		household();
+		expect(await removeUser(db, undefined, USER)).toEqual({ ok: true });
+
+		expect(householdOf(db, OTHER_USER, false, NOW).household).toBeNull();
+		expect(currentBalances(db, OTHER_USER)).toHaveLength(1);
+		// The account of the manual member goes with the owner.
+		expect(
+			db.select({ userId: userAccount.userId }).from(userAccount).all(),
+		).toEqual([{ userId: OTHER_USER }]);
+	});
+
+	it("removes only the member from the household of an other owner", async () => {
+		household();
+		expect(await removeUser(db, undefined, OTHER_USER)).toEqual({ ok: true });
+
+		const left = householdOf(db, USER, false, NOW).household;
+		expect(left?.members.map((m) => m.kind)).toEqual(["user", "manual"]);
+		expect(left?.members[1]?.accounts.map((a) => a.points)).toEqual([10]);
 	});
 });

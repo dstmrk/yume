@@ -21,6 +21,7 @@ export const CLIENT_PATHS = [
 	"/",
 	"/admin",
 	"/dashboard",
+	"/household",
 	"/login",
 	"/consent",
 	"/connector",

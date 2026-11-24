@@ -12,7 +12,7 @@ import {
 	sortPrograms,
 } from "../lib/account.ts";
 import { airlinesOf } from "../lib/airlines.ts";
-import { createAccount, fetchMe } from "../lib/api.ts";
+import { createAccount, createMemberAccount, fetchMe } from "../lib/api.ts";
 import { readOptionalPoints } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
 import { blockedPrograms } from "../lib/limits.ts";
@@ -45,12 +45,17 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover.tsx";
  *
  * The form is a standard form of shadcn/ui, not a surface of the board. Refer
  * to paragraph 5 of `docs/architecture.md`.
+ *
+ * With `memberId` the form adds an account of a manual member of the household
+ * of the owner. The limits of the free account do not apply to that member:
+ * the server asks for the supporter account of the owner. Paragraph 4.10.
  */
 export function NewAccountForm({
 	programs,
 	currencies,
 	accountProgramIds,
 	defaultOpen = false,
+	memberId,
 }: {
 	programs: readonly Program[];
 	currencies: readonly Currency[];
@@ -58,6 +63,8 @@ export function NewAccountForm({
 	accountProgramIds: readonly string[];
 	/** The dashboard of a user with no account opens the form immediately. */
 	defaultOpen?: boolean;
+	/** A manual member of the household of the owner. */
+	memberId?: string;
 }) {
 	const { t: text } = useI18n();
 	const [open, setOpen] = useState(defaultOpen);
@@ -75,6 +82,7 @@ export function NewAccountForm({
 			programs={programs}
 			currencies={currencies}
 			accountProgramIds={accountProgramIds}
+			memberId={memberId}
 			onClose={() => setOpen(false)}
 		/>
 	);
@@ -84,11 +92,13 @@ function Fields({
 	programs,
 	currencies,
 	accountProgramIds,
+	memberId,
 	onClose,
 }: {
 	programs: readonly Program[];
 	currencies: readonly Currency[];
 	accountProgramIds: readonly string[];
+	memberId: string | undefined;
 	onClose: () => void;
 }) {
 	const { t: text, intl } = useI18n();
@@ -102,24 +112,28 @@ function Fields({
 		// One request makes the account and its first balance in one
 		// transaction. Thus an error writes no row, and "Salva" again makes one
 		// account.
-		mutationFn: (balance: number | null) =>
-			createAccount(newAccountBody(programId, balance, new Date())),
+		mutationFn: (balance: number | null) => {
+			const body = newAccountBody(programId, balance, new Date());
+			return memberId === undefined
+				? createAccount(body)
+				: createMemberAccount(memberId, body);
+		},
 		onSuccess: async () => {
 			// The new account changes the list and also the potential: a new
-			// balance of a source gives new miles.
+			// balance of a source gives new miles. The household shows the
+			// personal accounts of the members too.
 			await queryClient.invalidateQueries({ queryKey: ["accounts"] });
 			await queryClient.invalidateQueries({ queryKey: ["potential"] });
+			await queryClient.invalidateQueries({ queryKey: ["household"] });
 			onClose();
 		},
 	});
 
 	const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
-	const blocked = blockedPrograms(
-		me.data,
-		programs,
-		currencies,
-		accountProgramIds,
-	);
+	const blocked =
+		memberId === undefined
+			? blockedPrograms(me.data, programs, currencies, accountProgramIds)
+			: new Set<string>();
 
 	const options = sortPrograms(
 		programsOfCountry(
@@ -185,7 +199,10 @@ function Fields({
 						text.tooManyAccountsError
 					) : isSupporterRequired(save.error) ? (
 						<>
-							{text.freeAccountLimitError} <SupporterLink />
+							{memberId === undefined
+								? text.freeAccountLimitError
+								: text.household.errors.supporterRequired}{" "}
+							<SupporterLink />
 						</>
 					) : (
 						text.saveError

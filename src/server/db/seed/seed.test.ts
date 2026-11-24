@@ -1,8 +1,13 @@
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { beforeEach, describe, expect, it } from "vitest";
 import { type Db, openDatabase } from "../index.ts";
-import { currency, program, transferRule } from "../schema.ts";
-import { currencies, programs, transferRules } from "./catalogue.ts";
+import { currency, householdPool, program, transferRule } from "../schema.ts";
+import {
+	currencies,
+	HOUSEHOLD_POOLS,
+	programs,
+	transferRules,
+} from "./catalogue.ts";
 import { seedCatalogue } from "./seed.ts";
 
 let db: Db;
@@ -105,5 +110,44 @@ describe("the pragmas", () => {
 				})
 				.run(),
 		).toThrow();
+	});
+});
+
+describe("the pools of the households", () => {
+	it("writes each pool one time, also when the seed runs two times", () => {
+		seedCatalogue(db);
+		seedCatalogue(db);
+		expect(db.select().from(householdPool).all()).toHaveLength(
+			HOUSEHOLD_POOLS.length,
+		);
+	});
+
+	it("writes the end of a pool that the catalogue closes", () => {
+		seedCatalogue(db);
+		db.insert(program)
+			.values({
+				id: "test-programme",
+				currencyId: "avios",
+				code: "TEST",
+				name: "Test",
+				transferable: false,
+			})
+			.run();
+		db.insert(householdPool)
+			.values({
+				programId: "test-programme",
+				country: "IT",
+				validFrom: "2026-01-01",
+			})
+			.run();
+		// A pool that the file no longer holds stays: it is historical data.
+		seedCatalogue(db);
+		expect(
+			db
+				.select()
+				.from(householdPool)
+				.all()
+				.map((row) => row.programId),
+		).toContain("test-programme");
 	});
 });

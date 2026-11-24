@@ -22,6 +22,7 @@
 
 import { sql } from "drizzle-orm";
 import {
+	check,
 	index,
 	integer,
 	primaryKey,
@@ -408,20 +409,125 @@ export const transferRule = sqliteTable(
 );
 
 /**
+ * A programme that lets the members of one household pool their miles into
+ * one balance. A row is a fact of the catalogue, with a country and a period,
+ * as a transfer rule. A programme with no row has no pool. Paragraph 4.10 of
+ * `docs/architecture.md` gives the rules.
+ */
+export const householdPool = sqliteTable(
+	"household_pool",
+	{
+		programId: text("program_id")
+			.notNull()
+			.references(() => program.id),
+		country: text("country").notNull(),
+		validFrom: text("valid_from").notNull(),
+		validTo: text("valid_to"),
+	},
+	(table) => [
+		primaryKey({
+			columns: [table.programId, table.country, table.validFrom],
+		}),
+	],
+);
+
+/**
+ * A household. The owner made it, and the owner is a supporter. The household
+ * has the country of the owner. Paragraph 4.10 of `docs/architecture.md`.
+ *
+ * The removal of the owner removes the household, its members, its
+ * invitations and the accounts of its manual members.
+ */
+export const household = sqliteTable("household", {
+	id: text("id").primaryKey(),
+	ownerId: text("owner_id")
+		.notNull()
+		.unique()
+		.references(() => user.id, { onDelete: "cascade" }),
+	createdAt: text("created_at").notNull(),
+});
+
+/**
+ * A member of a household: a user of Yume, or a manual member.
+ *
+ * The owner also has a row. The column `user_id` is unique, thus a user is in
+ * one household at most. Yume keeps no name of a Google account, thus the
+ * owner writes the name of each other member: a manual member, or a user of
+ * Yume in the invitation. The row of the owner holds no name. A manual member
+ * holds a name and no `user_id`.
+ */
+export const householdMember = sqliteTable(
+	"household_member",
+	{
+		id: text("id").primaryKey(),
+		householdId: text("household_id")
+			.notNull()
+			.references(() => household.id, { onDelete: "cascade" }),
+		userId: text("user_id")
+			.unique()
+			.references(() => user.id, { onDelete: "cascade" }),
+		name: text("name"),
+		createdAt: text("created_at").notNull(),
+	},
+	(table) => [
+		index("household_member_household_id").on(table.householdId),
+		check(
+			"household_member_user_or_name",
+			sql`${table.userId} is not null or ${table.name} is not null`,
+		),
+	],
+);
+
+/**
+ * An open invitation to a household. The email is the Google address of the
+ * person, in lower case. The name is the name that the owner writes: the
+ * acceptance copies it to the row of the member. Yume sends no email: the
+ * person sees the invitation at the next sign-in. The key is the pair, thus
+ * one household invites one address one time.
+ */
+export const householdInvite = sqliteTable(
+	"household_invite",
+	{
+		householdId: text("household_id")
+			.notNull()
+			.references(() => household.id, { onDelete: "cascade" }),
+		email: text("email").notNull(),
+		name: text("name").notNull(),
+		createdAt: text("created_at").notNull(),
+	},
+	(table) => [
+		primaryKey({ columns: [table.householdId, table.email] }),
+		index("household_invite_email").on(table.email),
+	],
+);
+
+/**
  * An account of the user with a programme.
  *
  * The removal of a user removes the accounts of that user, and then the
  * snapshots of those accounts.
+ *
+ * The column `member_id` holds a manual member of a household. Such an account
+ * holds the `user_id` of the owner, thus the owner writes it and the removal
+ * of the owner removes it. Each personal query reads only the rows with no
+ * `member_id`. Paragraph 4.10 of `docs/architecture.md`.
  */
-export const userAccount = sqliteTable("user_account", {
-	id: text("id").primaryKey(),
-	userId: text("user_id")
-		.notNull()
-		.references(() => user.id, { onDelete: "cascade" }),
-	programId: text("program_id")
-		.notNull()
-		.references(() => program.id),
-});
+export const userAccount = sqliteTable(
+	"user_account",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => user.id, { onDelete: "cascade" }),
+		programId: text("program_id")
+			.notNull()
+			.references(() => program.id),
+		memberId: text("member_id").references(() => householdMember.id, {
+			onDelete: "cascade",
+		}),
+	},
+	(table) => [index("user_account_member_id").on(table.memberId)],
+);
 
 /**
  * A currency that the user marks as a favourite.

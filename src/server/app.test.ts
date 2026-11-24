@@ -111,6 +111,18 @@ describe("the session", () => {
 		["GET", "/api/me"],
 		["GET", "/api/admin/users"],
 		["PUT", "/api/admin/users/an-user/unlimited"],
+		["GET", "/api/household"],
+		["POST", "/api/household"],
+		["DELETE", "/api/household"],
+		["POST", "/api/household/invites"],
+		["DELETE", "/api/household/invites/a@example.com"],
+		["POST", "/api/household/invitations/a-household"],
+		["DELETE", "/api/household/invitations/a-household"],
+		["POST", "/api/household/members"],
+		["DELETE", "/api/household/members/a-member"],
+		["POST", "/api/household/members/a-member/accounts"],
+		["POST", "/api/household/accounts/an-account/snapshots"],
+		["DELETE", "/api/household/accounts/an-account"],
 	] as const;
 
 	for (const [method, path] of routes) {

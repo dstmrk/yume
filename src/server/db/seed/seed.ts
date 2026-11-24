@@ -1,6 +1,11 @@
 import type { Db } from "../index.ts";
-import { currency, program, transferRule } from "../schema.ts";
-import { currencies, programs, transferRules } from "./catalogue.ts";
+import { currency, householdPool, program, transferRule } from "../schema.ts";
+import {
+	currencies,
+	HOUSEHOLD_POOLS,
+	programs,
+	transferRules,
+} from "./catalogue.ts";
 
 /**
  * Writes the catalogue in the database.
@@ -55,6 +60,20 @@ export function seedCatalogue(db: Db): void {
 						increment: row.increment,
 						validTo: row.validTo,
 					},
+				})
+				.run();
+		}
+
+		for (const row of HOUSEHOLD_POOLS) {
+			tx.insert(householdPool)
+				.values(row)
+				.onConflictDoUpdate({
+					target: [
+						householdPool.programId,
+						householdPool.country,
+						householdPool.validFrom,
+					],
+					set: { validTo: row.validTo },
 				})
 				.run();
 		}

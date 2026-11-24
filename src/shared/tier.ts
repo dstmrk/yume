@@ -157,6 +157,17 @@ export function canUseMcp(entitlement: Entitlement): boolean {
 }
 
 /**
+ * Examines if the owner of a household can make it, invite a person, add a
+ * manual member or add an account to a manual member. Read the level of the
+ * owner, not of the person of the request. The end of a supporter account
+ * removes nothing: the household stays, and each balance stays. Paragraph 4.10
+ * of `docs/architecture.md`.
+ */
+export function canManageHousehold(entitlement: Entitlement): boolean {
+	return !entitlement.limits || entitlement.tier !== "free";
+}
+
+/**
  * Reads the variable `FREE_ACCOUNT_LIMITS`. No value gives false: a
  * self-hosted installation keeps each function.
  *

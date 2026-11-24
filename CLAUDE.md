@@ -154,6 +154,8 @@ Write a unit test for each new rule of the calculation.
   person reads a real value and then decides: the dashboard and `/calcolatore`.
 - Do not show a potential value as a sum of all the currencies. The user cannot send the
   same points to two programmes.
+- Do not show a household total for a currency with no pool. Two people cannot spend
+  their miles in one booking. Paragraph 4.10 of `docs/architecture.md` gives the rules.
 
 The theme is an airport departure board with split-flap displays. The palette is dark
 only. Obey these rules:
@@ -278,6 +280,9 @@ npm run build       # Vite writes dist/, and Hono supplies those files
 The four commands of the database use `DATABASE_URL`. The default value is
 `./data/yume.db`.
 
+Yume keeps no name of a Google account: `user.name` is empty in production. A surface
+that names a person shows a name that a user writes, as the household does.
+
 Google is the only provider of the sign-in for a person. The first sign-in of a Google
 account makes the user. Paragraph 4.1 of `docs/architecture.md` gives the reasons. The
 account of the reviewers of Anthropic signs in with a password. No person can make such
@@ -362,7 +367,11 @@ bash .claude/hooks/test-block-private-data-commit.sh
   apply it, write the old rows, then apply the full folder. `schema.test.ts` holds the
   example.
 - Write the old rows with SQL. A function of `queries.ts` writes the columns of the
-  current schema, and the old table does not have them.
+  current schema, and the old table does not have them. `seedCatalogue` writes each
+  table of the catalogue, thus an old version also receives its catalogue with SQL.
+- Examine each `ADD ... REFERENCES` that drizzle-kit writes. drizzle-kit removes
+  `ON DELETE` from `ALTER TABLE ... ADD`, also when `schema.ts` gives `cascade`. Write
+  the clause by hand, as `drizzle/0015_household.sql` does.
 - Examine each `ADD ... NOT NULL` that drizzle-kit writes. SQLite refuses that statement
   on a table with rows if the column has no default. A test on an empty database does
   not find the error. Make the table again and fill the column, as

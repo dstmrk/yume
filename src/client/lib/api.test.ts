@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+	answerInvitation,
+	cancelHouseholdInvite,
 	createAccount,
+	createMemberAccount,
 	deleteAccount,
 	deleteUser,
 	fetchCatalogue,
@@ -248,5 +251,40 @@ describe("the assistants of the MCP server", () => {
 		answer(json({ error: "unknown_connection" }, 404));
 		const error = await rejection(revokeConnection("x"));
 		expect(error.status).toBe(404);
+	});
+});
+
+describe("the requests of the household", () => {
+	afterEach(() => {
+		vi.restoreAllMocks();
+	});
+
+	it("writes the address of an invitation in the path", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		await cancelHouseholdInvite("giulia+yume@example.com");
+		expect(fetch).toHaveBeenCalledWith(
+			"/api/household/invites/giulia%2Byume%40example.com",
+			{ method: "DELETE" },
+		);
+	});
+
+	it("accepts with POST and refuses with DELETE", async () => {
+		const fetch = answer(new Response(null, { status: 204 }));
+		await answerInvitation("h1", true);
+		expect(fetch).toHaveBeenLastCalledWith("/api/household/invitations/h1", {
+			method: "POST",
+		});
+		await answerInvitation("h1", false);
+		expect(fetch).toHaveBeenLastCalledWith("/api/household/invitations/h1", {
+			method: "DELETE",
+		});
+	});
+
+	it("gives the code of a refusal of the household", async () => {
+		answer(json({ error: "household_full" }, 409));
+		const error = await rejection(
+			createMemberAccount("m1", { programId: "ba-club" }),
+		);
+		expect(error.code).toBe("household_full");
 	});
 });

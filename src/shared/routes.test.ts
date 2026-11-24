@@ -157,7 +157,13 @@ describe("robots.txt", () => {
 		.map((line) => line.slice("Disallow: ".length));
 
 	/** The pages that need a session. A crawler receives no data there. */
-	const PRIVATE = ["/admin", "/consent", "/dashboard", "/login"] as const;
+	const PRIVATE = [
+		"/admin",
+		"/consent",
+		"/dashboard",
+		"/household",
+		"/login",
+	] as const;
 
 	for (const path of PRIVATE) {
 		it(`blocks ${path} in each language`, () => {

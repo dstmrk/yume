@@ -319,7 +319,15 @@ favorite_currency(userId, currencyId)  -- the key is the pair. Refer to paragrap
 
 stripe_customer(userId, customerId, subscriptionId?, status?, cancels, lastEventAt?, createdAt)
 stripe_event(id, type, receivedAt)    -- refer to paragraph 4.6.1
+
+household(id, ownerId, createdAt)     -- refer to paragraph 4.10
+household_member(id, householdId, userId?, name?, createdAt)
+household_invite(householdId, email, name, createdAt)
+household_pool(programId, country, validFrom, validTo?)
 ```
+
+`user_account` also holds `memberId?`, for an account of a manual member of a household.
+Paragraph 4.10 gives the rules.
 
 The tables `currency`, `program` and `transfer_rule` contain application data, not user
 data. Keep this data in a typed TypeScript file in `src/server/db/seed/`. A script
@@ -616,6 +624,7 @@ one year. No other plan exists.
 | Airline programmes | 2 programmes | No limit |
 | Expiry lots of a balance | Not available | No limit |
 | The MCP server of paragraph 4.7 | Not available | Available |
+| The household of paragraph 4.10, as the owner | Not available | Available |
 
 Amex and Revolut stay free, because the affiliate links of Yume go to those two sources.
 A limit on them stops the users that those links bring.
@@ -1249,7 +1258,9 @@ Status: **accepted**. Date: 2026-11-16.
 A user removes the account on the dashboard, with "Elimina account" and a question.
 `DELETE /api/me` calls `removeUser` of `src/server/removal.ts`. The foreign keys then
 remove each row of the user: the accounts, the snapshots, the favourites, the sessions,
-the tokens of the assistants and the row of `stripe_customer`.
+the tokens of the assistants and the row of `stripe_customer`. They also remove the
+household of an owner and the row of a member of a household: paragraph 4.10 gives the
+rules.
 
 The country does not change, as paragraph 3.3.2 gives. A user who moves to an other
 country removes the account and makes a new account. That user then writes the balances
@@ -1277,6 +1288,133 @@ data. The route then gives the status 403 and `reviewer_account`. The administra
 writes that account again with the script.
 
 The MCP server gives no tool for this removal: paragraph 4.7.3 gives the reason.
+
+### 4.10 The household
+
+Status: **accepted**. Date: 2026-11-24.
+
+Some programmes let the members of one household add their miles into one balance. A
+booking then spends that balance. The household view of Yume shows the potential miles
+of such a group. The user decided the ten items below on 2026-11-24.
+
+**1. A total only for a currency with pooling.** The household view shows a total for a
+currency only when a programme of that currency lets a household pool the miles. The
+total is the sum of the potential of each member. For each other currency, the view shows
+the potential of each member and no total. Two people cannot spend their miles in one
+booking without pooling. Thus a total for that currency is a value that nobody can use.
+
+The catalogue holds the pooling as a fact of a programme: `HOUSEHOLD_POOLS` of
+`src/server/db/seed/catalogue.ts`, in the table `household_pool`. A pool has a country,
+`validFrom` and `validTo`, as a transfer rule. The rules 4, 5 and 6 of the data apply
+to it. A currency has a pool when one of its programmes has a pool that is valid. The six
+programmes of Avios move Avios between them at no cost, thus one programme with a pool
+is sufficient. A programme with no row has no pool. That default gives no total, and a
+missing total cannot cause a bad transfer.
+
+**2. One household, which each member sees.** An owner makes the household. Each member
+sees the same view, with the balance of each account of each member. The acceptance of
+an invitation is the consent to that share. A member who leaves the household stops the
+share immediately.
+
+**3. The owner pays.** The owner needs the supporter account or the unlimited account.
+The other members can hold a free account. When the supporter account of the owner
+stops, the household stays and each member still sees it. The owner then cannot invite a
+person, cannot add a manual member and cannot add an account to a manual member. Each
+balance stays and the owner can update it. Paragraph 4.6 gives the same rule: the end of
+a supporter account removes nothing.
+
+**4. A manual member.** A person with no account of Yume is a manual member. The owner
+writes the name. A manual member holds accounts and snapshots, also of a source, thus
+Yume calculates the potential of that person. Only the owner writes them. The owner uses
+the forms of the dashboard: the form of a new account and the form of a new balance.
+
+**5. One country.** The household has the country of the owner. The calculation of each
+member reads that country. An owner with no country cannot make a household. A user of an
+other country cannot accept the invitation: the server gives the status 409 and the code
+`country_mismatch`. A pool needs one address in each programme of the catalogue, thus
+a household of two countries is rare.
+
+**6. The limits.** A user is in one household at most, as the owner or as a member. A
+household holds 8 people at most: the owner, the members of Yume, the manual members and
+the open invitations. Yume does not examine the limit of a programme, for example the
+limit of the members of a pool.
+
+**7. The route `/household`.** The view is on its own route. The dashboard does not
+change: it shows the potential of one person. The route shows one card for each
+currency. It also shows the warning that a transfer of points is permanent, because a
+person reads real values there and then decides.
+
+**8. The removal.** When the owner removes the account, or removes the household, the
+foreign keys remove the household, its invitations and its manual members. The accounts
+and the snapshots of the manual members go with them. A member of Yume loses only the
+share: the accounts of that member stay. When a member removes the account, the
+household loses that member. Paragraph 4.9 gives the removal of the account.
+
+**9. The invitation.** Yume sends no email. The owner writes the Google address and the
+name of the person. The person sees the invitation on `/household` at the next sign-in
+with that address. The person accepts or refuses it. The owner tells the person out of
+Yume. Only the Google account with that address can accept, thus a message that goes to a
+third person gives no access. The address of an invitation is a personal datum: the owner
+sees it. The invited person sees the address of the owner, because that person must know
+who invites. The other members see no address.
+
+**The names.** Yume keeps no name of a Google account: paragraph 4.1. Thus the owner
+writes the name of each other member, in the invitation or in the form of a manual
+member. The acceptance copies the name of the invitation to the row of the member. The
+row of the owner holds no name, and the page shows the label of the owner.
+
+**10. No tool of the MCP server.** The tools of paragraph 4.7.3 stay personal. A later
+task can add a tool. That task must examine the rules of the two directories.
+
+**The tables.**
+
+```
+household(id, ownerId, createdAt)                  -- ownerId is unique
+household_member(id, householdId, userId?, name?, createdAt)
+                                                   -- userId is unique
+household_invite(householdId, email, name, createdAt) -- the key is the pair
+household_pool(programId, country, validFrom, validTo?)
+user_account(..., memberId?)                       -- a manual member only
+```
+
+- The owner also has a row in `household_member`. Then the unique column `userId` makes
+  the rule "one household for each user" mechanical.
+- A row of `household_member` holds `userId`, `name` or the two. A check of SQLite
+  refuses a row with neither. A manual member holds `name` only, and the owner holds
+  `userId` only.
+- An account of a manual member holds `userId` of the owner and `memberId` of that
+  member. Thus the foreign key of `userId` removes it with the owner, and the foreign key
+  of `memberId` removes it with the member. Each personal query of `user_account` reads
+  only the rows with no `memberId`. The dashboard, the limits of paragraph 4.6 and the
+  tools of the MCP server then do not see the manual members.
+- The limits of the free account do not apply to a manual member: the owner of a new
+  account of a manual member is a supporter.
+
+**The calculation.** `householdPotential` of `src/shared/household.ts` calls
+`potentialMiles` for each member, with the country of the household. Then it adds the
+totals of the members when the currency has a pool. The function is pure.
+
+**The routes.** Each route is under `/api/household`. A route examines the request
+first, the role second and the level last, as paragraph 4.6 gives.
+
+| Route | Who | Level of the owner |
+|---|---|---|
+| `GET /api/household` | Each user | None |
+| `POST /api/household` | A user with no household | Supporter |
+| `DELETE /api/household` | The owner | None |
+| `POST /api/household/invites` | The owner | Supporter |
+| `DELETE /api/household/invites/:email` | The owner | None |
+| `POST /api/household/invitations/:householdId` | The invited person | None |
+| `DELETE /api/household/invitations/:householdId` | The invited person | None |
+| `POST /api/household/members` | The owner | Supporter |
+| `DELETE /api/household/members/:id` | The owner, or the member for its own row | None |
+| `POST /api/household/members/:id/accounts` | The owner | Supporter |
+| `POST /api/household/accounts/:id/snapshots` | The owner | None |
+| `DELETE /api/household/accounts/:id` | The owner | None |
+
+The owner cannot leave the household: the owner removes it. An invitation of an address
+that is in the household gives the status 409. The removal of a member of Yume does not
+remove an account of that member.
 
 ## 5. User interface
 
@@ -1588,7 +1726,8 @@ rules for TLS.
 
 ### 5.5.1 The routes of the client
 
-The client holds nine routes: `/` for the public page, `/dashboard` for the dashboard,
+The client holds ten routes: `/` for the public page, `/dashboard` for the dashboard,
+`/household` for the household of paragraph 4.10,
 `/login` for the access, `/consent` for the authorisation of an assistant (paragraph
 4.7.2), `/admin` for the administrator (paragraph 4.8), `/privacy` for the policy of the
 personal data, `/tos` for the terms of the service, `/connector` for the documentation
@@ -2392,6 +2531,14 @@ again with an account of Revolut Spain.
 | Finnair Plus (Avios), Thai Royal Orchid Plus | 99,09 |
 | SAS EuroBonus | 130,59 |
 | British Airways Club, Iberia Club, Vueling Club, Aer Lingus AerClub (Avios), Flying Blue, Turkish Miles&Smiles, Avianca LifeMiles, United MileagePlus | 78,17 |
+
+### Household pools
+
+`HOUSEHOLD_POOLS` holds ANA Mileage Club in Italy and in Spain from 2026-11-24. The
+page of the AMC Family Account Service gives 2 to 8 members, a fee of 1 000 miles and a
+member who lives outside Japan. A programme with no row has no pool. On 2026-11-24 the
+tools of the session could not read the pages of 20 programmes, for example British
+Airways, Iberia and Flying Blue. Those programmes have no row until a person reads them.
 
 ### Programmes with no transfer source
 

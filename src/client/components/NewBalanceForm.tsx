@@ -3,7 +3,7 @@ import { useId, useState } from "react";
 import type { ExpiryLot } from "../../shared/api.ts";
 import { useI18n } from "../i18n/I18n.tsx";
 import type { Messages } from "../i18n/messages.ts";
-import { addSnapshot, fetchMe } from "../lib/api.ts";
+import { addMemberSnapshot, addSnapshot, fetchMe } from "../lib/api.ts";
 import { parsePoints, todayIso } from "../lib/balance.ts";
 import { isSupporterRequired } from "../lib/errors.ts";
 import {
@@ -37,10 +37,13 @@ import { Label } from "./ui/label.tsx";
 export function NewBalanceForm({
 	accountId,
 	lots,
+	member = false,
 }: {
 	accountId: string;
 	/** The expiry lots of the current balance. */
 	lots: ExpiryLot[];
+	/** True for an account of a manual member of the household. Paragraph 4.10. */
+	member?: boolean;
 }) {
 	const { t: text } = useI18n();
 	const [open, setOpen] = useState(false);
@@ -59,7 +62,12 @@ export function NewBalanceForm({
 	}
 
 	return (
-		<Fields accountId={accountId} lots={lots} onClose={() => setOpen(false)} />
+		<Fields
+			accountId={accountId}
+			lots={lots}
+			member={member}
+			onClose={() => setOpen(false)}
+		/>
 	);
 }
 
@@ -81,10 +89,12 @@ type Row = LotDraft & { readonly key: number };
 function Fields({
 	accountId,
 	lots,
+	member,
 	onClose,
 }: {
 	accountId: string;
 	lots: ExpiryLot[];
+	member: boolean;
 	onClose: () => void;
 }) {
 	const { t: text, intl } = useI18n();
@@ -112,12 +122,17 @@ function Fields({
 	const queryClient = useQueryClient();
 	const save = useMutation({
 		mutationFn: (value: { points: number; lots: ExpiryLot[] }) =>
-			addSnapshot(accountId, { ...value, observedAt }),
+			(member ? addMemberSnapshot : addSnapshot)(accountId, {
+				...value,
+				observedAt,
+			}),
 		onSuccess: async () => {
 			// A new balance changes the list and also the potential of each
-			// currency that the account can reach.
+			// currency that the account can reach. The household shows the
+			// personal accounts of the members too.
 			await queryClient.invalidateQueries({ queryKey: ["accounts"] });
 			await queryClient.invalidateQueries({ queryKey: ["potential"] });
+			await queryClient.invalidateQueries({ queryKey: ["household"] });
 			onClose();
 		},
 	});

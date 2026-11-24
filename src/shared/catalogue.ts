@@ -121,6 +121,22 @@ export type TransferRule = {
 	readonly validTo: IsoDate | null;
 };
 
+/**
+ * A programme that lets the members of one household pool their miles into
+ * one balance, in one country, for a period.
+ *
+ * A pool is a fact of the catalogue, as a transfer rule. It has a country and
+ * a period, and it is historical data. A programme with no pool lets each
+ * person spend only the own miles. Paragraph 4.10 of `docs/architecture.md`.
+ */
+export type HouseholdPool = {
+	readonly programId: string;
+	readonly country: CountryCode;
+	readonly validFrom: IsoDate;
+	/** The first date on which the pool is no longer valid, or null. */
+	readonly validTo: IsoDate | null;
+};
+
 /** The current balance of one account of the user. */
 export type AccountBalance = {
 	readonly programId: string;

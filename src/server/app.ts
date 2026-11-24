@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { Hono } from "hono";
+import { type Context, Hono } from "hono";
 import { bodyLimit } from "hono/body-limit";
 import { csrf } from "hono/csrf";
 import { secureHeaders } from "hono/secure-headers";
@@ -15,6 +15,7 @@ import {
 	type ConnectionsResponse,
 	createAccountSchema,
 	type FavoritesResponse,
+	type HouseholdResponse,
 	type MeResponse,
 	NO_CUSTOMER,
 	type PotentialResponse,
@@ -50,6 +51,7 @@ import {
 	createAccount,
 	currentBalances,
 	deleteAccount,
+	deleteMemberAccount,
 	deleteSnapshot,
 	favoriteCurrencies,
 	findAccount,
@@ -60,6 +62,19 @@ import {
 	setCountry,
 	setUnlimited,
 } from "./db/queries.ts";
+import {
+	acceptInvitation,
+	addManualMember,
+	addMemberAccount,
+	cancelInvite,
+	createHousehold,
+	type HouseholdResult,
+	householdOf,
+	invite,
+	refuseInvitation,
+	removeHousehold,
+	removeMember,
+} from "./household.ts";
 import { createMcpHandler } from "./mcp.ts";
 import {
 	entitlementOf,
@@ -493,6 +508,165 @@ export function createApp(
 		}
 		const body: PotentialResponse = result.value;
 		return c.json(body);
+	});
+
+	/**
+	 * The household of paragraph 4.10 of `docs/architecture.md`.
+	 * `src/server/household.ts` holds each examination, thus each route only
+	 * writes the answer.
+	 */
+	const answer = <T>(
+		c: Context,
+		result: HouseholdResult<T>,
+		success: (value: T) => Response,
+	) =>
+		result.ok
+			? success(result.value)
+			: c.json(
+					result.issues === undefined
+						? { error: result.error }
+						: { error: result.error, issues: result.issues },
+					result.status,
+				);
+	const noContent = (c: Context) => () => c.body(null, 204);
+	const created = (c: Context) => (value: { id: string }) => c.json(value, 201);
+
+	app.get("/api/household", (c) => {
+		const body: HouseholdResponse = householdOf(
+			db,
+			c.get("userId"),
+			limits,
+			new Date(),
+		);
+		return c.json(body);
+	});
+
+	app.post("/api/household", (c) =>
+		answer(
+			c,
+			createHousehold(db, c.get("userId"), limits, new Date()),
+			created(c),
+		),
+	);
+
+	app.delete("/api/household", (c) =>
+		answer(c, removeHousehold(db, c.get("userId")), noContent(c)),
+	);
+
+	app.post("/api/household/invites", async (c) =>
+		answer(
+			c,
+			invite(
+				db,
+				c.get("userId"),
+				await c.req.json().catch(() => null),
+				limits,
+				new Date(),
+			),
+			noContent(c),
+		),
+	);
+
+	app.delete("/api/household/invites/:email", (c) =>
+		answer(
+			c,
+			cancelInvite(db, c.get("userId"), c.req.param("email")),
+			noContent(c),
+		),
+	);
+
+	app.post("/api/household/invitations/:householdId", (c) =>
+		answer(
+			c,
+			acceptInvitation(
+				db,
+				c.get("userId"),
+				c.req.param("householdId"),
+				new Date(),
+			),
+			noContent(c),
+		),
+	);
+
+	app.delete("/api/household/invitations/:householdId", (c) =>
+		answer(
+			c,
+			refuseInvitation(db, c.get("userId"), c.req.param("householdId")),
+			noContent(c),
+		),
+	);
+
+	app.post("/api/household/members", async (c) =>
+		answer(
+			c,
+			addManualMember(
+				db,
+				c.get("userId"),
+				await c.req.json().catch(() => null),
+				limits,
+				new Date(),
+			),
+			created(c),
+		),
+	);
+
+	app.delete("/api/household/members/:id", (c) =>
+		answer(
+			c,
+			removeMember(db, c.get("userId"), c.req.param("id")),
+			noContent(c),
+		),
+	);
+
+	app.post("/api/household/members/:id/accounts", async (c) =>
+		answer(
+			c,
+			addMemberAccount(
+				db,
+				c.get("userId"),
+				c.req.param("id"),
+				await c.req.json().catch(() => null),
+				limits,
+				new Date(),
+			),
+			created(c),
+		),
+	);
+
+	/**
+	 * Adds a snapshot to an account of a manual member. `recordSnapshot` gives
+	 * the examinations of a personal account. The end of a supporter account
+	 * does not stop an update of a balance.
+	 */
+	app.post("/api/household/accounts/:id/snapshots", async (c) => {
+		const result = recordSnapshot(db, {
+			userId: c.get("userId"),
+			accountId: c.req.param("id"),
+			body: await c.req.json().catch(() => null),
+			now: new Date(),
+			limits,
+			scope: "member",
+		});
+		if (result.ok) {
+			return c.json({ id: result.id }, 201);
+		}
+		switch (result.error) {
+			case "unknown_account":
+				return c.json({ error: result.error }, 404);
+			case "invalid_body":
+				return c.json({ error: result.error, issues: result.issues }, 400);
+			case "future_date":
+				return c.json({ error: result.error }, 400);
+			case SUPPORTER_REQUIRED:
+				return c.json({ error: result.error }, 403);
+		}
+	});
+
+	app.delete("/api/household/accounts/:id", (c) => {
+		if (!deleteMemberAccount(db, c.req.param("id"), c.get("userId"))) {
+			return c.json({ error: "unknown_account" }, 404);
+		}
+		return c.body(null, 204);
 	});
 
 	/**

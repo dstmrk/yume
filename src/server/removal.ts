@@ -3,7 +3,9 @@
  *
  * The foreign keys remove each row of the user: the accounts, the snapshots,
  * the sessions, the tokens of the assistants and the customer of Stripe.
- * Paragraph 4.9 of `docs/architecture.md` gives the decisions.
+ * They also remove the household of an owner, with its manual members and
+ * their accounts, and the row of a member in a household. Paragraphs 4.9 and
+ * 4.10 of `docs/architecture.md` give the decisions.
  */
 
 import { eq } from "drizzle-orm";

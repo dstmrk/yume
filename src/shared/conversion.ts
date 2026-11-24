@@ -30,8 +30,11 @@ export function convert(balance: number, rule: TransferRule): number {
 	return Math.floor((transferable * rule.ratioNum) / rule.ratioDen);
 }
 
-/** Examines if a rule is valid at a date. */
-export function isValidAt(rule: TransferRule, at: IsoDate): boolean {
+/** Examines if a rule, or a pool of a household, is valid at a date. */
+export function isValidAt(
+	rule: Pick<TransferRule, "validFrom" | "validTo">,
+	at: IsoDate,
+): boolean {
 	return rule.validFrom <= at && (rule.validTo === null || rule.validTo > at);
 }
 
