@@ -32,6 +32,8 @@ import {
 	balanceSnapshot,
 	expiryLot,
 	favoriteCurrency,
+	household,
+	householdMember,
 	oauthAccessToken,
 	oauthConsent,
 	oauthRefreshToken,
@@ -1202,5 +1204,60 @@ describe("setCountry", () => {
 	it("gives false for a user that does not exist", () => {
 		expect(setCountry(db, "nobody", "IT")).toBe(false);
 		expect(countryOf(db, "nobody")).toBeNull();
+	});
+});
+
+describe("the accounts of a manual member of a household", () => {
+	const at = "2026-11-24T10:00:00.000Z";
+	let manualAccount: string;
+	let own: string;
+
+	beforeEach(() => {
+		db.insert(household)
+			.values({ id: "household-1", ownerId: USER, createdAt: at })
+			.run();
+		db.insert(householdMember)
+			.values({
+				id: "manual-1",
+				householdId: "household-1",
+				name: "Giulia",
+				createdAt: at,
+			})
+			.run();
+		own = createAccount(db, { userId: USER, programId: "iberia-club" });
+		manualAccount = "manual-account";
+		db.insert(userAccount)
+			.values({
+				id: manualAccount,
+				userId: USER,
+				programId: "ba-club",
+				memberId: "manual-1",
+			})
+			.run();
+		addSnapshot(db, {
+			accountId: manualAccount,
+			points: 500,
+			observedAt: "2026-11-24",
+		});
+	});
+
+	it("is not in the balances of the owner", () => {
+		expect(currentBalances(db, USER).map((row) => row.accountId)).toEqual([
+			own,
+		]);
+	});
+
+	it("is not an account of the owner for findAccount", () => {
+		expect(findAccount(db, manualAccount, USER)).toBeUndefined();
+	});
+
+	it("does not count in the accounts of the owner", () => {
+		expect(countAccounts(db, USER)).toBe(1);
+		expect(accountProgramIds(db, USER)).toEqual(["iberia-club"]);
+	});
+
+	it("is not removed by deleteAccount of the owner", () => {
+		expect(deleteAccount(db, manualAccount, USER)).toBe(false);
+		expect(db.select().from(userAccount).all()).toHaveLength(2);
 	});
 });

@@ -34,6 +34,18 @@ import {
 } from "./schema.ts";
 
 /**
+ * The condition of the personal accounts of the user.
+ *
+ * An account of a manual member of a household holds the id of the owner in
+ * `user_id`, and the id of the member in `member_id`. The dashboard, the
+ * limits of the free account and the tools of the MCP server read the
+ * personal accounts only. Paragraph 4.10 of `docs/architecture.md`.
+ */
+function personalAccounts(userId: string) {
+	return and(eq(userAccount.userId, userId), isNull(userAccount.memberId));
+}
+
+/**
  * Gives each account of the user with its current balance.
  *
  * The current balance is the most recent snapshot of the account: the latest
@@ -62,7 +74,7 @@ export function currentBalances(db: Db, userId: string): AccountRow[] {
 					limit 1)`,
 			),
 		)
-		.where(eq(userAccount.userId, userId))
+		.where(personalAccounts(userId))
 		.orderBy(asc(userAccount.id))
 		.all();
 
@@ -113,7 +125,7 @@ export function findAccount(db: Db, accountId: string, userId: string) {
 	return db
 		.select()
 		.from(userAccount)
-		.where(and(eq(userAccount.id, accountId), eq(userAccount.userId, userId)))
+		.where(and(eq(userAccount.id, accountId), personalAccounts(userId)))
 		.get();
 }
 
@@ -144,7 +156,7 @@ export function countAccounts(db: Db, userId: string): number {
 	const row = db
 		.select({ count: sql<number>`count(*)` })
 		.from(userAccount)
-		.where(eq(userAccount.userId, userId))
+		.where(personalAccounts(userId))
 		.get();
 	return row?.count ?? 0;
 }
@@ -193,7 +205,7 @@ export function deleteAccount(
 ): boolean {
 	const result = db
 		.delete(userAccount)
-		.where(and(eq(userAccount.id, accountId), eq(userAccount.userId, userId)))
+		.where(and(eq(userAccount.id, accountId), personalAccounts(userId)))
 		.run();
 	return result.changes > 0;
 }
@@ -598,7 +610,7 @@ export function accountProgramIds(db: Db, userId: string): string[] {
 	return db
 		.select({ programId: userAccount.programId })
 		.from(userAccount)
-		.where(eq(userAccount.userId, userId))
+		.where(personalAccounts(userId))
 		.all()
 		.map((row) => row.programId);
 }

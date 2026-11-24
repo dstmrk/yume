@@ -213,6 +213,29 @@ describe("the removal of a user", () => {
 });
 
 /**
+ * Writes the part of the catalogue that the tests of an old version read, with
+ * SQL. `seedCatalogue` writes the tables of the current schema, and an old
+ * version does not hold each of them.
+ */
+function oldCatalogue(old: Db): void {
+	old.run(sql`insert into currency (id, code, name, kind) values
+		('amex-mr', 'MR', 'Membership Rewards', 'flexible'),
+		('revpoints', 'REVPOINTS', 'RevPoints', 'flexible')`);
+	old.run(sql`insert into program (id, currency_id, code, name, transferable)
+		values ('amex-mr', 'amex-mr', 'AMEX_MR', 'Amex', 1)`);
+}
+
+/**
+ * Writes an account of the user `author` with SQL, as `oldCatalogue` gives.
+ * `createAccount` writes the columns of the current schema.
+ */
+function oldAccount(old: Db): string {
+	old.run(sql`insert into user_account (id, user_id, program_id)
+		values ('account-1', 'author', 'amex-mr')`);
+	return "account-1";
+}
+
+/**
  * A copy of `drizzle/` with the migrations until `tag` only. A test applies it,
  * writes the rows of that old version, then applies the full folder.
  */
@@ -258,7 +281,7 @@ describe("the migration of the sign-in with Google", () => {
 	it("removes the users of the first version and their data", () => {
 		const old = openDatabase(":memory:");
 		migrate(old, { migrationsFolder: oldMigrations() });
-		seedCatalogue(old);
+		oldCatalogue(old);
 		expect(tablesOf(old)).toContain("invitation");
 
 		const now = Math.floor(Date.now() / 1000);
@@ -272,10 +295,7 @@ describe("the migration of the sign-in with Google", () => {
 			values ('verification-1', 'x', 'y', ${now + 3600}, ${now}, ${now})`);
 		old.run(sql`insert into invitation (id, code, created_by_user_id, expires_at)
 			values ('invitation-1', 'ABCDEFGHJK', 'author', '2026-12-31')`);
-		const accountId = createAccount(old, {
-			userId: "author",
-			programId: "amex-mr",
-		});
+		const accountId = oldAccount(old);
 		// The table of that version has no column `created_at`, thus the test
 		// writes the snapshot with SQL and not with `addSnapshot`.
 		old.run(sql`insert into balance_snapshot (id, account_id, points, observed_at)
@@ -346,14 +366,11 @@ describe("the migration that adds the moment of the write", () => {
 		migrate(old, {
 			migrationsFolder: migrationsUntil("0007_drop_google_profile"),
 		});
-		seedCatalogue(old);
+		oldCatalogue(old);
 		const now = Math.floor(Date.now() / 1000);
 		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at)
 			values ('author', '', 'autore@example.com', 1, ${now}, ${now})`);
-		const accountId = createAccount(old, {
-			userId: "author",
-			programId: "amex-mr",
-		});
+		const accountId = oldAccount(old);
 		for (const [id, points, observedAt] of [
 			[OLDER_DATE, 9000, "2026-10-01"],
 			[FIRST, 10000, "2026-11-01"],
@@ -532,5 +549,191 @@ describe("the migration of the country of the user", () => {
 	it("gives no country to a user of the new version", () => {
 		insertUser(db, "user-1", null);
 		expect(db.select().from(schema.user).all()[0]?.country).toBeNull();
+	});
+});
+
+describe("the migration of the household", () => {
+	it("keeps the accounts of the version before as personal accounts", () => {
+		const old = openDatabase(":memory:");
+		migrate(old, { migrationsFolder: migrationsUntil("0014_user_country") });
+
+		const now = Math.floor(Date.now() / 1000);
+		old.run(sql`insert into user (id, name, email, email_verified, created_at, updated_at, country)
+			values ('author', '', 'autore@example.com', 1, ${now}, ${now}, 'IT')`);
+		old.run(sql`insert into currency (id, code, name, kind)
+			values ('avios', 'AVIOS', 'Avios', 'airline')`);
+		old.run(sql`insert into program (id, currency_id, code, name, transferable)
+			values ('ba-club', 'avios', 'BA', 'British Airways Club', 0)`);
+		old.run(sql`insert into user_account (id, user_id, program_id)
+			values ('account-1', 'author', 'ba-club')`);
+		old.run(sql`insert into balance_snapshot (id, account_id, points, observed_at, created_at)
+			values ('snapshot-1', 'account-1', 1900, '2026-11-09', '2026-11-09T10:00:00.000Z')`);
+
+		migrate(old, { migrationsFolder: "drizzle" });
+
+		expect(old.select().from(schema.userAccount).all()).toEqual([
+			{
+				id: "account-1",
+				userId: "author",
+				programId: "ba-club",
+				memberId: null,
+			},
+		]);
+		expect(currentBalances(old, "author")[0]).toMatchObject({ points: 1900 });
+	});
+});
+
+describe("the tables of the household", () => {
+	const at = "2026-11-24T10:00:00.000Z";
+
+	function household(ownerId: string): { id: string; manual: string } {
+		const id = `household-${ownerId}`;
+		db.insert(schema.household).values({ id, ownerId, createdAt: at }).run();
+		db.insert(schema.householdMember)
+			.values({
+				id: `member-${ownerId}`,
+				householdId: id,
+				userId: ownerId,
+				createdAt: at,
+			})
+			.run();
+		const manual = `manual-${ownerId}`;
+		db.insert(schema.householdMember)
+			.values({ id: manual, householdId: id, name: "Giulia", createdAt: at })
+			.run();
+		return { id, manual };
+	}
+
+	beforeEach(() => {
+		seedCatalogue(db);
+		insertUser(db, "owner");
+		insertUser(db, "member");
+	});
+
+	it("refuses a member with a user and a name", () => {
+		const { id } = household("owner");
+		expect(() =>
+			db
+				.insert(schema.householdMember)
+				.values({
+					id: "x",
+					householdId: id,
+					userId: "member",
+					name: "Luca",
+					createdAt: at,
+				})
+				.run(),
+		).toThrow();
+	});
+
+	it("refuses a member with no user and no name", () => {
+		const { id } = household("owner");
+		expect(() =>
+			db
+				.insert(schema.householdMember)
+				.values({ id: "x", householdId: id, createdAt: at })
+				.run(),
+		).toThrow();
+	});
+
+	it("refuses a user in two households", () => {
+		household("owner");
+		const second = household("member");
+		expect(() =>
+			db
+				.insert(schema.householdMember)
+				.values({
+					id: "x",
+					householdId: second.id,
+					userId: "owner",
+					createdAt: at,
+				})
+				.run(),
+		).toThrow();
+	});
+
+	it("refuses a second household of one owner", () => {
+		household("owner");
+		expect(() =>
+			db
+				.insert(schema.household)
+				.values({ id: "other", ownerId: "owner", createdAt: at })
+				.run(),
+		).toThrow();
+	});
+
+	it("removes the household and the manual members with the owner", () => {
+		const { id, manual } = household("owner");
+		db.insert(schema.householdMember)
+			.values({ id: "m2", householdId: id, userId: "member", createdAt: at })
+			.run();
+		db.insert(schema.householdInvite)
+			.values({ householdId: id, email: "a@example.com", createdAt: at })
+			.run();
+		const own = createAccount(db, { userId: "member", programId: "ba-club" });
+		db.insert(schema.userAccount)
+			.values({
+				id: "manual-account",
+				userId: "owner",
+				programId: "ba-club",
+				memberId: manual,
+			})
+			.run();
+		addSnapshot(db, {
+			accountId: "manual-account",
+			points: 10,
+			observedAt: "2026-11-24",
+		});
+
+		db.delete(schema.user).where(eq(schema.user.id, "owner")).run();
+
+		expect(db.select().from(schema.household).all()).toEqual([]);
+		expect(db.select().from(schema.householdMember).all()).toEqual([]);
+		expect(db.select().from(schema.householdInvite).all()).toEqual([]);
+		expect(
+			db
+				.select()
+				.from(schema.userAccount)
+				.all()
+				.map((row) => row.id),
+		).toEqual([own]);
+		expect(db.select().from(schema.balanceSnapshot).all()).toEqual([]);
+	});
+
+	it("removes the accounts of a manual member with that member", () => {
+		const { manual } = household("owner");
+		db.insert(schema.userAccount)
+			.values({
+				id: "manual-account",
+				userId: "owner",
+				programId: "ba-club",
+				memberId: manual,
+			})
+			.run();
+
+		db.delete(schema.householdMember)
+			.where(eq(schema.householdMember.id, manual))
+			.run();
+
+		expect(db.select().from(schema.userAccount).all()).toEqual([]);
+	});
+
+	it("removes only the row of a member of Yume who removes the account", () => {
+		const { id } = household("owner");
+		db.insert(schema.householdMember)
+			.values({ id: "m2", householdId: id, userId: "member", createdAt: at })
+			.run();
+
+		db.delete(schema.user).where(eq(schema.user.id, "member")).run();
+
+		expect(db.select().from(schema.household).all()).toHaveLength(1);
+		expect(
+			db
+				.select()
+				.from(schema.householdMember)
+				.all()
+				.map((row) => row.id)
+				.sort(),
+		).toEqual(["manual-owner", "member-owner"]);
 	});
 });
