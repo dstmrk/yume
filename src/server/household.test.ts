@@ -606,6 +606,8 @@ describe("the potential miles of the household", () => {
 	}
 
 	beforeEach(async () => {
+		// The seed holds the pools of the catalogue. Each test writes its own.
+		db.delete(householdPool).run();
 		const id = await make();
 		createAccount(db, {
 			userId: OWNER,
