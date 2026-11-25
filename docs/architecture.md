@@ -2534,11 +2534,20 @@ again with an account of Revolut Spain.
 
 ### Household pools
 
-`HOUSEHOLD_POOLS` holds ANA Mileage Club in Italy and in Spain from 2026-11-24. The
-page of the AMC Family Account Service gives 2 to 8 members, a fee of 1 000 miles and a
-member who lives outside Japan. A programme with no row has no pool. On 2026-11-24 the
-tools of the session could not read the pages of 20 programmes, for example British
-Airways, Iberia and Flying Blue. Those programmes have no row until a person reads them.
+`HOUSEHOLD_POOLS` gives a pool in Italy and in Spain to these programmes, from
+2026-11-24: ANA Mileage Club, British Airways Club, Iberia Club, Flying Blue, SAS
+EuroBonus, Emirates Skywards, Turkish Miles&Smiles, Aegean Miles+Bonus, Etihad Guest, Air
+Europa SUMA, United MileagePlus, Miles & More, Korean Air SKYPASS and JAL Mileage Bank.
+Qatar has a pool in Spain only: the page of Italy gives the status 404.
+
+- Flying Blue Family moves the miles of the members into the account of the leader. The
+  user counts that operation as a pool (2026-11-25).
+- Emirates stops its pool in January 2027. The page gives no day, thus `validTo` is
+  2027-01-01.
+- The user accepted one read of the pages of 2026-11-24, in place of two reads.
+
+Aer Lingus, Vueling, Delta, Icelandair and Thai give a transfer or no feature. LifeMiles
+has no page that the read found. These programmes have no row.
 
 ### Programmes with no transfer source
 

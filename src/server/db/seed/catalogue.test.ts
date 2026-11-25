@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { COUNTRIES } from "../../../shared/catalogue.ts";
 import { convert, findRule } from "../../../shared/conversion.ts";
+import { hasHouseholdPool } from "../../../shared/household.ts";
 import {
 	currencies,
 	HOUSEHOLD_POOLS,
@@ -295,5 +296,33 @@ describe("the pools of the households", () => {
 			validTo: pool.validTo,
 		}));
 		expect(continuityErrors(asRules)).toEqual([]);
+	});
+});
+
+describe("the pools of the households of 2026-11-24", () => {
+	const pooled = (currencyId: string, country: string, at: string) =>
+		hasHouseholdPool({
+			currencyId,
+			programs,
+			pools: HOUSEHOLD_POOLS,
+			country,
+			at,
+		});
+
+	it("gives a pool to Avios and Miles & More in Italy and Spain", () => {
+		for (const country of ["IT", "ES"]) {
+			expect(pooled("avios", country, "2026-11-24")).toBe(true);
+			expect(pooled("miles-and-more", country, "2026-11-24")).toBe(true);
+		}
+	});
+
+	it("closes the pool of Emirates from January 2027", () => {
+		expect(pooled("skywards", "IT", "2026-12-31")).toBe(true);
+		expect(pooled("skywards", "IT", "2027-01-01")).toBe(false);
+	});
+
+	it("gives no pool to a programme of transfers only", () => {
+		expect(pooled("saga-points", "IT", "2026-11-24")).toBe(false);
+		expect(pooled("royal-orchid-plus", "IT", "2026-11-24")).toBe(false);
 	});
 });

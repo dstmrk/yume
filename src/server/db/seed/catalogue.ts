@@ -1421,6 +1421,9 @@ export const transferRules: readonly TransferRule[] = [
  * Do not remove a row. A programme with no row has no pool, and the household
  * then shows no total for its currency.
  */
+// The pools below ANA come from one read of the official pages in the
+// browser of the user on 2026-11-24. The user accepted one read in place of
+// two (2026-11-25).
 export const HOUSEHOLD_POOLS: readonly HouseholdPool[] = [
 	{
 		// "AFA is a service for members who live outside Japan which allows you
@@ -1436,6 +1439,275 @@ export const HOUSEHOLD_POOLS: readonly HouseholdPool[] = [
 		// The same text as the page of Italy.
 		// Source: https://www.ana.co.jp/en/es/amc/amc-family-account-service/
 		programId: "ana",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "La creazione del Conto Collettivo è gratuita e offre l'opportunità di
+		// condividere gli Avios con massimo sei persone"
+		// Conto Collettivo. Free, up to 6 people.
+		// Source: https://www.britishairways.com/content/it/it/the-british-airways-club/about-the-club/household-accounts
+		programId: "ba-club",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Crearla es gratis y en ella podrá agrupar todos los Avios de hasta seis
+		// personas"
+		// Cuenta Familiar. Free, up to 6 people.
+		// Source: https://www.britishairways.com/content/es/es/the-british-airways-club/about-the-club/household-accounts
+		programId: "ba-club",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "The Family account lets you and your loved ones pool all your Avios
+		// into one balance."
+		// Family account. Up to 7 people. The page loads in English.
+		// Source: https://www.iberia.com/it/iberia-club/family-Account/
+		programId: "iberia-club",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Combine Avios from up to 7 people into a single balance."
+		// Family account. Up to 7 people. The page loads in English.
+		// Source: https://www.iberia.com/es/iberia-club/family-Account/
+		programId: "iberia-club",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Obtengan Avios como grupo para aumentar su saldo y llegar más rápido a
+		// la siguiente recompensa."
+		// Family & Friends. Up to 9 members. The page of Italy gives 404.
+		// Source: https://www.qatarairways.com/es-es/Privilege-Club/family-and-friends.html
+		programId: "qatar",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Il/la responsabile della Flying Blue Family è l’unica persona
+		// autorizzata a trasferire Miglia dagli account dei soci della Flying Blue
+		// Family."
+		// Flying Blue Family. The leader moves the miles of the members into one
+		// account, free. The user counts that as a pool (2026-11-25).
+		// Source: https://www.flyingblue.com/it/programme/faq?country=IT
+		programId: "flying-blue",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "El líder de Flying Blue Familia es la única persona que puede
+		// transferir Millas de las cuentas de los socios de Flying Blue Familia."
+		// Flying Blue Familia. Same as Italy.
+		// Source: https://www.flyingblue.com/es/programme/faq?country=ES
+		programId: "flying-blue",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Point sharing allows several EuroBonus members to collect EuroBonus
+		// points in one account"
+		// Point Sharing. 2 to 8 members. Global page.
+		// Source: https://www.flysas.com/en/legal-info/point-sharing
+		programId: "sas",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Point sharing allows several EuroBonus members to collect EuroBonus
+		// points in one account"
+		// Point Sharing. Same global page.
+		// Source: https://www.flysas.com/en/legal-info/point-sharing
+		programId: "sas",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Riversate in un unico account le Miglia Skywards accumulate sui voli e
+		// con i nostri partner"
+		// Programma per Famiglie. The page stops the pool from January 2027 with
+		// no exact day: validTo is the first day of that month.
+		// Source: https://www.emirates.com/it/italian/skywards/my-family/
+		programId: "emirates",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: "2027-01-01",
+	},
+	{
+		// "Reúna todas las millas Skywards que obtenga con sus vuelos y con
+		// nuestros socios colaboradores en una sola cuenta"
+		// Programa Familiar. Same end as Italy.
+		// Source: https://www.emirates.com/es/spanish/skywards/my-family/
+		programId: "emirates",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: "2027-01-01",
+	},
+	{
+		// "possono raggruppare le loro Miglia in un unico account e riscattarle
+		// congiuntamente."
+		// Affiliazione per familiari. Classic Plus, Elite and Elite Plus only.
+		// Source: https://www.turkishairlines.com/it-it/miles-and-smiles/program-features/family-membership-classic-plus/
+		programId: "turkish",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "pueden acumular sus Millas en una sola cuenta y canjearlas
+		// conjuntamente."
+		// Condición de miembro familiar. Same tiers as Italy.
+		// Source: https://www.turkishairlines.com/es-es/miles-and-smiles/program-features/family-membership-classic-plus/
+		programId: "turkish",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Tutte le Miglia convertibili accumulate da ciascun membro verranno
+		// automaticamente trasferite sul saldo Together"
+		// Miles+Bonus Together. Up to 5 members.
+		// Source: https://it.aegeanair.com/milesandbonus/together/
+		programId: "aegean",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Todas las millas de canje acumuladas por cada usuario se transferirán
+		// automáticamente al saldo de Together"
+		// Miles+Bonus Together. Same as Italy.
+		// Source: https://es.aegeanair.com/milesandbonus/together/
+		programId: "aegean",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Possono iscriversi fino a nove persone. Guadagna miglia singolarmente e
+		// uniscile per ottenere i premi."
+		// Iscrizione al programma Family. Up to 9 people.
+		// Source: https://www.etihad.com/it-it/etihadguest/family-membership
+		programId: "etihad",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Pueden unirse hasta nueve miembros. Ganad millas por separado y
+		// juntadlas para conseguir recompensas."
+		// Membresía familiar. Same as Italy.
+		// Source: https://www.etihad.com/es-es/etihadguest/family-membership
+		programId: "etihad",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "i membri* della famiglia uniscono le proprie Miglia in un unico conto."
+		// Conti Familiari. Up to 7 members, free.
+		// Source: https://www.aireuropa.com/it/it/aea/suma/il-nostro-programma/conti-familiari.html
+		programId: "air-europa",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "los miembros* de la familia combinan sus Millas en una sola cuenta."
+		// Cuentas Familiares. Same as Italy.
+		// Source: https://www.aireuropa.com/es/es/aea/suma/nuestro-programa/cuentas-familiares.html
+		programId: "air-europa",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Miles pooling allows two or more MileagePlus® members to add miles to a
+		// single account."
+		// Miles pooling. Up to 5 people, free. The page loads in English.
+		// Source: https://www.united.com/en/it/mileageplus/miles-pooling
+		programId: "united",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "La agrupación de millas permite que dos o más socios de MileagePlus®
+		// acumulen sus millas en una sola cuenta."
+		// Agrupación de millas. Same as Italy.
+		// Source: https://www.united.com/es/es/mileageplus/miles-pooling
+		programId: "united",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "Il Mileage Pooling permette a due persone adulte e fino a cinque minori
+		// di accumulare miglia insieme in un unico pool."
+		// Mileage Pooling. 2 adults and up to 5 children.
+		// Source: https://www.miles-and-more.com/it/it/program/at-a-glance/mileage-pooling.html
+		programId: "miles-and-more",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "dos adultos y hasta cinco niños pueden combinar sus millas en un fondo
+		// común"
+		// Mileage Pooling. No es/es site: the Spanish page lists España among the
+		// countries.
+		// Source: https://www.miles-and-more.com/de/es/program/at-a-glance/mileage-pooling.html
+		programId: "miles-and-more",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "you and your family members can pool and use each other’s mileage
+		// without undergoing a separate consent process."
+		// Family Plan. The pool works at the redemption. Global page.
+		// Source: https://www.koreanair.com/contents/skypass/benefits/family-plan/pooling
+		programId: "korean-air",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "you and your family members can pool and use each other’s mileage
+		// without undergoing a separate consent process."
+		// Family Plan. Same global page.
+		// Source: https://www.koreanair.com/contents/skypass/benefits/family-plan/pooling
+		programId: "korean-air",
+		country: "ES",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "JALFC members can combine their family miles to redeem for awards"
+		// JAL Family Club. Primary member outside Japan, up to 8 family members.
+		// Source: https://www.jal.co.jp/jp/en/jalmile/jfc/about.html
+		programId: "jal",
+		country: "IT",
+		validFrom: VERIFIED_ON_HOUSEHOLD,
+		validTo: null,
+	},
+	{
+		// "JALFC members can combine their family miles to redeem for awards"
+		// JAL Family Club. Same global page.
+		// Source: https://www.jal.co.jp/jp/en/jalmile/jfc/about.html
+		programId: "jal",
 		country: "ES",
 		validFrom: VERIFIED_ON_HOUSEHOLD,
 		validTo: null,
